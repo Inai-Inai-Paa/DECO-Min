@@ -1,6 +1,6 @@
 {
     "version": 1,
-    "name": "Input",
+    "name": "PlayerInput",
     "maps": [
         {
             "name": "PlayerControll",
@@ -150,7 +150,7 @@
                 {
                     "name": "",
                     "id": "75520d9b-689e-4aae-a174-06c360312ffe",
-                    "path": "",
+                    "path": "<Keyboard>/space",
                     "interactions": "",
                     "processors": "",
                     "groups": "",

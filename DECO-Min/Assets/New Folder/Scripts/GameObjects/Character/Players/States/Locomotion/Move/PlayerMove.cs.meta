@@ -1,11 +1,10 @@
 fileFormatVersion: 2
-guid: 055bcfef84f39df47b239720510b1847
+guid: 2ed13fbe432f5374aa550959765d747f
 MonoImporter:
   externalObjects: {}
   serializedVersion: 2
   defaultReferences:
-  - initLocomotionState: {fileID: 11400000, guid: 40f005a6f8380964b86e33a7c8008637, type: 2}
-  - initCombatState: {instanceID: 0}
+  - jumpState: {fileID: 11400000, guid: 8ebc5603d6127424fa8bea5ad33c5a6c, type: 2}
   executionOrder: 0
   icon: {instanceID: 0}
   userData: 

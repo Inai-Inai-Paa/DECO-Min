@@ -1,8 +1,9 @@
+using Unity.VisualScripting;
 using UnityEngine;
 
 public abstract class State : ScriptableObject
 {
-    public string stateName;
+    public string stateName { get; protected set; }
 
     public virtual void Enter() { }
     public virtual void Exit() { }
@@ -15,29 +16,21 @@ public class StateMachine
 
     public void ChangeState(State newState)
     {
-        if (currentState != null)
-        {
-            currentState.Exit();
-        }
+        currentState?.Exit();
 
         currentState = newState;
 
-        if (currentState != null)
-        {
-            currentState.Enter();
-        }
+        currentState?.Enter();
     }
 
     public void Update()
     {
-        if (currentState != null)
-        {
-            currentState.Update();
-        }
+        currentState?.Update();
     }
 
-    public State GetState()
+    public T GetState<T>()
+        where T : State
     {
-        return currentState;
+        return currentState as T;
     }
 }

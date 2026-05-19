@@ -2,21 +2,42 @@ using UnityEngine;
 
 public class Character : MonoBehaviour
 {
-
-    [SerializeField] 
+    [SerializeField]
     private float maxHP = 100.0f;
-    
-    public StateMachine stateMachine = null;
-    public float HP = 100.0f;
 
-    public Character()
+    public float HP { get; protected set; }
+
+    public Vector3 velocity { get; protected set; }
+    public Vector3 baseVelocity;
+    public Vector3 additionalVelocity;
+
+    protected StateMachine locomotionStateMachine;
+    protected StateMachine combatStateMachine;
+
+    private Rigidbody rb;
+
+    protected virtual void Awake()
     {
-        stateMachine = new StateMachine();
+        rb = GetComponent<Rigidbody>();
+
+        locomotionStateMachine = new StateMachine();
+        combatStateMachine = new StateMachine();
+
         HP = maxHP;
     }
 
-    public virtual void Update()
+    protected virtual void Update()
     {
-        stateMachine.Update();
+        baseVelocity = rb.linearVelocity;
+        additionalVelocity = Vector3.zero;
+
+        locomotionStateMachine.Update();
+        combatStateMachine.Update();
+
+        velocity = baseVelocity + additionalVelocity;
+    }
+    protected virtual void FixedUpdate()
+    {
+        rb.linearVelocity = velocity;
     }
 }

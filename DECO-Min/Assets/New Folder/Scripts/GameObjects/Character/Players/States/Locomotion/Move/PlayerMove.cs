@@ -12,7 +12,7 @@ public class PlayerMove : PlayerLocomotionState
     {
         Move();
 
-        if (player.playerInputData.JumpPressed)
+        if (player.playerInputData.HasJumpBuffered(0.2f))
         {
             player.ChangeLocomotionState(jumpState);
         }

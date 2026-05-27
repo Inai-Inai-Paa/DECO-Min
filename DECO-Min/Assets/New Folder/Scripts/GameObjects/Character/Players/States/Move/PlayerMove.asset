@@ -9,8 +9,8 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 1b025895dc4b9b84a8a402ec6846e381, type: 3}
-  m_Name: PlayerJump
-  m_EditorClassIdentifier: Assembly-CSharp::PlayerJump
+  m_Script: {fileID: 11500000, guid: 2ed13fbe432f5374aa550959765d747f, type: 3}
+  m_Name: PlayerMove
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerMove
+  moveSpeed: 5
   jumpForce: 5
-  moveState: {fileID: 0}

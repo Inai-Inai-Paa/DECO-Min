@@ -17,9 +17,3 @@ public abstract class PlayerState : State
         this.stateMachine = stateMachine;
     }
 }
-public abstract class PlayerLocomotionState : PlayerState
-{
-}
-public abstract class PlayerCombatState : PlayerState
-{
-}

@@ -30,7 +30,8 @@ public partial class Player : Character
     {
         // PlayerInputのインスタンスを生成
         _playerInput = new PlayerInput();
-
+        playerInputData = new PlayerInputData();
+        playerInputData.JumpPressedTime = -Mathf.Infinity;
         // PlayerInputのアクションにコールバックを登録
         _playerInput.PlayerControll.XYAxis.started += SetPlayerInputDataAxis;
         _playerInput.PlayerControll.XYAxis.performed += SetPlayerInputDataAxis;

@@ -8,6 +8,7 @@ public abstract class State : ScriptableObject
     public virtual void Enter() { }
     public virtual void Exit() { }
     public virtual void Update() { }
+    public virtual void FixedUpdate() { }
 }
 
 public class StateMachine
@@ -26,6 +27,11 @@ public class StateMachine
     public void Update()
     {
         currentState?.Update();
+    }
+
+    public void FixedUpdate()
+    {
+        currentState?.FixedUpdate();
     }
 
     public T GetState<T>()

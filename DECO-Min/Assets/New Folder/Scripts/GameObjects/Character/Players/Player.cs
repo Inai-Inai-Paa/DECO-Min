@@ -7,27 +7,37 @@ using static UnityEngine.PlayerLoop.PostLateUpdate;
 public partial class Player : Character
 {
     public PlayerInputData playerInputData;
-
+    [Header("ステート")]
+    [Space(2)]
     [SerializeField]
-    private PlayerLocomotionState initLocomotionState = null;
+    private PlayerState initState = null;
 
+    [Header("接地判定")]
+    [Space(2)]
     [SerializeField]
-    private PlayerCombatState initCombatState = null;
+    private Vector3 groundCheckPos;     // 足元の配置オブジェクト
+    [SerializeField]
+    private LayerMask groundLayer;      // Groundレイヤーを指定
+    private float rayDistance = 0.2f;   // 光線を伸ばす長さ
+    [HideInInspector]
+    public bool isGrounded;
 
-    protected override void Awake()
+    private Camera mainCamera = null;
+    [HideInInspector]
+    public Vector3 cameraForward = Vector3.zero;
+
+    protected override void Start()
     {
         // Call the base class's Awake method to ensure that the state machine is initialized
-        base.Awake();
+        base.Start();
 
         InitializeInput();
 
-        if (initLocomotionState != null)
+        mainCamera = Camera.main;
+
+        if (initState != null)
         {
-            ChangePlayerState(locomotionStateMachine, initLocomotionState);
-        }
-        if (initCombatState != null)
-        {
-            ChangePlayerState(combatStateMachine, initCombatState);
+            ChangePlayerState(initState);
         }
     }
     private void OnDestroy()
@@ -40,37 +50,18 @@ public partial class Player : Character
         base.Update();
     }
 
-    public void ChangeLocomotionState(
-    PlayerLocomotionState state)
+    protected override void FixedUpdate()
     {
-        ChangePlayerState(
-            locomotionStateMachine,
-            state);
+        // 足元から下に向かって光線を伸ばす
+        isGrounded = Physics.Raycast(transform.position + groundCheckPos, Vector3.down, rayDistance, groundLayer);
+        cameraForward = Vector3.Scale(mainCamera.transform.forward, new Vector3(1, 0, 1)).normalized;
+
+        base.FixedUpdate();
     }
 
-    public void ChangeCombatState(
-        PlayerCombatState state)
+    public void ChangePlayerState(PlayerState nextState)
     {
-        ChangePlayerState(
-            combatStateMachine,
-            state);
-    }
-    private void ChangePlayerState<T>(
-        StateMachine stateMachine,
-        T state)
-        where T : PlayerState
-    {
-        T prevState = stateMachine.GetState<T>();
-
-        T newState = Instantiate(state);
-
-        newState.Initialize(this, stateMachine);
-
-        stateMachine.ChangeState(newState);
-
-        if (prevState != null)
-        {
-            Destroy(prevState);
-        }
+        nextState.Initialize(this, stateMachine);
+        stateMachine.ChangeState(nextState);
     }
 };

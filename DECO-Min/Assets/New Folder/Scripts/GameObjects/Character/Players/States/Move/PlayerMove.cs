@@ -36,8 +36,14 @@ public class PlayerMove : PlayerState
         Vector3 velocity =
             (input.z * player.cameraForward + input.x * Vector3.Cross(Vector3.up, player.cameraForward)) * moveSpeed;
 
-        // player.transform.rotation = Quaternion.Lerp(player.transform.rotation, Quaternion.LookRotation(velocity, Vector3.up), Time.fixedDeltaTime * 10.0f * input.magnitude);
-
+        if (velocity.sqrMagnitude > 0.0001f)
+        {
+            player.transform.rotation = Quaternion.Lerp(
+                player.transform.rotation,
+                Quaternion.LookRotation(velocity, Vector3.up),
+                Time.fixedDeltaTime * moveSpeed * input.magnitude
+            );
+        }
         player.baseVelocity = new Vector3(velocity.x, player.baseVelocity.y, velocity.z);
     }
 }

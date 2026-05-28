@@ -13,6 +13,8 @@ public class CameraBlendVolume : MonoBehaviour
     [Header("Volume Settings")]
     public float radius = 20f; // 影響半径
 
+    public bool followPlayer = true; // プレイヤーを追従するかどうかのフラグ
+
     [Header("Camera Settings")]
     public CameraParams config = new CameraBlendVolume.CameraParams
     {

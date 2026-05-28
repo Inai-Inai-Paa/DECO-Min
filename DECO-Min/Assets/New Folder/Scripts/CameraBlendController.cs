@@ -4,148 +4,89 @@ using UnityEngine;
 [DefaultExecutionOrder(100)]
 public class CameraBlendController : MonoBehaviour
 {
-    [Header("Target")]
-    [SerializeField] private Transform target;
+    [SerializeField]
+    private Player player;
 
-    [Header("Default Camera")]
-    [SerializeField] private Vector3 defaultOffset = new Vector3(0f, 5f, -10f);
-    [SerializeField] private float defaultFov = 60f;
-    [SerializeField] private float defaultSmoothness = 5f;
-
-    [Header("Blend")]
-    [SerializeField] private float blendSpeed = 5f;
-
-    private Camera cam;
-
-    private Vector3 currentOffset;
-    private float currentFov;
-    private float currentSmoothness;
-
-    private Vector3 velocity;
+    private List<CameraBlendVolume> blendVolumes;
 
     private void Awake()
     {
-        cam = GetComponent<Camera>();
-
-        currentOffset = defaultOffset;
-        currentFov = defaultFov;
-        currentSmoothness = defaultSmoothness;
+        blendVolumes = new List<CameraBlendVolume>(
+            FindObjectsOfType<CameraBlendVolume>());
     }
 
-    private void LateUpdate()
+    private void Update()
     {
-        if (target == null)
-            return;
+        if (player == null) return;
 
-        CameraBlendVolume.CameraParams blendedParams = GetBlendedCameraParams();
+        Vector3 playerPos = player.transform.position;
 
-        // 補間
-        currentOffset = Vector3.Lerp(
-            currentOffset,
-            blendedParams.offset,
-            Time.deltaTime * blendSpeed);
-
-        currentFov = Mathf.Lerp(
-            currentFov,
-            blendedParams.fieldOfView,
-            Time.deltaTime * blendSpeed);
-
-        currentSmoothness = Mathf.Lerp(
-            currentSmoothness,
-            blendedParams.smoothness,
-            Time.deltaTime * blendSpeed);
-
-        // 目標位置
-        Vector3 desiredPosition =
-            target.position +
-            (target.rotation * currentOffset);
-
-        // スムーズ移動
-        transform.position = Vector3.Lerp(
-            transform.position,
-            desiredPosition,
-            Time.deltaTime * currentSmoothness);
-
-        // 注視
-        transform.LookAt(target.position);
-
-        // FOV
-        cam.fieldOfView = currentFov;
-    }
-
-    private CameraBlendVolume.CameraParams GetBlendedCameraParams()
-    {
-        CameraBlendVolume[] volumes =
-            FindObjectsOfType<CameraBlendVolume>();
-
-        if (volumes.Length == 0)
-        {
-            return new CameraBlendVolume.CameraParams
-            {
-                offset = defaultOffset,
-                fieldOfView = defaultFov,
-                smoothness = defaultSmoothness
-            };
-        }
-
-        Vector3 targetPos = target.position;
+        Vector3 blendedPosition = Vector3.zero;
+        Vector3 blendedTargetPos = Vector3.zero;
 
         float totalWeight = 0f;
 
-        Vector3 blendedOffset = Vector3.zero;
-        float blendedFov = 0f;
-        float blendedSmoothness = 0f;
-
-        foreach (var volume in volumes)
+        foreach (var volume in blendVolumes)
         {
             float distance =
-                Vector3.Distance(targetPos, volume.transform.position);
+                Vector3.Distance(playerPos, volume.transform.position);
 
-            if (distance > volume.radius)
+            if (distance >= volume.radius)
                 continue;
 
-            // 中心ほど強く影響
-            float weight =
-                1f - Mathf.Clamp01(distance / volume.radius);
+            float weight = 1f - (distance / volume.radius);
 
             totalWeight += weight;
 
-            blendedOffset += volume.config.offset * weight;
-            blendedFov += volume.config.fieldOfView * weight;
-            blendedSmoothness += volume.config.smoothness * weight;
-        }
-
-        // Volume外
-        if (totalWeight <= 0.0001f)
-        {
-            return new CameraBlendVolume.CameraParams
+            if (volume.followPlayer)
             {
-                offset = defaultOffset,
-                fieldOfView = defaultFov,
-                smoothness = defaultSmoothness
-            };
+                Vector3 camPos =
+                    playerPos +
+                    (volume.transform.rotation * volume.config.offset);
+
+                blendedPosition += camPos * weight;
+                blendedTargetPos += playerPos * weight;
+            }
+            else
+            {
+                if (volume.GetPreviewTransform(
+                    out Vector3 camPos,
+                    out Quaternion camRot,
+                    out Vector3 targetPos))
+                {
+                    blendedPosition += camPos * weight;
+                    blendedTargetPos += targetPos * weight;
+                }
+            }
         }
 
-        blendedOffset /= totalWeight;
-        blendedFov /= totalWeight;
-        blendedSmoothness /= totalWeight;
-
-        return new CameraBlendVolume.CameraParams
-        {
-            offset = blendedOffset,
-            fieldOfView = blendedFov,
-            smoothness = blendedSmoothness
-        };
-    }
-
-#if UNITY_EDITOR
-    private void OnDrawGizmos()
-    {
-        if (target == null)
+        if (totalWeight <= 0f)
             return;
 
-        Gizmos.color = Color.red;
-        Gizmos.DrawLine(transform.position, target.position);
+        blendedPosition /= totalWeight;
+        blendedTargetPos /= totalWeight;
+
+        Transform cam = Camera.main.transform;
+
+        // 位置補間
+        cam.position = Vector3.Lerp(
+            cam.position,
+            blendedPosition,
+            Time.deltaTime * 5f);
+
+        // LookRotation を使って回転生成
+        Vector3 forward =
+            (blendedTargetPos - cam.position).normalized;
+
+        if (forward.sqrMagnitude > 0.0001f)
+        {
+            Quaternion targetRot =
+                Quaternion.LookRotation(forward);
+
+            cam.rotation = Quaternion.Slerp(
+                cam.rotation,
+                targetRot,
+                Time.deltaTime * 5f);
+        }
     }
-#endif
 }

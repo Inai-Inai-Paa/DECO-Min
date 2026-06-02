@@ -3,7 +3,7 @@ using UnityEngine;
 using UnityEditor;
 
 [CustomEditor(typeof(CameraVolume))]
-public class CameraBlendVolumeEditor : Editor
+public class CameraVolumeEditor : Editor
 {
     private Camera previewCamera;
     private RenderTexture previewTexture;

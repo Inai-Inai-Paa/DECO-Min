@@ -2,7 +2,7 @@
 using UnityEngine;
 using UnityEditor;
 
-[CustomEditor(typeof(CameraBlendVolume))]
+[CustomEditor(typeof(CameraVolume))]
 public class CameraBlendVolumeEditor : Editor
 {
     private Camera previewCamera;
@@ -39,7 +39,7 @@ public class CameraBlendVolumeEditor : Editor
     {
         DrawDefaultInspector();
 
-        CameraBlendVolume volume = target as CameraBlendVolume;
+        CameraVolume volume = target as CameraVolume;
         if (volume == null)
             return;
 

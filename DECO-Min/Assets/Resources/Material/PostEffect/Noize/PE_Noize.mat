@@ -28,7 +28,7 @@ Material:
     - _BandStrength: 1
     - _DistortionStrength: 1
     - _GrainStrength: 0.5
-    - _Intensity: 0
+    - _Intensity: 0.046
     - _NoiseScale: 120
     - _NoiseSpeed: 15
     - _RgbShiftStrength: 1

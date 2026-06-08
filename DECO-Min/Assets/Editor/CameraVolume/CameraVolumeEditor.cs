@@ -34,7 +34,6 @@ public class CameraVolumeEditor : Editor
         if (previewObject != null)
             DestroyImmediate(previewObject);
     }
-
     public override void OnInspectorGUI()
     {
         DrawDefaultInspector();

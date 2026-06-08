@@ -11,7 +11,7 @@ public class CameraController : MonoBehaviour
 
     private void Awake()
     {
-        _volumes = new List<CameraVolume>(FindObjectsOfType<CameraVolume>());
+        _volumes = new List<CameraVolume>(Object.FindObjectsByType<CameraVolume>(FindObjectsSortMode.None));
     }
 
     private void Update()

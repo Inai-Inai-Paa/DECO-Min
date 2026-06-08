@@ -4,13 +4,12 @@ using UnityEngine;
 using UnityEngine.Playables;
 using static UnityEngine.PlayerLoop.PostLateUpdate;
 
-public partial class Player : Character
+public partial class Enemy : Character
 {
-    public PlayerInputData playerInputData;
     [Header("ステート")]
     [Space(2)]
     [SerializeField]
-    private PlayerState initState = null;
+    private EnemyState initState = null;
 
     [Header("接地判定")]
     [Space(2)]
@@ -31,18 +30,15 @@ public partial class Player : Character
         // Call the base class's Awake method to ensure that the state machine is initialized
         base.Start();
 
-        InitializeInput();
-
         mainCamera = Camera.main;
 
         if (initState != null)
         {
-            ChangePlayerState(initState);
+            ChangeEnemyState(initState);
         }
     }
     private void OnDestroy()
     {
-        FinalizeInput();
     }
 
     protected override void Update()
@@ -59,7 +55,7 @@ public partial class Player : Character
         base.FixedUpdate();
     }
 
-    public void ChangePlayerState(PlayerState nextState)
+    public void ChangeEnemyState(EnemyState nextState)
     {
         nextState.Initialize(this, stateMachine);
         stateMachine.ChangeState(nextState);

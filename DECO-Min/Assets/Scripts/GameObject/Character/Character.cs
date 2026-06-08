@@ -3,13 +3,9 @@ using UnityEngine;
 
 public class Character : MonoBehaviour
 {
-    [Header("パラメータ")]
-    [Space(2)]
-    [Tooltip("最大HPです。")]
+    [Header("Status")]
     [SerializeField]
-    private float maxHP = 100.0f;
-    [Tooltip("現在のHPです。起動時は最大HPと同じ値になります。")]
-    public float HP = 100.0f;
+    protected CharacterStatus characterStatus;
 
     public Vector3 velocity { get; protected set; }
     [HideInInspector] public Vector3 baseVelocity;
@@ -24,8 +20,6 @@ public class Character : MonoBehaviour
         rb = GetComponent<Rigidbody>();
 
         stateMachine = new StateMachine();
-
-        HP = maxHP;
     }
 
     protected virtual void Update()

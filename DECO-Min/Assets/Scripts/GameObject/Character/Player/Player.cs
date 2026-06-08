@@ -6,6 +6,10 @@ using static UnityEngine.PlayerLoop.PostLateUpdate;
 
 public partial class Player : Character
 {
+    [Header("プレイヤーステータス")]
+    [SerializeField]
+    public PlayerStatus playerStatus;
+
     public PlayerInputData playerInputData;
     [Header("ステート")]
     [Space(2)]

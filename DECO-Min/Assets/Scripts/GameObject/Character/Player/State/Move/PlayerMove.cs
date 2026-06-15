@@ -1,4 +1,3 @@
-using Unity.VisualScripting;
 using UnityEngine;
 
 [CreateAssetMenu(menuName = "State/Player/Move")]
@@ -11,6 +10,14 @@ public class PlayerMove : PlayerState
     [Header("ジャンプ力")]
     [Tooltip("ジャンプ力です。")]
     public float jumpForce = 5.0f;
+
+    [SerializeField] private PlayerState _attackState;
+
+    public override void Update()
+    {
+        if (player.playerInputData.AttackPressed)
+            player.ChangePlayerState(_attackState);
+    }
 
     public override void FixedUpdate()
     {

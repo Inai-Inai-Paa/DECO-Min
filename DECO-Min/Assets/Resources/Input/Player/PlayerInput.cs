@@ -109,6 +109,33 @@ public partial class @PlayerInput: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""Attack"",
+                    ""type"": ""Button"",
+                    ""id"": ""840b81ab-4d6f-4cb6-a2fb-6ae0bf0d172f"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""Interact"",
+                    ""type"": ""Button"",
+                    ""id"": ""78bfb117-6545-4c6e-a5c1-71d8f7b997e4"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""Peal"",
+                    ""type"": ""Button"",
+                    ""id"": ""1405aad9-2233-4919-81aa-5de95663fdb2"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
                 }
             ],
             ""bindings"": [
@@ -243,6 +270,39 @@ public partial class @PlayerInput: IInputActionCollection2, IDisposable
                     ""action"": ""Jump"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""fb69bec0-12b9-476f-99fc-5051093d24a0"",
+                    ""path"": ""<Mouse>/leftButton"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Attack"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""c9e6fa77-7264-4f0d-a055-080471a10fb2"",
+                    ""path"": ""<Keyboard>/e"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Interact"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""5836096e-fb00-4bbd-9a2d-055e07a6b582"",
+                    ""path"": ""<Keyboard>/f"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Peal"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
                 }
             ]
         }
@@ -253,6 +313,9 @@ public partial class @PlayerInput: IInputActionCollection2, IDisposable
         m_PlayerControll = asset.FindActionMap("PlayerControll", throwIfNotFound: true);
         m_PlayerControll_XYAxis = m_PlayerControll.FindAction("XY Axis", throwIfNotFound: true);
         m_PlayerControll_Jump = m_PlayerControll.FindAction("Jump", throwIfNotFound: true);
+        m_PlayerControll_Attack = m_PlayerControll.FindAction("Attack", throwIfNotFound: true);
+        m_PlayerControll_Interact = m_PlayerControll.FindAction("Interact", throwIfNotFound: true);
+        m_PlayerControll_Peal = m_PlayerControll.FindAction("Peal", throwIfNotFound: true);
     }
 
     ~@PlayerInput()
@@ -335,6 +398,9 @@ public partial class @PlayerInput: IInputActionCollection2, IDisposable
     private List<IPlayerControllActions> m_PlayerControllActionsCallbackInterfaces = new List<IPlayerControllActions>();
     private readonly InputAction m_PlayerControll_XYAxis;
     private readonly InputAction m_PlayerControll_Jump;
+    private readonly InputAction m_PlayerControll_Attack;
+    private readonly InputAction m_PlayerControll_Interact;
+    private readonly InputAction m_PlayerControll_Peal;
     /// <summary>
     /// Provides access to input actions defined in input action map "PlayerControll".
     /// </summary>
@@ -354,6 +420,18 @@ public partial class @PlayerInput: IInputActionCollection2, IDisposable
         /// Provides access to the underlying input action "PlayerControll/Jump".
         /// </summary>
         public InputAction @Jump => m_Wrapper.m_PlayerControll_Jump;
+        /// <summary>
+        /// Provides access to the underlying input action "PlayerControll/Attack".
+        /// </summary>
+        public InputAction @Attack => m_Wrapper.m_PlayerControll_Attack;
+        /// <summary>
+        /// Provides access to the underlying input action "PlayerControll/Interact".
+        /// </summary>
+        public InputAction @Interact => m_Wrapper.m_PlayerControll_Interact;
+        /// <summary>
+        /// Provides access to the underlying input action "PlayerControll/Peal".
+        /// </summary>
+        public InputAction @Peal => m_Wrapper.m_PlayerControll_Peal;
         /// <summary>
         /// Provides access to the underlying input action map instance.
         /// </summary>
@@ -386,6 +464,15 @@ public partial class @PlayerInput: IInputActionCollection2, IDisposable
             @Jump.started += instance.OnJump;
             @Jump.performed += instance.OnJump;
             @Jump.canceled += instance.OnJump;
+            @Attack.started += instance.OnAttack;
+            @Attack.performed += instance.OnAttack;
+            @Attack.canceled += instance.OnAttack;
+            @Interact.started += instance.OnInteract;
+            @Interact.performed += instance.OnInteract;
+            @Interact.canceled += instance.OnInteract;
+            @Peal.started += instance.OnPeal;
+            @Peal.performed += instance.OnPeal;
+            @Peal.canceled += instance.OnPeal;
         }
 
         /// <summary>
@@ -403,6 +490,15 @@ public partial class @PlayerInput: IInputActionCollection2, IDisposable
             @Jump.started -= instance.OnJump;
             @Jump.performed -= instance.OnJump;
             @Jump.canceled -= instance.OnJump;
+            @Attack.started -= instance.OnAttack;
+            @Attack.performed -= instance.OnAttack;
+            @Attack.canceled -= instance.OnAttack;
+            @Interact.started -= instance.OnInteract;
+            @Interact.performed -= instance.OnInteract;
+            @Interact.canceled -= instance.OnInteract;
+            @Peal.started -= instance.OnPeal;
+            @Peal.performed -= instance.OnPeal;
+            @Peal.canceled -= instance.OnPeal;
         }
 
         /// <summary>
@@ -457,5 +553,26 @@ public partial class @PlayerInput: IInputActionCollection2, IDisposable
         /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
         /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
         void OnJump(InputAction.CallbackContext context);
+        /// <summary>
+        /// Method invoked when associated input action "Attack" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnAttack(InputAction.CallbackContext context);
+        /// <summary>
+        /// Method invoked when associated input action "Interact" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnInteract(InputAction.CallbackContext context);
+        /// <summary>
+        /// Method invoked when associated input action "Peal" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnPeal(InputAction.CallbackContext context);
     }
 }

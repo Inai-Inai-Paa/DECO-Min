@@ -1,4 +1,3 @@
-using Unity.VisualScripting;
 using UnityEngine;
 
 [CreateAssetMenu(menuName = "State/Player/Move")]
@@ -7,17 +6,22 @@ public class PlayerMove : PlayerState
     [Header("TransitionState")]
     [Tooltip("PeelState"),SerializeField] private PlayerState peelState;
 
-    [Header("ˆÚ“®‘¬“x")]
-    [Tooltip("ˆÚ“®‘¬“x‚Å‚·B")]
+    [Header("ï¿½Ú“ï¿½ï¿½ï¿½ï¿½x")]
+    [Tooltip("ï¿½Ú“ï¿½ï¿½ï¿½ï¿½xï¿½Å‚ï¿½ï¿½B")]
     public float moveSpeed = 3.0f;
 
-    [Header("ƒWƒƒƒ“ƒv—Í")]
-    [Tooltip("ƒWƒƒƒ“ƒv—Í‚Å‚·B")]
+    [Header("ï¿½Wï¿½ï¿½ï¿½ï¿½ï¿½vï¿½ï¿½")]
+    [Tooltip("ï¿½Wï¿½ï¿½ï¿½ï¿½ï¿½vï¿½Í‚Å‚ï¿½ï¿½B")]
     public float jumpForce = 5.0f;
+    
+    [SerializeField] private PlayerState _attackState;
 
     public override void Update()
     {
-        if(player.playerInputData.PealPressed)
+        if (player.playerInputData.AttackPressed)
+            player.ChangePlayerState(_attackState);
+
+            if(player.playerInputData.PealPressed)
         {
             stateMachine.ChangeState(peelState);
         }

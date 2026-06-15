@@ -4,6 +4,9 @@ using UnityEngine;
 [CreateAssetMenu(menuName = "State/Player/Move")]
 public class PlayerMove : PlayerState
 {
+    [Header("TransitionState")]
+    [Tooltip("PeelState"),SerializeField] private PlayerState peelState;
+
     [Header("移動速度")]
     [Tooltip("移動速度です。")]
     public float moveSpeed = 3.0f;
@@ -11,6 +14,14 @@ public class PlayerMove : PlayerState
     [Header("ジャンプ力")]
     [Tooltip("ジャンプ力です。")]
     public float jumpForce = 5.0f;
+
+    public override void Update()
+    {
+        if(player.playerInputData.PealPressed)
+        {
+            stateMachine.ChangeState(peelState);
+        }
+    }
 
     public override void FixedUpdate()
     {

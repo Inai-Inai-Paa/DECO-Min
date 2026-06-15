@@ -14,3 +14,4 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::PlayerMove
   moveSpeed: 10
   jumpForce: 10
+  _attackState: {fileID: 11400000, guid: 61783e7d3b5767b49abd2b1e47a0f4fe, type: 2}

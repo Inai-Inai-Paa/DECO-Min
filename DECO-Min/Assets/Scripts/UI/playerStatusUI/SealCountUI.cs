@@ -1,16 +1,42 @@
 using UnityEngine;
+using TMPro;
 
-public class SealCountUI : MonoBehaviour
+/// <summary>
+/// シール数を「Current / Max」で表示するUI。
+/// </summary>
+public class SealCountUI : UIPlayerBase
 {
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
+    [Header("Seal Count UI")]
+
+    [SerializeField]
+    private TextMeshProUGUI _sealCountText;
+    protected override void Awake()
     {
-        
+        base.Awake();
+
+        _sealCountText = GetComponent<TextMeshProUGUI>();
+
+        if (_sealCountText == null)
+        {
+            Debug.LogWarning($"{nameof(SealCountUI)} : TextMeshProUGUI が見つかりません。同じGameObjectに付けてください。");
+        }
     }
 
-    // Update is called once per frame
-    void Update()
+    private void Update()
     {
-        
+        if (_playerStatus == null)
+        {
+            return;
+        }
+
+        if (_sealCountText == null)
+        {
+            return;
+        }
+
+        _sealCountText.text =
+            _playerStatus.CurrentSealCount.ToString()
+            + " / "
+            + _playerStatus.TotalSealCount.ToString();
     }
 }

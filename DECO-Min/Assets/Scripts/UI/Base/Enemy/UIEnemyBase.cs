@@ -1,23 +1,22 @@
 using UnityEngine;
 
+/// <summary>
+/// 敵UI用の基底クラス。
+/// </summary>
 public class UIEnemyBase : UIBase
 {
-	[Header("Player")]
-	[SerializeField]
-	protected CharacterStatus _enemyStatus;
+    [Header("Enemy UI Base")]
 
-	protected override void Start()
-	{
-		base.Start();
+    [SerializeField]
+    protected CharacterStatus _enemyStatus;
 
-        _enemyStatus = gameObject.GetComponentInChildren<CharacterStatus>();
-	}
+    protected override void Start()
+    {
+        Show();
 
-	// Update is called once per frame
-	void Update()
-	{
-		
-	}
-
-
+        if (_enemyStatus == null)
+        {
+            Debug.LogWarning($"{nameof(UIEnemyBase)} : EnemyStatus が設定されていません。Inspectorに敵のCharacterStatusを入れて。");
+        }
+    }
 }

@@ -1,47 +1,53 @@
 using UnityEngine;
 
+/// <summary>
+/// UIの表示・非表示を共通化する基底クラス。
+/// </summary>
 public class UIBase : MonoBehaviour
 {
-    [Header("UIBase")]
+    [Header("UI Base")]
+
     [SerializeField]
-	protected Canvas _canvas;
+    protected Canvas _canvas;
 
-	[SerializeField]
-    protected Animator _animator;
-
-	protected virtual void Start()
-	{
-		_canvas = GetComponent<Canvas>();
-		
-		_animator = gameObject.GetComponent<Animator>();
-
-		gameObject.SetActive(false);
-	}
-
-	void Update()
-	{
-		
-	}
-
-	/// <summary>
-	/// 描画するか的な関数たち
-	/// </summary>
-	protected virtual void ShowCanvas()
-	{
-		_canvas.enabled = true;
-	}
-
-	protected virtual void HideCanvas() 
-	{
-		_canvas.enabled = false;
-	}
-    protected virtual void Show()
+    protected virtual void Awake()
     {
-        gameObject.SetActive(true);
+        if (_canvas == null)
+        {
+            _canvas = GetComponentInParent<Canvas>();
+        }
+
+        if (_canvas == null)
+        {
+            Debug.LogWarning($"{nameof(UIBase)} : Canvas が見つかりません。UIがCanvas配下にあるか確認してください。");
+        }
     }
 
-    protected virtual void Hide()
+    protected virtual void Start()
     {
+        Hide();
+    }
+
+    public virtual void Show()
+    {
+        if (!gameObject.activeSelf)
+        {
+            gameObject.SetActive(true);
+        }
+
+        if (_canvas != null)
+        {
+            _canvas.enabled = true;
+        }
+    }
+
+    public virtual void Hide()
+    {
+        if (_canvas != null)
+        {
+            _canvas.enabled = false;
+        }
+
         gameObject.SetActive(false);
     }
 }

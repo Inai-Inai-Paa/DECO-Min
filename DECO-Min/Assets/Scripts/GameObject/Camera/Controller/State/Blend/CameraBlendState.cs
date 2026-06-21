@@ -1,3 +1,4 @@
+
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -6,6 +7,9 @@ using UnityEngine;
     menuName = "State/Camera/Blend")]
 public sealed class CameraBlendState : CameraState
 {
+    private const float DirectionEpsilon =
+        0.000001f;
+
     public enum BlendAnchorMode
     {
         PlayerRelative,
@@ -18,6 +22,24 @@ public sealed class CameraBlendState : CameraState
     private BlendAnchorMode _anchorMode =
         BlendAnchorMode.PlayerRelative;
 
+    [Header("Transition")]
+
+    [Tooltip(
+        "State進入時に現在のカメラ位置から" +
+        "PitchとYawを逆算します。")]
+    [SerializeField]
+    private bool _initializeRotationOnEnter =
+        true;
+
+    [Header("Time")]
+
+    [SerializeField]
+    private bool _useUnscaledTime;
+
+    /*
+     * 毎フレームのGC Allocを避けるため、
+     * BlendSample一覧を再利用する。
+     */
     private readonly List<BlendSample> _blendSamples =
         new List<BlendSample>();
 
@@ -42,6 +64,67 @@ public sealed class CameraBlendState : CameraState
             nameof(CameraBlendState);
     }
 
+    public override void Enter()
+    {
+        if (!_initializeRotationOnEnter ||
+            _controller == null ||
+            _camera == null ||
+            _target == null)
+        {
+            return;
+        }
+
+        /*
+         * 現在のPlayer位置から、
+         * BlendState全体の基準情報を構築する。
+         */
+        if (!TryBuildBlendContext(
+                _target.position,
+                out BlendContext context))
+        {
+            return;
+        }
+
+        /*
+         * 現在のカメラ位置から、
+         * ブレンド後の基準姿勢に対応するOrbit角度を逆算する。
+         */
+        if (!CameraController
+                .TryCalculateOrbitAnglesFromPosition(
+                    _camera.transform.position,
+                    context.origin,
+                    context.baseRotation,
+                    context.offset,
+                    out Vector3 orbitAngles))
+        {
+            return;
+        }
+
+        /*
+         * BlendStateでは意図しないZ傾斜を防ぐため、
+         * Rollを使用しない。
+         */
+        orbitAngles.z =
+            0f;
+
+        /*
+         * 現在角度はそのまま維持し、
+         * 目標角度だけをブレンド後の制限範囲へ設定する。
+         */
+        _controller.InitializeOrbitAngles(
+            orbitAngles,
+            context.rotationLimitMin,
+            context.rotationLimitMax);
+    }
+
+    public override void Exit()
+    {
+        /*
+         * Orbit角度はCameraControllerが保持するため、
+         * BlendState終了時にも破棄しない。
+         */
+    }
+
     public override void Update()
     {
         if (_controller == null ||
@@ -51,19 +134,93 @@ public sealed class CameraBlendState : CameraState
             return;
         }
 
+        float deltaTime =
+            _useUnscaledTime
+                ? Time.unscaledDeltaTime
+                : Time.deltaTime;
+
+        if (deltaTime <= 0f)
+        {
+            return;
+        }
+
+        if (!TryBuildBlendContext(
+                _target.position,
+                out BlendContext context))
+        {
+            return;
+        }
+
+        /*
+         * X = Pitch
+         * Y = Yaw
+         * Z = Roll
+         */
+        Vector3 orbitAngles =
+            _controller.UpdateOrbitAngles(
+                context.rotationLimitMin,
+                context.rotationLimitMax,
+                context.smoothness,
+                deltaTime);
+
+        /*
+         * BlendStateではRollをカメラ位置・姿勢へ適用しない。
+         */
+        orbitAngles.z =
+            0f;
+
+        /*
+         * ブレンド済み基準姿勢に対して、
+         * Orbit回転を一度だけ適用する。
+         *
+         * VolumeごとにOrbit回転を適用してから
+         * カメラ位置を平均すると、
+         * マウスY入力がYawのように見える場合がある。
+         */
+        Quaternion orbitRotation =
+            CameraController.CreateCameraOrbitRotation(
+                context.baseRotation,
+                orbitAngles);
+
+        Vector3 targetCameraPosition =
+            context.origin +
+            orbitRotation *
+            context.offset;
+
+        ApplyCameraTransform(
+            targetCameraPosition,
+            context.origin,
+            context.fieldOfView,
+            context.smoothness,
+            deltaTime);
+    }
+
+    /// <summary>
+    /// 現在有効なBlend Volumeを収集し、
+    /// 1つのBlendContextへまとめる。
+    /// </summary>
+    private bool TryBuildBlendContext(
+        Vector3 playerPosition,
+        out BlendContext context)
+    {
+        context =
+            default;
+
+        if (_controller == null)
+        {
+            return false;
+        }
+
         IReadOnlyList<CameraVolume> volumes =
             _controller.Volumes;
 
         if (volumes == null ||
             volumes.Count == 0)
         {
-            return;
+            return false;
         }
 
         _blendSamples.Clear();
-
-        Vector3 playerPosition =
-            _target.position;
 
         Vector3 weightedOrigin =
             Vector3.zero;
@@ -92,12 +249,6 @@ public sealed class CameraBlendState : CameraState
         float totalWeight =
             0f;
 
-        /*
-         * Volumeごとの最終カメラ位置はまだ計算しない。
-         *
-         * 先に基準姿勢・Origin・Offset・制限値を
-         * それぞれ1つの値へブレンドする。
-         */
         for (int i = 0;
              i < volumes.Count;
              ++i)
@@ -152,18 +303,11 @@ public sealed class CameraBlendState : CameraState
                 sample.weight;
         }
 
-        if (totalWeight <= Mathf.Epsilon)
+        if (totalWeight <=
+            Mathf.Epsilon)
         {
-            return;
+            return false;
         }
-
-        Vector3 blendedOrigin =
-            weightedOrigin /
-            totalWeight;
-
-        Vector3 blendedOffset =
-            weightedOffset /
-            totalWeight;
 
         Vector3 blendedForward =
             weightedForward /
@@ -173,65 +317,52 @@ public sealed class CameraBlendState : CameraState
             weightedUp /
             totalWeight;
 
-        Vector3 rotationLimitMin =
-            weightedRotationLimitMin /
-            totalWeight;
+        context =
+            new BlendContext
+            {
+                origin =
+                    weightedOrigin /
+                    totalWeight,
 
-        Vector3 rotationLimitMax =
-            weightedRotationLimitMax /
-            totalWeight;
+                offset =
+                    weightedOffset /
+                    totalWeight,
 
-        float targetFieldOfView =
-            weightedFieldOfView /
-            totalWeight;
+                baseRotation =
+                    CreateBlendedBaseRotation(
+                        blendedForward,
+                        blendedUp),
 
-        float smoothness =
-            weightedSmoothness /
-            totalWeight;
+                rotationLimitMin =
+                    weightedRotationLimitMin /
+                    totalWeight,
 
-        /*
-         * 多数のVolumeから、単一の安定した基準姿勢を生成する。
-         */
-        Quaternion blendedBaseRotation =
-            CreateBlendedBaseRotation(
-                blendedForward,
-                blendedUp);
+                rotationLimitMax =
+                    weightedRotationLimitMax /
+                    totalWeight,
 
-        /*
-         * 入力は一度だけ更新する。
-         *
-         * VolumeごとにOrbit回転を適用しないことが重要。
-         */
-        Vector3 orbitAngles =
-            _controller.UpdateOrbitAngles(
-                rotationLimitMin,
-                rotationLimitMax,
-                smoothness,
-                Time.deltaTime);
+                fieldOfView =
+                    weightedFieldOfView /
+                    totalWeight,
 
-        Quaternion finalOrbitRotation =
-            CameraController.CreateCameraOrbitRotation(
-                blendedBaseRotation,
-                orbitAngles);
+                smoothness =
+                    weightedSmoothness /
+                    totalWeight
+            };
 
-        Vector3 targetCameraPosition =
-            blendedOrigin +
-            finalOrbitRotation *
-            blendedOffset;
-
-        ApplyCameraTransform(
-            targetCameraPosition,
-            blendedOrigin,
-            targetFieldOfView,
-            smoothness);
+        return true;
     }
 
+    /// <summary>
+    /// 1つのCameraVolumeからブレンド情報を取得する。
+    /// </summary>
     private bool TryGetBlendSample(
         CameraVolume volume,
         Vector3 playerPosition,
         out BlendSample sample)
     {
-        sample = default;
+        sample =
+            default;
 
         if (volume == null ||
             !volume.isActiveAndEnabled)
@@ -243,6 +374,9 @@ public sealed class CameraBlendState : CameraState
             volume.RuntimeState
                 as CameraBlendState;
 
+        /*
+         * CameraBlendStateを持つVolumeだけを対象にする。
+         */
         if (blendState == null)
         {
             return false;
@@ -251,7 +385,8 @@ public sealed class CameraBlendState : CameraState
         float radius =
             volume.Radius;
 
-        if (radius <= Mathf.Epsilon)
+        if (radius <=
+            Mathf.Epsilon)
         {
             return false;
         }
@@ -273,12 +408,16 @@ public sealed class CameraBlendState : CameraState
             Mathf.Sqrt(
                 squaredDistance);
 
+        /*
+         * Volume中心で1、外周で0となるWeight。
+         */
         float weight =
             1f -
             distance /
             radius;
 
-        if (weight <= Mathf.Epsilon)
+        if (weight <=
+            Mathf.Epsilon)
         {
             return false;
         }
@@ -316,56 +455,57 @@ public sealed class CameraBlendState : CameraState
         Quaternion baseRotation =
             volume.transform.rotation;
 
-        sample = new BlendSample
-        {
-            origin =
-                origin,
+        sample =
+            new BlendSample
+            {
+                origin =
+                    origin,
 
-            offset =
-                config.offset,
+                offset =
+                    config.offset,
 
-            baseForward =
-                baseRotation *
-                Vector3.forward,
+                baseForward =
+                    baseRotation *
+                    Vector3.forward,
 
-            baseUp =
-                baseRotation *
-                Vector3.up,
+                baseUp =
+                    baseRotation *
+                    Vector3.up,
 
-            rotationLimitMin =
-                config.rotationLimitMin,
+                rotationLimitMin =
+                    config.rotationLimitMin,
 
-            rotationLimitMax =
-                config.rotationLimitMax,
+                rotationLimitMax =
+                    config.rotationLimitMax,
 
-            fieldOfView =
-                Mathf.Clamp(
-                    config.fieldOfView,
-                    1f,
-                    179f),
+                fieldOfView =
+                    Mathf.Clamp(
+                        config.fieldOfView,
+                        1f,
+                        179f),
 
-            smoothness =
-                Mathf.Max(
-                    0f,
-                    config.smoothness),
+                smoothness =
+                    Mathf.Max(
+                        0f,
+                        config.smoothness),
 
-            weight =
-                weight
-        };
+                weight =
+                    weight
+            };
 
         return true;
     }
 
     /// <summary>
-    /// ブレンドされたForwardとUpから、
-    /// 直交した安定姿勢を生成する。
+    /// ForwardとUpの加重平均から、
+    /// 直交した基準姿勢を生成する。
     /// </summary>
     private static Quaternion CreateBlendedBaseRotation(
         Vector3 blendedForward,
         Vector3 blendedUp)
     {
         if (blendedForward.sqrMagnitude <=
-            0.000001f)
+            DirectionEpsilon)
         {
             blendedForward =
                 Vector3.forward;
@@ -374,8 +514,8 @@ public sealed class CameraBlendState : CameraState
         blendedForward.Normalize();
 
         /*
-         * UpからForward方向の成分を除去し、
-         * 互いに直交させる。
+         * UpからForward方向成分を除外し、
+         * ForwardとUpを直交させる。
          */
         Vector3 correctedUp =
             Vector3.ProjectOnPlane(
@@ -383,7 +523,7 @@ public sealed class CameraBlendState : CameraState
                 blendedForward);
 
         if (correctedUp.sqrMagnitude <=
-            0.000001f)
+            DirectionEpsilon)
         {
             correctedUp =
                 Vector3.ProjectOnPlane(
@@ -392,12 +532,18 @@ public sealed class CameraBlendState : CameraState
         }
 
         if (correctedUp.sqrMagnitude <=
-            0.000001f)
+            DirectionEpsilon)
         {
             correctedUp =
                 Vector3.ProjectOnPlane(
                     Vector3.forward,
                     blendedForward);
+        }
+
+        if (correctedUp.sqrMagnitude <=
+            DirectionEpsilon)
+        {
+            return Quaternion.identity;
         }
 
         correctedUp.Normalize();
@@ -407,23 +553,27 @@ public sealed class CameraBlendState : CameraState
             correctedUp);
     }
 
+    /// <summary>
+    /// 計算済みのカメラ位置・注視点をCameraへ反映する。
+    /// </summary>
     private void ApplyCameraTransform(
         Vector3 targetCameraPosition,
         Vector3 targetLookPosition,
         float targetFieldOfView,
-        float smoothness)
+        float smoothness,
+        float deltaTime)
     {
         float interpolationRate =
-            smoothness <= Mathf.Epsilon
-                ? 1f
-                : 1f -
-                  Mathf.Exp(
-                      -smoothness *
-                      Time.deltaTime);
+            CalculateInterpolationRate(
+                smoothness,
+                deltaTime);
 
         Transform cameraTransform =
             _camera.transform;
 
+        /*
+         * 位置をSmoothnessで補間する。
+         */
         cameraTransform.position =
             Vector3.Lerp(
                 cameraTransform.position,
@@ -431,31 +581,20 @@ public sealed class CameraBlendState : CameraState
                 interpolationRate);
 
         /*
-         * カメラの姿勢は、補間後の位置からOriginを見る。
-         *
-         * UpはワールドY方向に固定するため、
-         * 意図しないZ軸傾斜も抑制される。
+         * 補間後のカメラ位置から、
+         * Blend Originを見る姿勢を作る。
          */
-        Vector3 forward =
-            targetLookPosition -
-            cameraTransform.position;
+        Quaternion targetRotation =
+            CreateStableLookRotation(
+                cameraTransform.position,
+                targetLookPosition,
+                cameraTransform.rotation);
 
-        if (forward.sqrMagnitude >
-            0.000001f)
-        {
-            forward.Normalize();
-
-            Quaternion targetRotation =
-                CreateStableLookRotation(
-                    forward,
-                    cameraTransform.rotation);
-
-            cameraTransform.rotation =
-                Quaternion.Slerp(
-                    cameraTransform.rotation,
-                    targetRotation,
-                    interpolationRate);
-        }
+        cameraTransform.rotation =
+            Quaternion.Slerp(
+                cameraTransform.rotation,
+                targetRotation,
+                interpolationRate);
 
         if (!_camera.orthographic)
         {
@@ -467,29 +606,44 @@ public sealed class CameraBlendState : CameraState
         }
     }
 
+    /// <summary>
+    /// ワールドYを上方向として、
+    /// 意図しないRollを防いだLookRotationを生成する。
+    /// </summary>
     private static Quaternion CreateStableLookRotation(
-        Vector3 forward,
+        Vector3 cameraPosition,
+        Vector3 targetPosition,
         Quaternion fallbackRotation)
     {
+        Vector3 forward =
+            targetPosition -
+            cameraPosition;
+
         if (forward.sqrMagnitude <=
-            0.000001f)
+            DirectionEpsilon)
         {
             return fallbackRotation;
         }
 
         forward.Normalize();
 
-        if (Mathf.Abs(
+        float verticalDot =
+            Mathf.Abs(
                 Vector3.Dot(
                     forward,
-                    Vector3.up)) <
-            0.999f)
+                    Vector3.up));
+
+        if (verticalDot < 0.999f)
         {
             return Quaternion.LookRotation(
                 forward,
                 Vector3.up);
         }
 
+        /*
+         * 真上・真下付近では現在姿勢のRightを投影し、
+         * Up方向を再構築する。
+         */
         Vector3 right =
             fallbackRotation *
             Vector3.right;
@@ -500,7 +654,7 @@ public sealed class CameraBlendState : CameraState
                 forward);
 
         if (right.sqrMagnitude <=
-            0.000001f)
+            DirectionEpsilon)
         {
             right =
                 Vector3.ProjectOnPlane(
@@ -509,7 +663,16 @@ public sealed class CameraBlendState : CameraState
         }
 
         if (right.sqrMagnitude <=
-            0.000001f)
+            DirectionEpsilon)
+        {
+            right =
+                Vector3.ProjectOnPlane(
+                    Vector3.forward,
+                    forward);
+        }
+
+        if (right.sqrMagnitude <=
+            DirectionEpsilon)
         {
             return fallbackRotation;
         }
@@ -519,18 +682,47 @@ public sealed class CameraBlendState : CameraState
         Vector3 correctedUp =
             Vector3.Cross(
                 forward,
-                right).normalized;
+                right);
+
+        if (correctedUp.sqrMagnitude <=
+            DirectionEpsilon)
+        {
+            return fallbackRotation;
+        }
+
+        correctedUp.Normalize();
 
         return Quaternion.LookRotation(
             forward,
             correctedUp);
     }
 
+    private static float CalculateInterpolationRate(
+        float smoothness,
+        float deltaTime)
+    {
+        if (smoothness <=
+            Mathf.Epsilon)
+        {
+            return 1f;
+        }
+
+        return
+            1f -
+            Mathf.Exp(
+                -smoothness *
+                deltaTime);
+    }
+
+    /// <summary>
+    /// CameraBlendStateのEditorプレビューを生成する。
+    /// </summary>
     public override bool TryGetPreview(
         CameraVolume volume,
         out CameraPreviewData preview)
     {
-        preview = default;
+        preview =
+            default;
 
         if (volume == null)
         {
@@ -579,33 +771,48 @@ public sealed class CameraBlendState : CameraState
             config.offset;
 
         Quaternion cameraRotation =
-            CreateLookRotation(
+            CreateStableLookRotation(
                 cameraPosition,
                 origin,
                 baseRotation);
 
-        preview = new CameraPreviewData
-        {
-            cameraPosition =
-                cameraPosition,
+        preview =
+            new CameraPreviewData
+            {
+                cameraPosition =
+                    cameraPosition,
 
-            cameraRotation =
-                cameraRotation,
+                cameraRotation =
+                    cameraRotation,
 
-            targetPosition =
-                origin,
+                targetPosition =
+                    origin,
 
-            targetRotation =
-                baseRotation,
+                targetRotation =
+                    baseRotation,
 
-            fieldOfView =
-                Mathf.Clamp(
-                    config.fieldOfView,
-                    1f,
-                    179f)
-        };
+                fieldOfView =
+                    Mathf.Clamp(
+                        config.fieldOfView,
+                        1f,
+                        179f)
+            };
 
         return true;
+    }
+
+    private struct BlendContext
+    {
+        public Vector3 origin;
+        public Vector3 offset;
+
+        public Quaternion baseRotation;
+
+        public Vector3 rotationLimitMin;
+        public Vector3 rotationLimitMax;
+
+        public float fieldOfView;
+        public float smoothness;
     }
 
     private struct BlendSample

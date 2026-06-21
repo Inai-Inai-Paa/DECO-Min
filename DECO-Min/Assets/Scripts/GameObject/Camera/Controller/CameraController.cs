@@ -1,3 +1,4 @@
+
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -17,6 +18,9 @@ public sealed class CameraController : MonoBehaviour
     private const float FreeAxisTolerance =
         0.001f;
 
+    private const float DirectionEpsilon =
+        0.000001f;
+
     [Header("References")]
 
     [SerializeField]
@@ -34,7 +38,8 @@ public sealed class CameraController : MonoBehaviour
 
     [Header("Camera Rotation Input")]
 
-    [Tooltip("XはYaw感度、YはPitch感度")]
+    [Tooltip(
+        "XはYaw感度、YはPitch感度")]
     [SerializeField]
     private Vector2 _mouseSensitivity =
         new Vector2(
@@ -44,7 +49,8 @@ public sealed class CameraController : MonoBehaviour
     [SerializeField]
     private bool _invertVertical;
 
-    [Tooltip("Q/EによるRoll回転速度")]
+    [Tooltip(
+        "Q/EによるRoll回転速度")]
     [SerializeField]
     private float _rollSpeed =
         60f;
@@ -58,8 +64,11 @@ public sealed class CameraController : MonoBehaviour
     private CameraVolume _currentVolume;
 
     /*
-     * CameraStateを跨いで維持される操作回転。
-     * Volumeの回転に対する相対角度として使用する。
+     * CameraStateを跨いで維持される操作角度。
+     *
+     * X = Pitch
+     * Y = Yaw
+     * Z = Roll
      */
     private Vector3 _currentOrbitRotation;
     private Vector3 _targetOrbitRotation;
@@ -117,21 +126,20 @@ public sealed class CameraController : MonoBehaviour
         _stateMachine =
             new StateMachine();
 
-        /*
-         * OrbitRotationはVolume回転に対する相対角度。
-         * 初期値は回転なしとする。
-         */
         SetOrbitRotation(
             Vector3.zero);
 
         CreateDefaultState();
         InitializeVolumes();
 
-        _stateMachine.ChangeState(
-            _defaultRuntimeState);
+        if (_defaultRuntimeState != null)
+        {
+            _stateMachine.ChangeState(
+                _defaultRuntimeState);
+        }
 
         /*
-         * 初期位置ですでにVolume内にいる場合にも対応する。
+         * ゲーム開始時からVolume内にいる場合にも対応する。
          */
         UpdateCurrentVolume();
     }
@@ -144,8 +152,7 @@ public sealed class CameraController : MonoBehaviour
     private void LateUpdate()
     {
         /*
-         * プレイヤー移動後にVolumeを選択し、
-         * 選択済みStateを更新する。
+         * プレイヤー移動後にVolumeを判定する。
          */
         UpdateCurrentVolume();
 
@@ -153,8 +160,8 @@ public sealed class CameraController : MonoBehaviour
     }
 
     /// <summary>
-    /// 現在のプレイヤー位置から有効なVolumeを選択し、
-    /// 必要な場合だけCameraStateを切り替える。
+    /// 現在位置に対応するCameraVolumeを選択し、
+    /// 必要な場合だけStateを切り替える。
     /// </summary>
     private void UpdateCurrentVolume()
     {
@@ -171,7 +178,8 @@ public sealed class CameraController : MonoBehaviour
             SelectVolume(
                 targetPosition);
 
-        if (_currentVolume == selectedVolume)
+        if (_currentVolume ==
+            selectedVolume)
         {
             return;
         }
@@ -185,10 +193,10 @@ public sealed class CameraController : MonoBehaviour
                 : _defaultRuntimeState;
 
         /*
-         * BlendStateはControllerの全Volumeを参照する。
+         * BlendStateは全Blend Volumeをまとめて扱う。
          *
-         * Blend Volume同士の選択が変化しただけなら、
-         * Stateインスタンスを切り替える必要はない。
+         * Blend Volume同士で選択対象が変わっただけなら、
+         * RuntimeStateを切り替えない。
          */
         bool keepCurrentBlendState =
             currentState is CameraBlendState &&
@@ -202,13 +210,16 @@ public sealed class CameraController : MonoBehaviour
             return;
         }
 
-        _stateMachine.ChangeState(
-            nextState);
+        if (nextState != null)
+        {
+            _stateMachine.ChangeState(
+                nextState);
+        }
     }
 
     /// <summary>
-    /// 指定座標を含むVolumeから、
-    /// 現在使用するVolumeを選択する。
+    /// 指定位置を含むVolumeから、
+    /// 優先度と中心距離を使って1つ選択する。
     /// </summary>
     private CameraVolume SelectVolume(
         Vector3 targetPosition)
@@ -266,10 +277,6 @@ public sealed class CameraController : MonoBehaviour
                 continue;
             }
 
-            /*
-             * Priorityが同じ場合は、
-             * Volume中心へ近いものを選択する。
-             */
             if (volume.Priority ==
                     selectedVolume.Priority &&
                 squaredDistance <
@@ -287,12 +294,8 @@ public sealed class CameraController : MonoBehaviour
     }
 
     /// <summary>
-    /// 入力を反映し、制限と補間を適用したOrbit回転を返す。
-    ///
-    /// RotationLimitはVolumeまたはBlendStateから渡される。
-    /// </summary>
-    /// <summary>
-    /// 入力を反映し、制限と補間を適用したOrbit角度を返す。
+    /// カメラ入力を反映し、
+    /// 制限と補間を適用したOrbit角度を返す。
     ///
     /// X = Pitch
     /// Y = Yaw
@@ -317,22 +320,35 @@ public sealed class CameraController : MonoBehaviour
                 ? 1f
                 : -1f;
 
-        // マウスYは必ずPitchへ加算する
+        /*
+         * マウスY入力はPitchへ加算する。
+         */
         _targetOrbitRotation.x +=
             mouseDelta.y *
             _mouseSensitivity.y *
             pitchDirection;
 
-        // マウスXは必ずYawへ加算する
+        /*
+         * マウスX入力はYawへ加算する。
+         */
         _targetOrbitRotation.y +=
             mouseDelta.x *
             _mouseSensitivity.x;
 
+        /*
+         * Q/E入力はRollへ加算する。
+         */
         _targetOrbitRotation.z +=
             ReadRollInput() *
             _rollSpeed *
             deltaTime;
 
+        /*
+         * 目標角度だけを制限する。
+         *
+         * 現在角度が制限外にあっても即座にClampせず、
+         * Smoothnessによって制限内へ戻す。
+         */
         _targetOrbitRotation =
             ConstrainRotation(
                 _targetOrbitRotation,
@@ -340,12 +356,9 @@ public sealed class CameraController : MonoBehaviour
                 rotationLimitMax);
 
         float interpolationRate =
-            smoothness <= Mathf.Epsilon
-                ? 1f
-                : 1f -
-                  Mathf.Exp(
-                      -smoothness *
-                      deltaTime);
+            CalculateInterpolationRate(
+                smoothness,
+                deltaTime);
 
         _currentOrbitRotation =
             InterpolateRotation(
@@ -359,55 +372,8 @@ public sealed class CameraController : MonoBehaviour
     }
 
     /// <summary>
-    /// TPS用の安定した回転を生成する。
-    ///
-    /// YawはワールドY軸、
-    /// PitchはYaw適用後の右軸、
-    /// Rollは最終的な前方軸へ適用する。
+    /// 現在角度と目標角度を同じ値へ設定する。
     /// </summary>
-    public static Quaternion CreateCameraOrbitRotation(
-        Quaternion baseRotation,
-        Vector3 orbitAngles)
-    {
-        // Yawは常にワールド上方向
-        Quaternion yawRotation =
-            Quaternion.AngleAxis(
-                orbitAngles.y,
-                Vector3.up);
-
-        Quaternion yawedRotation =
-            yawRotation *
-            baseRotation;
-
-        // PitchはYaw後のカメラ右方向
-        Vector3 pitchAxis =
-            yawedRotation *
-            Vector3.right;
-
-        Quaternion pitchRotation =
-            Quaternion.AngleAxis(
-                orbitAngles.x,
-                pitchAxis.normalized);
-
-        Quaternion pitchedRotation =
-            pitchRotation *
-            yawedRotation;
-
-        // Rollは最終的な前方方向
-        Vector3 rollAxis =
-            pitchedRotation *
-            Vector3.forward;
-
-        Quaternion rollRotation =
-            Quaternion.AngleAxis(
-                orbitAngles.z,
-                rollAxis.normalized);
-
-        return
-            rollRotation *
-            pitchedRotation;
-    }
-
     public void SetOrbitRotation(
         Vector3 rotation)
     {
@@ -419,6 +385,230 @@ public sealed class CameraController : MonoBehaviour
     }
 
     /// <summary>
+    /// State進入時に逆算したOrbit角度を設定する。
+    ///
+    /// 現在角度は逆算値をそのまま維持し、
+    /// 目標角度だけをRotationLimit内へ制限する。
+    /// </summary>
+    public void InitializeOrbitAngles(
+        Vector3 currentAngles,
+        Vector3 rotationLimitMin,
+        Vector3 rotationLimitMax)
+    {
+        _currentOrbitRotation =
+            currentAngles;
+
+        _targetOrbitRotation =
+            ConstrainRotation(
+                currentAngles,
+                rotationLimitMin,
+                rotationLimitMax);
+    }
+
+    /// <summary>
+    /// TPS用のOrbit回転を生成する。
+    ///
+    /// Yaw:
+    ///     ワールドY軸
+    ///
+    /// Pitch:
+    ///     Yaw適用後のカメラ右軸
+    ///
+    /// Roll:
+    ///     Pitch適用後のカメラ前方軸
+    /// </summary>
+    public static Quaternion CreateCameraOrbitRotation(
+        Quaternion baseRotation,
+        Vector3 orbitAngles)
+    {
+        Quaternion yawRotation =
+            Quaternion.AngleAxis(
+                orbitAngles.y,
+                Vector3.up);
+
+        Quaternion yawedRotation =
+            yawRotation *
+            baseRotation;
+
+        Vector3 pitchAxis =
+            yawedRotation *
+            Vector3.right;
+
+        if (pitchAxis.sqrMagnitude <=
+            DirectionEpsilon)
+        {
+            pitchAxis =
+                Vector3.right;
+        }
+
+        pitchAxis.Normalize();
+
+        Quaternion pitchRotation =
+            Quaternion.AngleAxis(
+                orbitAngles.x,
+                pitchAxis);
+
+        Quaternion pitchedRotation =
+            pitchRotation *
+            yawedRotation;
+
+        Vector3 rollAxis =
+            pitchedRotation *
+            Vector3.forward;
+
+        if (rollAxis.sqrMagnitude <=
+            DirectionEpsilon)
+        {
+            rollAxis =
+                Vector3.forward;
+        }
+
+        rollAxis.Normalize();
+
+        Quaternion rollRotation =
+            Quaternion.AngleAxis(
+                orbitAngles.z,
+                rollAxis);
+
+        return
+            rollRotation *
+            pitchedRotation;
+    }
+
+    /// <summary>
+    /// 現在のカメラ位置から、
+    /// 指定されたOrigin・BaseRotation・Offsetに対応する
+    /// PitchとYawを逆算する。
+    ///
+    /// 距離は一致していなくてもよく、
+    /// カメラの方向を基準に角度を求める。
+    /// </summary>
+    public static bool TryCalculateOrbitAnglesFromPosition(
+        Vector3 currentCameraPosition,
+        Vector3 pivotPosition,
+        Quaternion baseRotation,
+        Vector3 cameraOffset,
+        out Vector3 orbitAngles)
+    {
+        orbitAngles =
+            Vector3.zero;
+
+        Vector3 currentWorldOffset =
+            currentCameraPosition -
+            pivotPosition;
+
+        Vector3 baseWorldOffset =
+            baseRotation *
+            cameraOffset;
+
+        if (currentWorldOffset.sqrMagnitude <=
+                DirectionEpsilon ||
+            baseWorldOffset.sqrMagnitude <=
+                DirectionEpsilon)
+        {
+            return false;
+        }
+
+        /*
+         * 基準Offsetと現在OffsetをXZ平面へ投影し、
+         * ワールドY軸周りのYawを求める。
+         */
+        Vector3 baseHorizontal =
+            Vector3.ProjectOnPlane(
+                baseWorldOffset,
+                Vector3.up);
+
+        Vector3 currentHorizontal =
+            Vector3.ProjectOnPlane(
+                currentWorldOffset,
+                Vector3.up);
+
+        float yaw =
+            0f;
+
+        if (baseHorizontal.sqrMagnitude >
+                DirectionEpsilon &&
+            currentHorizontal.sqrMagnitude >
+                DirectionEpsilon)
+        {
+            yaw =
+                Vector3.SignedAngle(
+                    baseHorizontal,
+                    currentHorizontal,
+                    Vector3.up);
+        }
+
+        Quaternion yawRotation =
+            Quaternion.AngleAxis(
+                yaw,
+                Vector3.up);
+
+        Quaternion yawedBaseRotation =
+            yawRotation *
+            baseRotation;
+
+        Vector3 yawedBaseOffset =
+            yawRotation *
+            baseWorldOffset;
+
+        /*
+         * PitchはYaw後の基準姿勢の右軸を使う。
+         */
+        Vector3 pitchAxis =
+            yawedBaseRotation *
+            Vector3.right;
+
+        if (pitchAxis.sqrMagnitude <=
+            DirectionEpsilon)
+        {
+            return false;
+        }
+
+        pitchAxis.Normalize();
+
+        /*
+         * Pitch軸方向の成分を除去し、
+         * Pitch平面上で符号付き角度を求める。
+         */
+        Vector3 basePitchPlane =
+            Vector3.ProjectOnPlane(
+                yawedBaseOffset,
+                pitchAxis);
+
+        Vector3 currentPitchPlane =
+            Vector3.ProjectOnPlane(
+                currentWorldOffset,
+                pitchAxis);
+
+        float pitch =
+            0f;
+
+        if (basePitchPlane.sqrMagnitude >
+                DirectionEpsilon &&
+            currentPitchPlane.sqrMagnitude >
+                DirectionEpsilon)
+        {
+            pitch =
+                Vector3.SignedAngle(
+                    basePitchPlane,
+                    currentPitchPlane,
+                    pitchAxis);
+        }
+
+        orbitAngles =
+            new Vector3(
+                NormalizeSignedAngle(
+                    pitch),
+
+                NormalizeSignedAngle(
+                    yaw),
+
+                0f);
+
+        return true;
+    }
+
+    /// <summary>
     /// 実行中に追加・削除されたVolumeを再取得する。
     /// </summary>
     public void RefreshVolumes()
@@ -426,8 +616,11 @@ public sealed class CameraController : MonoBehaviour
         _currentVolume =
             null;
 
-        _stateMachine?.ChangeState(
-            _defaultRuntimeState);
+        if (_defaultRuntimeState != null)
+        {
+            _stateMachine?.ChangeState(
+                _defaultRuntimeState);
+        }
 
         for (int i = 0;
              i < _volumes.Count;
@@ -586,19 +779,14 @@ public sealed class CameraController : MonoBehaviour
                 maximum))
         {
             /*
-             * 完全自由軸では角度を正規化しない。
-             *
-             * 180度を超えた際の不連続を防ぐ。
+             * 完全自由軸では連続角度を維持する。
              */
             return angle;
         }
 
-        float normalizedAngle =
-            NormalizeSignedAngle(
-                angle);
-
         return Mathf.Clamp(
-            normalizedAngle,
+            NormalizeSignedAngle(
+                angle),
             minimum,
             maximum);
     }
@@ -620,10 +808,6 @@ public sealed class CameraController : MonoBehaviour
                 interpolationRate);
         }
 
-        /*
-         * 自由回転から制限回転へ移行した場合は、
-         * 720度などの連続角を等価な-180～180へ戻す。
-         */
         current =
             NormalizeSignedAngle(
                 current);
@@ -654,6 +838,22 @@ public sealed class CameraController : MonoBehaviour
                 FreeAxisTolerance;
     }
 
+    private static float CalculateInterpolationRate(
+        float smoothness,
+        float deltaTime)
+    {
+        if (smoothness <= Mathf.Epsilon)
+        {
+            return 1f;
+        }
+
+        return
+            1f -
+            Mathf.Exp(
+                -smoothness *
+                deltaTime);
+    }
+
     private static float NormalizeSignedAngle(
         float angle)
     {
@@ -674,7 +874,7 @@ public sealed class CameraController : MonoBehaviour
 
         /*
          * New Input Systemのdeltaはピクセル値なので、
-         * Legacy Inputに近い操作量へ縮小する。
+         * Legacy Inputに近い量へ縮小する。
          */
         return
             Mouse.current.delta.ReadValue() *
@@ -794,40 +994,5 @@ public sealed class CameraController : MonoBehaviour
         _currentVolume =
             null;
     }
-
-    /// <summary>
-    /// XYZの角度をワールド軸回転として生成する。
-    ///
-    /// 適用順序:
-    /// 1. ワールドX
-    /// 2. ワールドY
-    /// 3. ワールドZ
-    /// </summary>
-    public static Quaternion CreateWorldAxisRotation(
-        Vector3 rotation)
-    {
-        Quaternion rotationX =
-            Quaternion.AngleAxis(
-                rotation.x,
-                Vector3.right);
-
-        Quaternion rotationY =
-            Quaternion.AngleAxis(
-                rotation.y,
-                Vector3.up);
-
-        Quaternion rotationZ =
-            Quaternion.AngleAxis(
-                rotation.z,
-                Vector3.forward);
-
-        /*
-         * Quaternionは右側から適用されるため、
-         * X → Y → Zの順番ではZ * Y * Xになる。
-         */
-        return
-            rotationZ *
-            rotationY *
-            rotationX;
-    }
 }
+

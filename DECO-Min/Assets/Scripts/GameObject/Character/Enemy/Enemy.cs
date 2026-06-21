@@ -39,6 +39,7 @@ public partial class Enemy : Character
     }
     private void OnDestroy()
     {
+        stateMachine?.Shutdown();
     }
 
     protected override void Update()

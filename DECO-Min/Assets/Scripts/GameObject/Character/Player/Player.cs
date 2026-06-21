@@ -38,6 +38,7 @@ public partial class Player : Character
     }
     private void OnDestroy()
     {
+        stateMachine?.Shutdown();
         FinalizeInput();
     }
 

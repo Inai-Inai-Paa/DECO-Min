@@ -144,13 +144,13 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 30600519}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.42690516, y: -0.5626207, z: 0.4231959, w: 0.567552}
+  m_LocalRotation: {x: 0.3450422, y: -0.61320555, z: 0.33871707, w: 0.6246564}
   m_LocalPosition: {x: -52, y: 2.9, z: 47.6}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 65675818}
-  m_LocalEulerAnglesHint: {x: 73.9, y: -89.5, z: 0}
+  m_LocalEulerAnglesHint: {x: 57.83, y: -88.94, z: 0}
 --- !u!114 &30600521
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -163,12 +163,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 84c52781d499770479c24bcf28a421e0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: '::'
-  radius: 15
-  followPlayer: 0
-  config:
-    offset: {x: 0, y: 0, z: -24.7}
+  _radius: 20
+  _priority: 0
+  _stateTemplate: {fileID: 11400000, guid: 44a13456c6d2ab2428d96996911d29e1, type: 2}
+  _config:
+    offset: {x: 0, y: 5, z: -23.59}
     fieldOfView: 60
     smoothness: 5
+    rotationLimitMin: {x: 0, y: 0, z: 0}
+    rotationLimitMax: {x: 0, y: 0, z: 0}
 --- !u!1 &65675817
 GameObject:
   m_ObjectHideFlags: 0
@@ -285,12 +288,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 84c52781d499770479c24bcf28a421e0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: '::'
-  radius: 23.54
-  followPlayer: 1
-  config:
-    offset: {x: 0, y: 0, z: -24.7}
+  _radius: 20
+  _priority: 0
+  _stateTemplate: {fileID: 11400000, guid: 44a13456c6d2ab2428d96996911d29e1, type: 2}
+  _config:
+    offset: {x: 0, y: 5, z: -26.09}
     fieldOfView: 60
     smoothness: 5
+    rotationLimitMin: {x: 0, y: -180, z: 0}
+    rotationLimitMax: {x: 45, y: 180, z: 0}
 --- !u!1 &293421585
 GameObject:
   m_ObjectHideFlags: 0
@@ -335,12 +341,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 84c52781d499770479c24bcf28a421e0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: '::'
-  radius: 20
-  followPlayer: 0
-  config:
-    offset: {x: 0, y: 0, z: -17.12}
+  _radius: 20
+  _priority: 0
+  _stateTemplate: {fileID: 11400000, guid: 44a13456c6d2ab2428d96996911d29e1, type: 2}
+  _config:
+    offset: {x: 0, y: 5, z: -21.33}
     fieldOfView: 60
     smoothness: 5
+    rotationLimitMin: {x: 0, y: -180, z: 0}
+    rotationLimitMax: {x: 45, y: 180, z: 0}
 --- !u!1 &294128418
 GameObject:
   m_ObjectHideFlags: 0
@@ -385,12 +394,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 84c52781d499770479c24bcf28a421e0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: '::'
-  radius: 27.58
-  followPlayer: 0
-  config:
-    offset: {x: 0, y: 2.5, z: -6.9}
+  _radius: 20
+  _priority: 0
+  _stateTemplate: {fileID: 11400000, guid: 6acc0024214c99f4480737c210ef982f, type: 2}
+  _config:
+    offset: {x: 0, y: 5, z: -20.1}
     fieldOfView: 60
     smoothness: 5
+    rotationLimitMin: {x: 0, y: 0, z: 0}
+    rotationLimitMax: {x: 0, y: 0, z: 0}
 --- !u!1 &453035112
 GameObject:
   m_ObjectHideFlags: 0
@@ -435,12 +447,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 84c52781d499770479c24bcf28a421e0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: '::'
-  radius: 20
-  followPlayer: 0
-  config:
-    offset: {x: 0, y: -2.4, z: -20}
+  _radius: 20
+  _priority: 0
+  _stateTemplate: {fileID: 11400000, guid: 32141b16232d589419a1c2a7dd79f057, type: 2}
+  _config:
+    offset: {x: 0, y: 3.33, z: -10}
     fieldOfView: 60
-    smoothness: 5
+    smoothness: 20
+    rotationLimitMin: {x: -70, y: -180, z: 0}
+    rotationLimitMax: {x: 70, y: 180, z: 0}
 --- !u!1 &528635473
 GameObject:
   m_ObjectHideFlags: 0
@@ -668,13 +683,13 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 556390538}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.14565134, y: 0, z: 0, w: 0.989336}
+  m_LocalRotation: {x: 0.011257162, y: 0, z: 0, w: 0.99993664}
   m_LocalPosition: {x: -4.5, y: 0.07, z: 46.2}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 65675818}
-  m_LocalEulerAnglesHint: {x: 16.75, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 1.29, y: 0, z: 0}
 --- !u!114 &556390540
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -687,12 +702,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 84c52781d499770479c24bcf28a421e0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: '::'
-  radius: 25
-  followPlayer: 1
-  config:
-    offset: {x: 0, y: 2.2, z: -6.5}
+  _radius: 20
+  _priority: 0
+  _stateTemplate: {fileID: 11400000, guid: 6acc0024214c99f4480737c210ef982f, type: 2}
+  _config:
+    offset: {x: 0, y: 5.42, z: -25.44}
     fieldOfView: 60
     smoothness: 5
+    rotationLimitMin: {x: 0, y: -180, z: 0}
+    rotationLimitMax: {x: 45, y: 180, z: 0}
 --- !u!1 &669240082
 GameObject:
   m_ObjectHideFlags: 0
@@ -1360,13 +1378,13 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 965518868}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.22469589, y: 0, z: 0, w: 0.974429}
+  m_LocalRotation: {x: 0.14452888, y: 0, z: 0, w: 0.98950064}
   m_LocalPosition: {x: -12.3, y: 0.07, z: 63}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 65675818}
-  m_LocalEulerAnglesHint: {x: 25.97, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 16.62, y: 0, z: 0}
 --- !u!114 &965518870
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1379,12 +1397,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 84c52781d499770479c24bcf28a421e0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: '::'
-  radius: 15
-  followPlayer: 1
-  config:
-    offset: {x: 0, y: 0, z: -24.7}
+  _radius: 20
+  _priority: 0
+  _stateTemplate: {fileID: 11400000, guid: 44a13456c6d2ab2428d96996911d29e1, type: 2}
+  _config:
+    offset: {x: 0, y: 5, z: -22}
     fieldOfView: 60
     smoothness: 5
+    rotationLimitMin: {x: -70, y: -180, z: 0}
+    rotationLimitMax: {x: 70, y: 180, z: 0}
 --- !u!1 &1094603922
 GameObject:
   m_ObjectHideFlags: 0
@@ -1679,6 +1700,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CameraBlendController
   _player: {fileID: 1860342536}
+  _controlledCamera: {fileID: 0}
+  _defaultStateTemplate: {fileID: 11400000, guid: 44a13456c6d2ab2428d96996911d29e1, type: 2}
+  _mouseSensitivity: {x: 4, y: 4}
+  _invertVertical: 0
+  _rollSpeed: 60
 --- !u!1 &1181961645
 GameObject:
   m_ObjectHideFlags: 0
@@ -1753,13 +1779,13 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1294137848}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.2779708, y: -0.2366182, z: 0.07085383, w: 0.9282908}
-  m_LocalPosition: {x: -11.2, y: 5.3, z: 21.1}
+  m_LocalRotation: {x: 0.09586478, y: -0.13163634, z: 0.012791087, w: 0.9865689}
+  m_LocalPosition: {x: -2.67, y: 5.3, z: 21.1}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 65675818}
-  m_LocalEulerAnglesHint: {x: 33.34, y: -28.6, z: 0}
+  m_LocalEulerAnglesHint: {x: 11.1, y: -15.2, z: 0}
 --- !u!114 &1294137850
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1772,12 +1798,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 84c52781d499770479c24bcf28a421e0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: '::'
-  radius: 25
-  followPlayer: 1
-  config:
-    offset: {x: 0, y: 0, z: -29.2}
+  _radius: 20
+  _priority: 0
+  _stateTemplate: {fileID: 11400000, guid: 44a13456c6d2ab2428d96996911d29e1, type: 2}
+  _config:
+    offset: {x: 0, y: 5, z: -22.33}
     fieldOfView: 60
-    smoothness: 5
+    smoothness: 10
+    rotationLimitMin: {x: -30, y: -180, z: 0}
+    rotationLimitMax: {x: 30, y: 180, z: 0}
 --- !u!1 &1362510401
 GameObject:
   m_ObjectHideFlags: 0
@@ -2034,12 +2063,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 84c52781d499770479c24bcf28a421e0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: '::'
-  radius: 15
-  followPlayer: 1
-  config:
-    offset: {x: 0, y: 0, z: -24.7}
+  _radius: 20
+  _priority: 0
+  _stateTemplate: {fileID: 11400000, guid: 44a13456c6d2ab2428d96996911d29e1, type: 2}
+  _config:
+    offset: {x: 0, y: 5, z: -17.5}
     fieldOfView: 60
     smoothness: 5
+    rotationLimitMin: {x: 0, y: -180, z: 0}
+    rotationLimitMax: {x: 45, y: 180, z: 0}
 --- !u!1 &1733552198
 GameObject:
   m_ObjectHideFlags: 0
@@ -2470,13 +2502,13 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2059007618}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.49314284, y: 0.14293538, z: -0.082523786, w: 0.85414845}
+  m_LocalRotation: {x: 0.20550449, y: 0.085281156, z: -0.017979322, w: 0.97476757}
   m_LocalPosition: {x: -6.5, y: 0.1, z: 84.46}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 65675818}
-  m_LocalEulerAnglesHint: {x: 60, y: 19, z: 0}
+  m_LocalEulerAnglesHint: {x: 23.81, y: 10, z: 0}
 --- !u!114 &2059007620
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2489,12 +2521,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 84c52781d499770479c24bcf28a421e0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: '::'
-  radius: 27.58
-  followPlayer: 1
-  config:
-    offset: {x: 0, y: 0, z: -33.09}
+  _radius: 20
+  _priority: 0
+  _stateTemplate: {fileID: 11400000, guid: 44a13456c6d2ab2428d96996911d29e1, type: 2}
+  _config:
+    offset: {x: 0, y: 5, z: -27.2}
     fieldOfView: 60
     smoothness: 5
+    rotationLimitMin: {x: -70, y: -180, z: 0}
+    rotationLimitMax: {x: 70, y: 180, z: 0}
 --- !u!1 &2088895191
 GameObject:
   m_ObjectHideFlags: 0

@@ -17,7 +17,7 @@ public class PlayerPeel : PlayerState
 
     Collider[] _collider;
     private float _enterTime = 0.0f;
-    GameObject _nearestPeelable = null;
+    DroppingSeal _nearestPeelable = null;
 
     public override void Enter()
     {
@@ -32,13 +32,14 @@ public class PlayerPeel : PlayerState
                 var newDistance = Vector3.Distance(player.transform.position, collider.transform.position);
                 if (_nearestPeelable == null || newDistance < currentDistance)
                 {
-                    _nearestPeelable = collider.gameObject;
+                    //対象がDroppingSealであることを再度確認する
+                    if (collider.gameObject.GetComponent<DroppingSeal>() != null)
+                        _nearestPeelable = collider.gameObject.GetComponent<DroppingSeal>();
                 }
             }
         }
 
         _enterTime = Time.time;
-        Debug.Log("Peel"); 
 
     }
 
@@ -46,6 +47,10 @@ public class PlayerPeel : PlayerState
     {
         if (_nearestPeelable)
         {
+            if (player.playerInputData.PeelScrollPressed)
+            {
+                _nearestPeelable.PeelSeal();
+            }
             //プレイヤー移動入力を取得したら_moveStateに遷移する、成功時硬直も同時に満たしていることを確認する
             if (player.playerInputData.Move.sqrMagnitude > 0.0f && Time.time - _enterTime >= _successDuration)
             {

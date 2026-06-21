@@ -15,8 +15,8 @@ MonoBehaviour:
   _moveState: {fileID: 11400000, guid: 40f005a6f8380964b86e33a7c8008637, type: 2}
   _successDuration: 0.3
   _failDuration: 0.2
-  _peelableTag: Peelable
+  _peelableTag: Pealable
   _peelableLayer:
     serializedVersion: 2
-    m_Bits: 0
-  _peelableRange: 0.5
+    m_Bits: 256
+  _peelableRange: 1.5

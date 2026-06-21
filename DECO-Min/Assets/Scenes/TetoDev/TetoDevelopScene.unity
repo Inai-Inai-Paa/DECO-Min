@@ -296,7 +296,7 @@ MonoBehaviour:
     fieldOfView: 60
     smoothness: 5
     rotationLimitMin: {x: 0, y: -180, z: 0}
-    rotationLimitMax: {x: 45, y: 180, z: 0}
+    rotationLimitMax: {x: 0, y: 180, z: 0}
 --- !u!1 &293421585
 GameObject:
   m_ObjectHideFlags: 0
@@ -349,7 +349,7 @@ MonoBehaviour:
     fieldOfView: 60
     smoothness: 5
     rotationLimitMin: {x: 0, y: -180, z: 0}
-    rotationLimitMax: {x: 45, y: 180, z: 0}
+    rotationLimitMax: {x: 0, y: 180, z: 0}
 --- !u!1 &294128418
 GameObject:
   m_ObjectHideFlags: 0
@@ -1404,7 +1404,7 @@ MonoBehaviour:
     offset: {x: 0, y: 5, z: -22}
     fieldOfView: 60
     smoothness: 5
-    rotationLimitMin: {x: -70, y: -180, z: 0}
+    rotationLimitMin: {x: 0, y: -180, z: 0}
     rotationLimitMax: {x: 70, y: 180, z: 0}
 --- !u!1 &1094603922
 GameObject:
@@ -2071,7 +2071,7 @@ MonoBehaviour:
     fieldOfView: 60
     smoothness: 5
     rotationLimitMin: {x: 0, y: -180, z: 0}
-    rotationLimitMax: {x: 45, y: 180, z: 0}
+    rotationLimitMax: {x: 0, y: 180, z: 0}
 --- !u!1 &1733552198
 GameObject:
   m_ObjectHideFlags: 0

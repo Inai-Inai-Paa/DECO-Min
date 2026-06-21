@@ -4,26 +4,26 @@ using UnityEngine;
 public class PlayerMove : PlayerState
 {
     [Header("TransitionState")]
-    [Tooltip("PeelState"),SerializeField] private PlayerState peelState;
+    [SerializeField] private PlayerState _attackState;
+    [Tooltip("PeelState"),SerializeField] private PlayerState _peelState;
 
-    [Header("�ړ����x")]
-    [Tooltip("�ړ����x�ł��B")]
+    [Header("移動速度")]
+    [Tooltip("移動速度です。")]
     public float moveSpeed = 3.0f;
 
-    [Header("�W�����v��")]
-    [Tooltip("�W�����v�͂ł��B")]
+    [Header("ジャンプ力")]
+    [Tooltip("ジャンプ力です。")]
     public float jumpForce = 5.0f;
     
-    [SerializeField] private PlayerState _attackState;
 
     public override void Update()
     {
         if (player.playerInputData.AttackPressed)
             player.ChangePlayerState(_attackState);
 
-            if(player.playerInputData.PealPressed)
+        if(player.playerInputData.PeelScrollPressed)
         {
-            stateMachine.ChangeState(peelState);
+            player.ChangePlayerState(_peelState);
         }
     }
 

@@ -11,8 +11,8 @@ public sealed class CameraFollowState : CameraState
     [Header("Target Pivot")]
 
     [Tooltip(
-        "ƒvƒŒƒCƒ„[À•W‚©‚çŒ©‚½PivotˆÊ’uB\n" +
-        "ƒ[ƒ‹ƒh²Šî€‚ÌƒIƒtƒZƒbƒg‚Æ‚µ‚Äˆµ‚¢‚Ü‚·B")]
+        "ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼åº§æ¨™ã‹ã‚‰è¦‹ãŸPivotä½ç½®ã€‚\n" +
+        "ãƒ¯ãƒ¼ãƒ«ãƒ‰è»¸åŸºæº–ã®ã‚ªãƒ•ã‚»ãƒƒãƒˆã¨ã—ã¦æ‰±ã„ã¾ã™ã€‚")]
     [SerializeField]
     private Vector3 _pivotOffset =
         new Vector3(
@@ -23,26 +23,30 @@ public sealed class CameraFollowState : CameraState
     [Header("Rotation")]
 
     [Tooltip(
-        "Z²‚ÌRoll‘€ì‚ğƒJƒƒ‰p¨‚Ö”½‰f‚µ‚Ü‚·B\n" +
-        "’Êí‚ÌTPSƒJƒƒ‰‚Å‚Í–³Œø‚ğ„§‚µ‚Ü‚·B")]
+        "Zè»¸ã®Rollæ“ä½œã‚’ã‚«ãƒ¡ãƒ©å§¿å‹¢ã¸åæ˜ ã—ã¾ã™ã€‚\n" +
+        "é€šå¸¸ã®TPSã‚«ãƒ¡ãƒ©ã§ã¯ç„¡åŠ¹ã‚’æ¨å¥¨ã—ã¾ã™ã€‚")]
     [SerializeField]
     private bool _allowRoll;
 
     [Header("Transition")]
 
     [Tooltip(
-        "Statei“ü‚ÉŒ»İ‚ÌƒJƒƒ‰ˆÊ’u‚©‚ç" +
-        "Pitch‚ÆYaw‚ğ‹tZ‚µ‚Ü‚·B")]
+        "Stateé€²å…¥æ™‚ã«ç¾åœ¨ã®ã‚«ãƒ¡ãƒ©ä½ç½®ã‹ã‚‰" +
+        "Pitchã¨Yawã‚’é€†ç®—ã—ã¾ã™ã€‚")]
     [SerializeField]
     private bool _initializeRotationOnEnter =
         true;
 
     [Header("Time")]
 
-    [Tooltip(
-        "Time.timeScale‚Ì‰e‹¿‚ğó‚¯‚È‚¢ŠÔ‚ğg—p‚µ‚Ü‚·B")]
     [SerializeField]
     private bool _useUnscaledTime;
+
+    /*
+     * 0 = é€²å…¥ç›´å¾Œ
+     * 1 = é€šå¸¸Smoothnessã¸å®Œå…¨å¾©å¸°
+     */
+    private float _enterTransitionProgress;
 
     public override void Initialize(
         CameraController controller,
@@ -64,6 +68,9 @@ public sealed class CameraFollowState : CameraState
 
     public override void Enter()
     {
+        _enterTransitionProgress =
+            0f;
+
         if (!_initializeRotationOnEnter ||
             _controller == null ||
             _camera == null ||
@@ -79,10 +86,6 @@ public sealed class CameraFollowState : CameraState
         Vector3 pivotPosition =
             GetPivotPosition();
 
-        /*
-         * Œ»İ‚ÌƒJƒƒ‰ˆÊ’u‚©‚çA
-         * FollowState‚É‘Î‰‚·‚éOrbitŠp“x‚ğ‹tZ‚·‚éB
-         */
         if (!CameraController
                 .TryCalculateOrbitAnglesFromPosition(
                     _camera.transform.position,
@@ -94,23 +97,13 @@ public sealed class CameraFollowState : CameraState
             return;
         }
 
-        if (_allowRoll)
-        {
-            orbitAngles.z =
-                CalculateCurrentCameraRoll(
+        orbitAngles.z =
+            _allowRoll
+                ? CalculateCurrentCameraRoll(
                     _camera.transform,
-                    pivotPosition);
-        }
-        else
-        {
-            orbitAngles.z =
-                0f;
-        }
+                    pivotPosition)
+                : 0f;
 
-        /*
-         * Œ»İŠp“x‚Í‹tZ’l‚ğˆÛ‚µA
-         * –Ú•WŠp“x‚¾‚¯‚ğVolume‚Ì§ŒÀ”ÍˆÍ‚Öİ’è‚·‚éB
-         */
         _controller.InitializeOrbitAngles(
             orbitAngles,
             config.rotationLimitMin,
@@ -119,9 +112,6 @@ public sealed class CameraFollowState : CameraState
 
     public override void Exit()
     {
-        /*
-         * OrbitŠp“x‚ÍController‚ª•Û‚·‚é‚½‚ß”jŠü‚µ‚È‚¢B
-         */
     }
 
     public override void Update()
@@ -139,7 +129,8 @@ public sealed class CameraFollowState : CameraState
                 ? Time.unscaledDeltaTime
                 : Time.deltaTime;
 
-        if (deltaTime <= 0f)
+        if (deltaTime <=
+            0f)
         {
             return;
         }
@@ -147,37 +138,40 @@ public sealed class CameraFollowState : CameraState
         CameraVolume.CameraParams config =
             _volume.Config;
 
-        float smoothness =
-            Mathf.Max(
-                0f,
-                config.smoothness);
+        GetEffectiveSmoothness(
+            config,
+            deltaTime,
+            out float smoothnessPosition,
+            out float transitionSmoothnessTarget);
 
-        float interpolationRate =
-            CalculateInterpolationRate(
-                smoothness,
-                deltaTime);
-
-        /*
-         * X = Pitch
-         * Y = Yaw
-         * Z = Roll
-         */
         Vector3 orbitAngles =
             _controller.UpdateOrbitAngles(
                 config.rotationLimitMin,
                 config.rotationLimitMax,
-                smoothness,
                 deltaTime);
 
-        /*
-         * Roll‚ğ‹–‰Â‚µ‚È‚¢ê‡‚ÍA
-         * ƒJƒƒ‰‹O“¹ˆÊ’u‚É‚àZ‰ñ“]‚ğ“K—p‚µ‚È‚¢B
-         */
         if (!_allowRoll)
         {
             orbitAngles.z =
                 0f;
         }
+
+        float effectiveSmoothnessTarget =
+            _controller.HasOrbitInputThisFrame
+                ? Mathf.Max(
+                    0.01f,
+                    config.smoothnessTarget)
+                : transitionSmoothnessTarget;
+
+        float positionInterpolationRate =
+            CalculateInterpolationRate(
+                smoothnessPosition,
+                deltaTime);
+
+        float targetInterpolationRate =
+            CalculateInterpolationRate(
+                effectiveSmoothnessTarget,
+                deltaTime);
 
         Quaternion orbitRotation =
             CameraController.CreateCameraOrbitRotation(
@@ -187,43 +181,10 @@ public sealed class CameraFollowState : CameraState
         Vector3 pivotPosition =
             GetPivotPosition();
 
-        /*
-         * Orbit‰ñ“]‚ÍƒJƒƒ‰ˆÊ’u‚ÌŒvZ‚Ég‚¤B
-         */
         Vector3 targetCameraPosition =
             pivotPosition +
             orbitRotation *
             config.offset;
-
-        /*
-         * ƒJƒƒ‰p¨‚ÍPivot‚ğŒ©‚é‰ñ“]‚Æ‚µ‚Äì‚éB
-         *
-         * Orbit Quaternion‚ğ‚»‚Ì‚Ü‚Ü‘ã“ü‚µ‚È‚¢‚±‚Æ‚ÅA
-         * ˆÓ}‚µ‚È‚¢Z²ŒXÎ‚ğ—}§‚·‚éB
-         */
-        Quaternion targetCameraRotation =
-            CreateStableLookRotation(
-                targetCameraPosition,
-                pivotPosition,
-                _camera.transform.rotation);
-
-        if (_allowRoll)
-        {
-            /*
-             * Roll‚ğ‹–‰Â‚·‚éê‡‚Ì‚İA
-             * ƒJƒƒ‰ƒ[ƒJƒ‹‘O•û²‚ÖZ‰ñ“]‚ğ‰Á‚¦‚éB
-             */
-            targetCameraRotation *=
-                Quaternion.AngleAxis(
-                    orbitAngles.z,
-                    Vector3.forward);
-        }
-
-        float targetFieldOfView =
-            Mathf.Clamp(
-                config.fieldOfView,
-                1f,
-                179f);
 
         Transform cameraTransform =
             _camera.transform;
@@ -232,27 +193,98 @@ public sealed class CameraFollowState : CameraState
             Vector3.Lerp(
                 cameraTransform.position,
                 targetCameraPosition,
-                interpolationRate);
+                positionInterpolationRate);
+
+        Quaternion targetCameraRotation =
+            CreateStableLookRotation(
+                cameraTransform.position,
+                pivotPosition,
+                cameraTransform.rotation);
+
+        if (_allowRoll)
+        {
+            targetCameraRotation *=
+                Quaternion.AngleAxis(
+                    orbitAngles.z,
+                    Vector3.forward);
+        }
 
         cameraTransform.rotation =
             Quaternion.Slerp(
                 cameraTransform.rotation,
                 targetCameraRotation,
-                interpolationRate);
+                targetInterpolationRate);
 
         if (!_camera.orthographic)
         {
+            float targetFieldOfView =
+                Mathf.Clamp(
+                    config.fieldOfView,
+                    1f,
+                    179f);
+
             _camera.fieldOfView =
                 Mathf.Lerp(
                     _camera.fieldOfView,
                     targetFieldOfView,
-                    interpolationRate);
+                    positionInterpolationRate);
         }
     }
 
-    /// <summary>
-    /// Œ»İ‚ÌPlayerˆÊ’u‚©‚çPivotˆÊ’u‚ğæ“¾‚·‚éB
-    /// </summary>
+    private void GetEffectiveSmoothness(
+        CameraVolume.CameraParams config,
+        float deltaTime,
+        out float smoothnessPosition,
+        out float smoothnessTarget)
+    {
+        float recoveryDuration =
+            Mathf.Max(
+                0f,
+                config.enterSmoothnessRecoveryDuration);
+
+        if (recoveryDuration <=
+            Mathf.Epsilon)
+        {
+            _enterTransitionProgress =
+                1f;
+        }
+        else
+        {
+            _enterTransitionProgress =
+                Mathf.MoveTowards(
+                    _enterTransitionProgress,
+                    1f,
+                    deltaTime /
+                    recoveryDuration);
+        }
+
+        float transitionRate =
+            Mathf.SmoothStep(
+                0f,
+                1f,
+                _enterTransitionProgress);
+
+        smoothnessPosition =
+            Mathf.Lerp(
+                Mathf.Max(
+                    0.01f,
+                    config.enterSmoothnessPosition),
+                Mathf.Max(
+                    0.01f,
+                    config.smoothnessPosition),
+                transitionRate);
+
+        smoothnessTarget =
+            Mathf.Lerp(
+                Mathf.Max(
+                    0.01f,
+                    config.enterSmoothnessTarget),
+                Mathf.Max(
+                    0.01f,
+                    config.smoothnessTarget),
+                transitionRate);
+    }
+
     private Vector3 GetPivotPosition()
     {
         return
@@ -260,9 +292,6 @@ public sealed class CameraFollowState : CameraState
             _pivotOffset;
     }
 
-    /// <summary>
-    /// Œ»İ‚ÌCamera Transform‚©‚çRollŠp“x‚ğæ“¾‚·‚éB
-    /// </summary>
     private static float CalculateCurrentCameraRoll(
         Transform cameraTransform,
         Vector3 pivotPosition)
@@ -279,9 +308,6 @@ public sealed class CameraFollowState : CameraState
 
         forward.Normalize();
 
-        /*
-         * ^ãE^‰º•t‹ß‚Å‚ÍRoll‚ğˆÀ’è‚µ‚Äæ“¾‚Å‚«‚È‚¢B
-         */
         if (Mathf.Abs(
                 Vector3.Dot(
                     forward,
@@ -337,10 +363,6 @@ public sealed class CameraFollowState : CameraState
                 deltaTime);
     }
 
-    /// <summary>
-    /// ƒ[ƒ‹ƒhY‚ğã•ûŒü‚Æ‚µ‚ÄA
-    /// ˆÓ}‚µ‚È‚¢Roll‚ğ–h‚¢‚¾LookRotation‚ğ¶¬‚·‚éB
-    /// </summary>
     private static Quaternion CreateStableLookRotation(
         Vector3 cameraPosition,
         Vector3 targetPosition,
@@ -364,7 +386,8 @@ public sealed class CameraFollowState : CameraState
                     forward,
                     Vector3.up));
 
-        if (verticalDot < 0.999f)
+        if (verticalDot <
+            0.999f)
         {
             return Quaternion.LookRotation(
                 forward,
@@ -424,9 +447,6 @@ public sealed class CameraFollowState : CameraState
             correctedUp);
     }
 
-    /// <summary>
-    /// CameraFollowState‚ÌEditorƒvƒŒƒrƒ…[‚ğ¶¬‚·‚éB
-    /// </summary>
     public override bool TryGetPreview(
         CameraVolume volume,
         out CameraPreviewData preview)
@@ -502,4 +522,3 @@ public sealed class CameraFollowState : CameraState
                 360f) - 180f;
     }
 }
-

@@ -16,7 +16,7 @@ public abstract class CameraState : State
 
     // ‚±‚ÌState‚ğŠ—L‚µ‚Ä‚¢‚éCameraVolume
     protected CameraVolume _volume;
-
+    private float _enterTransitionElapsed;
     /// <summary>
     /// CameraState‚ÌÀs‰Šú‰»B
     /// </summary>

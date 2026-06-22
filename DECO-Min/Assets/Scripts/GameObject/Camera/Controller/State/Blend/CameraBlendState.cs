@@ -1,4 +1,3 @@
-
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -9,6 +8,9 @@ public sealed class CameraBlendState : CameraState
 {
     private const float DirectionEpsilon =
         0.000001f;
+
+    private const float RestartTransitionProgress =
+        0.2f;
 
     public enum BlendAnchorMode
     {
@@ -25,8 +27,8 @@ public sealed class CameraBlendState : CameraState
     [Header("Transition")]
 
     [Tooltip(
-        "Statei“ü‚ÉŒ»İ‚ÌƒJƒƒ‰ˆÊ’u‚©‚ç" +
-        "Pitch‚ÆYaw‚ğ‹tZ‚µ‚Ü‚·B")]
+        "Stateé€²å…¥æ™‚ã«ç¾åœ¨ã®ã‚«ãƒ¡ãƒ©ä½ç½®ã‹ã‚‰" +
+        "Pitchã¨Yawã‚’é€†ç®—ã—ã¾ã™ã€‚")]
     [SerializeField]
     private bool _initializeRotationOnEnter =
         true;
@@ -36,12 +38,14 @@ public sealed class CameraBlendState : CameraState
     [SerializeField]
     private bool _useUnscaledTime;
 
-    /*
-     * –ˆƒtƒŒ[ƒ€‚ÌGC Alloc‚ğ”ğ‚¯‚é‚½‚ßA
-     * BlendSampleˆê——‚ğÄ—˜—p‚·‚éB
-     */
     private readonly List<BlendSample> _blendSamples =
         new List<BlendSample>();
+
+    /*
+     * 0 = é€²å…¥ç›´å¾Œ
+     * 1 = é€šå¸¸Smoothnessã¸å®Œå…¨å¾©å¸°
+     */
+    private float _enterTransitionProgress;
 
     public BlendAnchorMode AnchorMode =>
         _anchorMode;
@@ -66,6 +70,9 @@ public sealed class CameraBlendState : CameraState
 
     public override void Enter()
     {
+        _enterTransitionProgress =
+            0f;
+
         if (!_initializeRotationOnEnter ||
             _controller == null ||
             _camera == null ||
@@ -74,10 +81,6 @@ public sealed class CameraBlendState : CameraState
             return;
         }
 
-        /*
-         * Œ»İ‚ÌPlayerˆÊ’u‚©‚çA
-         * BlendState‘S‘Ì‚ÌŠî€î•ñ‚ğ\’z‚·‚éB
-         */
         if (!TryBuildBlendContext(
                 _target.position,
                 out BlendContext context))
@@ -85,10 +88,6 @@ public sealed class CameraBlendState : CameraState
             return;
         }
 
-        /*
-         * Œ»İ‚ÌƒJƒƒ‰ˆÊ’u‚©‚çA
-         * ƒuƒŒƒ“ƒhŒã‚ÌŠî€p¨‚É‘Î‰‚·‚éOrbitŠp“x‚ğ‹tZ‚·‚éB
-         */
         if (!CameraController
                 .TryCalculateOrbitAnglesFromPosition(
                     _camera.transform.position,
@@ -100,17 +99,9 @@ public sealed class CameraBlendState : CameraState
             return;
         }
 
-        /*
-         * BlendState‚Å‚ÍˆÓ}‚µ‚È‚¢ZŒXÎ‚ğ–h‚®‚½‚ßA
-         * Roll‚ğg—p‚µ‚È‚¢B
-         */
         orbitAngles.z =
             0f;
 
-        /*
-         * Œ»İŠp“x‚Í‚»‚Ì‚Ü‚ÜˆÛ‚µA
-         * –Ú•WŠp“x‚¾‚¯‚ğƒuƒŒƒ“ƒhŒã‚Ì§ŒÀ”ÍˆÍ‚Öİ’è‚·‚éB
-         */
         _controller.InitializeOrbitAngles(
             orbitAngles,
             context.rotationLimitMin,
@@ -119,10 +110,18 @@ public sealed class CameraBlendState : CameraState
 
     public override void Exit()
     {
-        /*
-         * OrbitŠp“x‚ÍCameraController‚ª•Û‚·‚é‚½‚ßA
-         * BlendStateI—¹‚É‚à”jŠü‚µ‚È‚¢B
-         */
+    }
+
+    /// <summary>
+    /// Blend VolumeåŒå£«ã§ä¸»è¦VolumeãŒå¤‰åŒ–ã—ãŸéš›ã«ã€
+    /// é€²å…¥Smoothnessã‚’å†åº¦å°‘ã—å¼±ã‚ã‚‹ã€‚
+    /// </summary>
+    public void RestartEnterTransition()
+    {
+        _enterTransitionProgress =
+            Mathf.Min(
+                _enterTransitionProgress,
+                RestartTransitionProgress);
     }
 
     public override void Update()
@@ -139,7 +138,8 @@ public sealed class CameraBlendState : CameraState
                 ? Time.unscaledDeltaTime
                 : Time.deltaTime;
 
-        if (deltaTime <= 0f)
+        if (deltaTime <=
+            0f)
         {
             return;
         }
@@ -151,32 +151,15 @@ public sealed class CameraBlendState : CameraState
             return;
         }
 
-        /*
-         * X = Pitch
-         * Y = Yaw
-         * Z = Roll
-         */
         Vector3 orbitAngles =
             _controller.UpdateOrbitAngles(
                 context.rotationLimitMin,
                 context.rotationLimitMax,
-                context.smoothness,
                 deltaTime);
 
-        /*
-         * BlendState‚Å‚ÍRoll‚ğƒJƒƒ‰ˆÊ’uEp¨‚Ö“K—p‚µ‚È‚¢B
-         */
         orbitAngles.z =
             0f;
 
-        /*
-         * ƒuƒŒƒ“ƒhÏ‚İŠî€p¨‚É‘Î‚µ‚ÄA
-         * Orbit‰ñ“]‚ğˆê“x‚¾‚¯“K—p‚·‚éB
-         *
-         * Volume‚²‚Æ‚ÉOrbit‰ñ“]‚ğ“K—p‚µ‚Ä‚©‚ç
-         * ƒJƒƒ‰ˆÊ’u‚ğ•½‹Ï‚·‚é‚ÆA
-         * ƒ}ƒEƒXY“ü—Í‚ªYaw‚Ì‚æ‚¤‚ÉŒ©‚¦‚éê‡‚ª‚ ‚éB
-         */
         Quaternion orbitRotation =
             CameraController.CreateCameraOrbitRotation(
                 context.baseRotation,
@@ -187,18 +170,82 @@ public sealed class CameraBlendState : CameraState
             orbitRotation *
             context.offset;
 
+        GetEffectiveSmoothness(
+            context,
+            deltaTime,
+            out float smoothnessPosition,
+            out float transitionSmoothnessTarget);
+
+        float effectiveSmoothnessTarget =
+            _controller.HasOrbitInputThisFrame
+                ? Mathf.Max(
+                    0.01f,
+                    context.smoothnessTarget)
+                : transitionSmoothnessTarget;
+
         ApplyCameraTransform(
             targetCameraPosition,
             context.origin,
             context.fieldOfView,
-            context.smoothness,
+            smoothnessPosition,
+            effectiveSmoothnessTarget,
             deltaTime);
     }
 
-    /// <summary>
-    /// Œ»İ—LŒø‚ÈBlend Volume‚ğûW‚µA
-    /// 1‚Â‚ÌBlendContext‚Ö‚Ü‚Æ‚ß‚éB
-    /// </summary>
+    private void GetEffectiveSmoothness(
+        BlendContext context,
+        float deltaTime,
+        out float smoothnessPosition,
+        out float smoothnessTarget)
+    {
+        float recoveryDuration =
+            Mathf.Max(
+                0f,
+                context.enterSmoothnessRecoveryDuration);
+
+        if (recoveryDuration <=
+            Mathf.Epsilon)
+        {
+            _enterTransitionProgress =
+                1f;
+        }
+        else
+        {
+            _enterTransitionProgress =
+                Mathf.MoveTowards(
+                    _enterTransitionProgress,
+                    1f,
+                    deltaTime /
+                    recoveryDuration);
+        }
+
+        float transitionRate =
+            Mathf.SmoothStep(
+                0f,
+                1f,
+                _enterTransitionProgress);
+
+        smoothnessPosition =
+            Mathf.Lerp(
+                Mathf.Max(
+                    0.01f,
+                    context.enterSmoothnessPosition),
+                Mathf.Max(
+                    0.01f,
+                    context.smoothnessPosition),
+                transitionRate);
+
+        smoothnessTarget =
+            Mathf.Lerp(
+                Mathf.Max(
+                    0.01f,
+                    context.enterSmoothnessTarget),
+                Mathf.Max(
+                    0.01f,
+                    context.smoothnessTarget),
+                transitionRate);
+    }
+
     private bool TryBuildBlendContext(
         Vector3 playerPosition,
         out BlendContext context)
@@ -243,7 +290,19 @@ public sealed class CameraBlendState : CameraState
         float weightedFieldOfView =
             0f;
 
-        float weightedSmoothness =
+        float weightedSmoothnessPosition =
+            0f;
+
+        float weightedSmoothnessTarget =
+            0f;
+
+        float weightedEnterSmoothnessPosition =
+            0f;
+
+        float weightedEnterSmoothnessTarget =
+            0f;
+
+        float weightedEnterSmoothnessRecoveryDuration =
             0f;
 
         float totalWeight =
@@ -295,8 +354,24 @@ public sealed class CameraBlendState : CameraState
                 sample.fieldOfView *
                 sample.weight;
 
-            weightedSmoothness +=
-                sample.smoothness *
+            weightedSmoothnessPosition +=
+                sample.smoothnessPosition *
+                sample.weight;
+
+            weightedSmoothnessTarget +=
+                sample.smoothnessTarget *
+                sample.weight;
+
+            weightedEnterSmoothnessPosition +=
+                sample.enterSmoothnessPosition *
+                sample.weight;
+
+            weightedEnterSmoothnessTarget +=
+                sample.enterSmoothnessTarget *
+                sample.weight;
+
+            weightedEnterSmoothnessRecoveryDuration +=
+                sample.enterSmoothnessRecoveryDuration *
                 sample.weight;
 
             totalWeight +=
@@ -345,17 +420,30 @@ public sealed class CameraBlendState : CameraState
                     weightedFieldOfView /
                     totalWeight,
 
-                smoothness =
-                    weightedSmoothness /
+                smoothnessPosition =
+                    weightedSmoothnessPosition /
+                    totalWeight,
+
+                smoothnessTarget =
+                    weightedSmoothnessTarget /
+                    totalWeight,
+
+                enterSmoothnessPosition =
+                    weightedEnterSmoothnessPosition /
+                    totalWeight,
+
+                enterSmoothnessTarget =
+                    weightedEnterSmoothnessTarget /
+                    totalWeight,
+
+                enterSmoothnessRecoveryDuration =
+                    weightedEnterSmoothnessRecoveryDuration /
                     totalWeight
             };
 
         return true;
     }
 
-    /// <summary>
-    /// 1‚Â‚ÌCameraVolume‚©‚çƒuƒŒƒ“ƒhî•ñ‚ğæ“¾‚·‚éB
-    /// </summary>
     private bool TryGetBlendSample(
         CameraVolume volume,
         Vector3 playerPosition,
@@ -374,9 +462,6 @@ public sealed class CameraBlendState : CameraState
             volume.RuntimeState
                 as CameraBlendState;
 
-        /*
-         * CameraBlendState‚ğ‚ÂVolume‚¾‚¯‚ğ‘ÎÛ‚É‚·‚éB
-         */
         if (blendState == null)
         {
             return false;
@@ -399,7 +484,8 @@ public sealed class CameraBlendState : CameraState
             difference.sqrMagnitude;
 
         if (squaredDistance >=
-            radius * radius)
+            radius *
+            radius)
         {
             return false;
         }
@@ -408,9 +494,6 @@ public sealed class CameraBlendState : CameraState
             Mathf.Sqrt(
                 squaredDistance);
 
-        /*
-         * Volume’†S‚Å1AŠOü‚Å0‚Æ‚È‚éWeightB
-         */
         float weight =
             1f -
             distance /
@@ -427,23 +510,23 @@ public sealed class CameraBlendState : CameraState
         switch (blendState.AnchorMode)
         {
             case BlendAnchorMode.PlayerRelative:
-                {
-                    origin =
-                        playerPosition;
+            {
+                origin =
+                    playerPosition;
 
-                    break;
-                }
+                break;
+            }
 
             case BlendAnchorMode.GroundRelative:
+            {
+                if (!volume.GetGroundPosition(
+                        out origin))
                 {
-                    if (!volume.GetGroundPosition(
-                            out origin))
-                    {
-                        return false;
-                    }
-
-                    break;
+                    return false;
                 }
+
+                break;
+            }
 
             default:
                 return false;
@@ -484,10 +567,30 @@ public sealed class CameraBlendState : CameraState
                         1f,
                         179f),
 
-                smoothness =
+                smoothnessPosition =
+                    Mathf.Max(
+                        0.01f,
+                        config.smoothnessPosition),
+
+                smoothnessTarget =
+                    Mathf.Max(
+                        0.01f,
+                        config.smoothnessTarget),
+
+                enterSmoothnessPosition =
+                    Mathf.Max(
+                        0.01f,
+                        config.enterSmoothnessPosition),
+
+                enterSmoothnessTarget =
+                    Mathf.Max(
+                        0.01f,
+                        config.enterSmoothnessTarget),
+
+                enterSmoothnessRecoveryDuration =
                     Mathf.Max(
                         0f,
-                        config.smoothness),
+                        config.enterSmoothnessRecoveryDuration),
 
                 weight =
                     weight
@@ -496,10 +599,6 @@ public sealed class CameraBlendState : CameraState
         return true;
     }
 
-    /// <summary>
-    /// Forward‚ÆUp‚Ì‰Ád•½‹Ï‚©‚çA
-    /// ’¼Œğ‚µ‚½Šî€p¨‚ğ¶¬‚·‚éB
-    /// </summary>
     private static Quaternion CreateBlendedBaseRotation(
         Vector3 blendedForward,
         Vector3 blendedUp)
@@ -513,10 +612,6 @@ public sealed class CameraBlendState : CameraState
 
         blendedForward.Normalize();
 
-        /*
-         * Up‚©‚çForward•ûŒü¬•ª‚ğœŠO‚µA
-         * Forward‚ÆUp‚ğ’¼Œğ‚³‚¹‚éB
-         */
         Vector3 correctedUp =
             Vector3.ProjectOnPlane(
                 blendedUp,
@@ -553,37 +648,33 @@ public sealed class CameraBlendState : CameraState
             correctedUp);
     }
 
-    /// <summary>
-    /// ŒvZÏ‚İ‚ÌƒJƒƒ‰ˆÊ’uE’‹“_‚ğCamera‚Ö”½‰f‚·‚éB
-    /// </summary>
     private void ApplyCameraTransform(
         Vector3 targetCameraPosition,
         Vector3 targetLookPosition,
         float targetFieldOfView,
-        float smoothness,
+        float smoothnessPosition,
+        float smoothnessTarget,
         float deltaTime)
     {
-        float interpolationRate =
+        float positionInterpolationRate =
             CalculateInterpolationRate(
-                smoothness,
+                smoothnessPosition,
+                deltaTime);
+
+        float targetInterpolationRate =
+            CalculateInterpolationRate(
+                smoothnessTarget,
                 deltaTime);
 
         Transform cameraTransform =
             _camera.transform;
 
-        /*
-         * ˆÊ’u‚ğSmoothness‚Å•âŠÔ‚·‚éB
-         */
         cameraTransform.position =
             Vector3.Lerp(
                 cameraTransform.position,
                 targetCameraPosition,
-                interpolationRate);
+                positionInterpolationRate);
 
-        /*
-         * •âŠÔŒã‚ÌƒJƒƒ‰ˆÊ’u‚©‚çA
-         * Blend Origin‚ğŒ©‚ép¨‚ğì‚éB
-         */
         Quaternion targetRotation =
             CreateStableLookRotation(
                 cameraTransform.position,
@@ -594,7 +685,7 @@ public sealed class CameraBlendState : CameraState
             Quaternion.Slerp(
                 cameraTransform.rotation,
                 targetRotation,
-                interpolationRate);
+                targetInterpolationRate);
 
         if (!_camera.orthographic)
         {
@@ -602,14 +693,10 @@ public sealed class CameraBlendState : CameraState
                 Mathf.Lerp(
                     _camera.fieldOfView,
                     targetFieldOfView,
-                    interpolationRate);
+                    positionInterpolationRate);
         }
     }
 
-    /// <summary>
-    /// ƒ[ƒ‹ƒhY‚ğã•ûŒü‚Æ‚µ‚ÄA
-    /// ˆÓ}‚µ‚È‚¢Roll‚ğ–h‚¢‚¾LookRotation‚ğ¶¬‚·‚éB
-    /// </summary>
     private static Quaternion CreateStableLookRotation(
         Vector3 cameraPosition,
         Vector3 targetPosition,
@@ -633,17 +720,14 @@ public sealed class CameraBlendState : CameraState
                     forward,
                     Vector3.up));
 
-        if (verticalDot < 0.999f)
+        if (verticalDot <
+            0.999f)
         {
             return Quaternion.LookRotation(
                 forward,
                 Vector3.up);
         }
 
-        /*
-         * ^ãE^‰º•t‹ß‚Å‚ÍŒ»İp¨‚ÌRight‚ğ“Š‰e‚µA
-         * Up•ûŒü‚ğÄ\’z‚·‚éB
-         */
         Vector3 right =
             fallbackRotation *
             Vector3.right;
@@ -714,9 +798,6 @@ public sealed class CameraBlendState : CameraState
                 deltaTime);
     }
 
-    /// <summary>
-    /// CameraBlendState‚ÌEditorƒvƒŒƒrƒ…[‚ğ¶¬‚·‚éB
-    /// </summary>
     public override bool TryGetPreview(
         CameraVolume volume,
         out CameraPreviewData preview)
@@ -737,26 +818,26 @@ public sealed class CameraBlendState : CameraState
         switch (_anchorMode)
         {
             case BlendAnchorMode.PlayerRelative:
-                {
-                    origin =
-                        volume.GetGroundPosition(
-                            out Vector3 groundPosition)
-                            ? groundPosition
-                            : volume.transform.position;
+            {
+                origin =
+                    volume.GetGroundPosition(
+                        out Vector3 groundPosition)
+                        ? groundPosition
+                        : volume.transform.position;
 
-                    break;
-                }
+                break;
+            }
 
             case BlendAnchorMode.GroundRelative:
+            {
+                if (!volume.GetGroundPosition(
+                        out origin))
                 {
-                    if (!volume.GetGroundPosition(
-                            out origin))
-                    {
-                        return false;
-                    }
-
-                    break;
+                    return false;
                 }
+
+                break;
+            }
 
             default:
                 return false;
@@ -812,7 +893,13 @@ public sealed class CameraBlendState : CameraState
         public Vector3 rotationLimitMax;
 
         public float fieldOfView;
-        public float smoothness;
+
+        public float smoothnessPosition;
+        public float smoothnessTarget;
+
+        public float enterSmoothnessPosition;
+        public float enterSmoothnessTarget;
+        public float enterSmoothnessRecoveryDuration;
     }
 
     private struct BlendSample
@@ -827,7 +914,14 @@ public sealed class CameraBlendState : CameraState
         public Vector3 rotationLimitMax;
 
         public float fieldOfView;
-        public float smoothness;
+
+        public float smoothnessPosition;
+        public float smoothnessTarget;
+
+        public float enterSmoothnessPosition;
+        public float enterSmoothnessTarget;
+        public float enterSmoothnessRecoveryDuration;
+
         public float weight;
     }
 }

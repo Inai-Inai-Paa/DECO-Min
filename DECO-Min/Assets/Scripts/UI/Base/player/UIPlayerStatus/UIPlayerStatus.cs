@@ -9,9 +9,9 @@ public class UIPlayerHealthGauge : UIPlayerBase
 {
     private Image _healthGauge;
 
-    protected override void Awake()
+    protected override void Start()
     {
-        base.Awake();
+        base.Start();
 
         _healthGauge = GetComponent<Image>();
 

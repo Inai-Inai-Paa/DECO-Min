@@ -1,11 +1,9 @@
-using Unity.VisualScripting;
 using UnityEngine;
 
 public partial class Player : Character
 {
     public PlayerInputData playerInputData;
 
-    [Header("Status")]
     private PlayerStatus _status;
     public PlayerStatus Status => _status;
 

@@ -19,7 +19,7 @@ public class Attack : MonoBehaviour
         transform.position += _direction * _speed * Time.deltaTime;
 
         //–ˆƒtƒŒ[ƒ€Œ¸‘¬‚³‚¹‚é
-        _speed *= _duration;
+        _speed *= Mathf.Pow(_duration, Time.deltaTime * 60f);
 
         transform.position -= new Vector3(0.0f, _dropVelocity, 0.0f) * Time.deltaTime;
 

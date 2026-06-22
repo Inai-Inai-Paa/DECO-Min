@@ -4,8 +4,8 @@ public partial class Player : Character
 {
     public PlayerInputData playerInputData;
 
-    [Header("Status")]
-    [SerializeField] private PlayerStatus status;
+    private PlayerStatus _status;
+    public PlayerStatus Status => _status;
 
     [Header("ステート")]
     [Space(2)]
@@ -39,10 +39,8 @@ public partial class Player : Character
 
         mainCamera = Camera.main;
 
-        if(!status)
-        {
-            Debug.LogError("PlayerStatusがアタッチされていません。");
-        }
+        //プレイヤーステータスをキャラクターステータスから取得
+        _status = (PlayerStatus)characterStatus;
 
         if (initState != null)
         {
@@ -111,12 +109,12 @@ public partial class Player : Character
     // シール増減処理
     public void AddSeal(int amount)
     {
-        status.CurrentSealCount += amount;
+        _status.CurrentSealCount += amount;
     }
 
     public void RemoveSeal(int amount) {
-        status.CurrentSealCount -= amount;
-        if (status.CurrentSealCount < 0)
-            status.CurrentSealCount = 0;
+        _status.CurrentSealCount -= amount;
+        if (_status.CurrentSealCount < 0)
+            _status.CurrentSealCount = 0;
     }
 }

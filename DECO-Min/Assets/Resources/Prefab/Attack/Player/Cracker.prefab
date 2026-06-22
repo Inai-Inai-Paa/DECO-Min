@@ -49,6 +49,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 957d6e333128ea04795283c2e2d9a9d3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Cracker
+  _maxTime: 3
 --- !u!1001 &920693640913074254
 PrefabInstance:
   m_ObjectHideFlags: 0

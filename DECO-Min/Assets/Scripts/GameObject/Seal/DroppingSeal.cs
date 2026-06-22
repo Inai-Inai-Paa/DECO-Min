@@ -47,7 +47,7 @@ public class DroppingSeal : MonoBehaviour
             }
         }
     }
-    public void PeelSeal()
+    public bool PeelSeal()
     {
         _currentGauge--;
         _gaugeObject.value = _currentGauge;
@@ -55,8 +55,10 @@ public class DroppingSeal : MonoBehaviour
         _gaugeObject.gameObject.SetActive(true); // ゲージを表示
         if (_currentGauge <= 0)
         {
-            // ここでシールが剥がされたときの処理を行う
             Destroy(gameObject);    // 一旦削除
+            return true; // 剥がし成功
         }
+
+        return false; // 剥がし失敗
     }
 }

@@ -13,8 +13,8 @@ MonoBehaviour:
   m_Name: PlayerStatus
   m_EditorClassIdentifier: Assembly-CSharp::PlayerStatus
   maxHealth: 100
-  currentHealth: 100
+  currentHealth: 33.9
   MoveSpeedMultiplier: 1
   AttackPowerMultiplier: 1
-  TotalSealCount: 0
-  CurrentSealCount: 0
+  TotalSealCount: 10
+  CurrentSealCount: 10

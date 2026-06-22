@@ -126,5 +126,5 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Attack
   _speed: 20
-  _duration: 0.98
+  _duration: 0.96
   _dropVelocity: 0.3

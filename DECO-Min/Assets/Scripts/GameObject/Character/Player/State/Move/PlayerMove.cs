@@ -18,7 +18,7 @@ public class PlayerMove : PlayerState
 
     public override void Update()
     {
-        if (player.playerInputData.AttackPressed)
+        if (player.playerInputData.AttackPressed && player.Status.CurrentSealCount > 0)
             player.ChangePlayerState(_attackState);
 
         if(player.playerInputData.PeelScrollPressed)

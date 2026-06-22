@@ -22,6 +22,10 @@ public partial class Player : Character
     [HideInInspector]
     public Vector3 cameraForward = Vector3.zero;
 
+    private bool    _isInvincible;
+    private float   _invincibleTimer;
+    public  float   pendingDamage { get; private set; }
+
     protected override void Start()
     {
         // Call the base class's Awake method to ensure that the state machine is initialized
@@ -43,6 +47,14 @@ public partial class Player : Character
 
     protected override void Update()
     {
+        if (_isInvincible)
+        {
+            _invincibleTimer -= Time.deltaTime;
+
+            if (_invincibleTimer <= 0.0f)
+                _isInvincible = false;
+        }
+
         base.Update();
     }
 
@@ -59,5 +71,31 @@ public partial class Player : Character
     {
         nextState.Initialize(this, stateMachine);
         stateMachine.ChangeState(nextState);
+    }
+
+    // ƒ_ƒ[ƒWˆ—
+    public void ApplyDamage(float damage)
+    {
+        characterStatus.currentHealth -= damage;
+
+        if (characterStatus.currentHealth <= 0.0f)
+        {
+            // Ž€–Sˆ—
+        }
+    }
+
+    public void StartInvincible(float time)
+    {
+        _isInvincible = true;
+        _invincibleTimer = time;
+    }
+
+    public void TryDamage(float damage, PlayerState damageState)
+    {
+        if (_isInvincible)
+            return;
+
+        pendingDamage = damage;
+        ChangePlayerState(damageState);
     }
 };

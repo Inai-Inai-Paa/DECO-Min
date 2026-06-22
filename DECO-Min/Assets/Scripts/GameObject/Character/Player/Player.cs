@@ -3,6 +3,10 @@ using UnityEngine;
 public partial class Player : Character
 {
     public PlayerInputData playerInputData;
+
+    [Header("Status")]
+    [SerializeField] private PlayerStatus status;
+
     [Header("ステート")]
     [Space(2)]
     [SerializeField]
@@ -22,9 +26,9 @@ public partial class Player : Character
     [HideInInspector]
     public Vector3 cameraForward = Vector3.zero;
 
-    private bool    _isInvincible;
-    private float   _invincibleTimer;
-    public  float   pendingDamage { get; private set; }
+    private bool _isInvincible;
+    private float _invincibleTimer;
+    public float pendingDamage { get; private set; }
 
     protected override void Start()
     {
@@ -34,6 +38,11 @@ public partial class Player : Character
         InitializeInput();
 
         mainCamera = Camera.main;
+
+        if(!status)
+        {
+            Debug.LogError("PlayerStatusがアタッチされていません。");
+        }
 
         if (initState != null)
         {
@@ -98,4 +107,16 @@ public partial class Player : Character
         pendingDamage = damage;
         ChangePlayerState(damageState);
     }
-};
+
+    // シール増減処理
+    public void AddSeal(int amount)
+    {
+        status.CurrentSealCount += amount;
+    }
+
+    public void RemoveSeal(int amount) {
+        status.CurrentSealCount -= amount;
+        if (status.CurrentSealCount < 0)
+            status.CurrentSealCount = 0;
+    }
+}

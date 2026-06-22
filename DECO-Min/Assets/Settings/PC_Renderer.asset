@@ -72,7 +72,7 @@ MonoBehaviour:
   m_VolumeComponentName: PE_Noize
   m_Material: {fileID: 2100000, guid: a627ae1a24a8bd642b69320731fe4363, type: 2}
   m_MainTexturePropertyName: _MainTexture
-  m_RenderPassEvent: 600
+  m_RenderPassEvent: 450
   m_ApplyOnlyPlaying: 0
   m_ApplyToSceneView: 1
   m_ApplyToPreviewCamera: 0

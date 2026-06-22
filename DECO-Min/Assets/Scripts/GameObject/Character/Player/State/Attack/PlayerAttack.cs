@@ -45,7 +45,6 @@ public class PlayerAttack : PlayerState
     /// </summary>
     private void Attack()
     {
-        Debug.Log("aa");
         Instantiate(_attackPrefab, player.transform.position, player.transform.rotation);
         _wasAttack = true;
     }

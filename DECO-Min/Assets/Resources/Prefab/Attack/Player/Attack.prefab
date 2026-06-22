@@ -128,3 +128,8 @@ MonoBehaviour:
   _speed: 20
   _duration: 0.96
   _dropVelocity: 0.3
+  _sealObject: {fileID: 1549645160757926421, guid: 20390cad68896604d861750f3073c2ab, type: 3}
+  _groundLayer:
+    serializedVersion: 2
+    m_Bits: 1
+  _rayLength: 0.3

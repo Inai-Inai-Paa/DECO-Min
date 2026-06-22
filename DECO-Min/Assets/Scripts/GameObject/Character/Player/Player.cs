@@ -30,6 +30,14 @@ public partial class Player : Character
     private float _invincibleTimer;
     public float pendingDamage { get; private set; }
 
+    private void Awake()
+    {
+        //プレイヤーステータスをキャラクターステータスから取得
+        _status = (PlayerStatus)characterStatus;
+        _status.TotalSealCount = 100;
+        _status.CurrentSealCount = 100;
+    }
+
     protected override void Start()
     {
         // Call the base class's Awake method to ensure that the state machine is initialized
@@ -38,11 +46,6 @@ public partial class Player : Character
         InitializeInput();
 
         mainCamera = Camera.main;
-
-        //プレイヤーステータスをキャラクターステータスから取得
-        _status = (PlayerStatus)characterStatus;
-        _status.TotalSealCount = 100;
-        _status.CurrentSealCount = 100;
 
         if (initState != null)
         {

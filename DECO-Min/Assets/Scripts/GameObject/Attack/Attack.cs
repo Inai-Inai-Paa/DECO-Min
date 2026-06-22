@@ -7,6 +7,10 @@ public class Attack : MonoBehaviour
     [SerializeField] private float _dropVelocity = 0.001f;//落下速度
     private Vector3 _direction;
 
+    [SerializeField] private GameObject _sealObject;
+    [SerializeField] private LayerMask _groundLayer;
+    [SerializeField] private float _rayLength = 0.3f;
+
     void Start()
     {
         //XとYを参照して角度を決める
@@ -25,15 +29,21 @@ public class Attack : MonoBehaviour
 
         //どんどん落ちるスピードを速くする 倍率は後で決めよう
         _dropVelocity += _dropVelocity * Time.deltaTime;
+
+        CheckGround();
     }
 
-    private void OnCollisionEnter(Collision collision)
+    /// <summary>
+    /// レイを飛ばして地面判定を行う
+    /// 地面ならドロップシールに変えて死亡！
+    /// </summary>
+    void CheckGround()
     {
-        //地面に当たったらシール化 
-        //if (collision.gameObject.CompareTag("Untagged"))
-        //{
-        //    //シールが出来るまではデストロイ！！
-        //    Destroy(gameObject);
-        //}
+        //着地判定を取って落ちたらシール化
+        if (Physics.Raycast(transform.position, Vector3.down, _rayLength, _groundLayer))
+        {
+            Instantiate(_sealObject, transform.position, Quaternion.identity);
+            Destroy(gameObject);
+        }
     }
 }

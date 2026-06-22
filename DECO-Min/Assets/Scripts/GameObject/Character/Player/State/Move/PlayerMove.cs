@@ -61,4 +61,9 @@ public class PlayerMove : PlayerState
         }
         player.baseVelocity = new Vector3(velocity.x, player.baseVelocity.y, velocity.z);
     }
+
+    public override void Exit()
+    {
+        player.baseVelocity = Vector3.zero;
+    }
 }

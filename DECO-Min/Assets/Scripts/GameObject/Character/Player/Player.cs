@@ -41,6 +41,8 @@ public partial class Player : Character
 
         //プレイヤーステータスをキャラクターステータスから取得
         _status = (PlayerStatus)characterStatus;
+        _status.TotalSealCount = 100;
+        _status.CurrentSealCount = 100;
 
         if (initState != null)
         {

@@ -14,7 +14,6 @@ public class PlayerPeel : PlayerState
     [Tooltip("Peel先オブジェクトのレイヤー"), SerializeField] private LayerMask _peelableLayer;
     [Tooltip("Peel行動の探知範囲"), SerializeField] private float _peelableRange = 0.5f;
 
-
     Collider[] _collider;
     private float _enterTime = 0.0f;
     DroppingSeal _nearestPeelable = null;
@@ -34,7 +33,10 @@ public class PlayerPeel : PlayerState
                 {
                     //対象がDroppingSealであることを再度確認する
                     if (collider.gameObject.GetComponent<DroppingSeal>() != null)
+                    {
                         _nearestPeelable = collider.gameObject.GetComponent<DroppingSeal>();
+                        _nearestPeelable.PeelSeal(); //最初の1回は剥がすアクションを自動で行う
+                    }  
                 }
             }
         }

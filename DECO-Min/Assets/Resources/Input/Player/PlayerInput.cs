@@ -129,13 +129,13 @@ public partial class @PlayerInput: IInputActionCollection2, IDisposable
                     ""initialStateCheck"": false
                 },
                 {
-                    ""name"": ""Peal"",
+                    ""name"": ""Peel"",
                     ""type"": ""Button"",
                     ""id"": ""1405aad9-2233-4919-81aa-5de95663fdb2"",
                     ""expectedControlType"": """",
                     ""processors"": """",
                     ""interactions"": """",
-                    ""initialStateCheck"": false
+                    ""initialStateCheck"": true
                 }
             ],
             ""bindings"": [
@@ -296,11 +296,11 @@ public partial class @PlayerInput: IInputActionCollection2, IDisposable
                 {
                     ""name"": """",
                     ""id"": ""5836096e-fb00-4bbd-9a2d-055e07a6b582"",
-                    ""path"": ""<Keyboard>/f"",
+                    ""path"": ""<Mouse>/scroll/down"",
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": """",
-                    ""action"": ""Peal"",
+                    ""action"": ""Peel"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 }
@@ -315,7 +315,7 @@ public partial class @PlayerInput: IInputActionCollection2, IDisposable
         m_PlayerControll_Jump = m_PlayerControll.FindAction("Jump", throwIfNotFound: true);
         m_PlayerControll_Attack = m_PlayerControll.FindAction("Attack", throwIfNotFound: true);
         m_PlayerControll_Interact = m_PlayerControll.FindAction("Interact", throwIfNotFound: true);
-        m_PlayerControll_Peal = m_PlayerControll.FindAction("Peal", throwIfNotFound: true);
+        m_PlayerControll_Peel = m_PlayerControll.FindAction("Peel", throwIfNotFound: true);
     }
 
     ~@PlayerInput()
@@ -400,7 +400,7 @@ public partial class @PlayerInput: IInputActionCollection2, IDisposable
     private readonly InputAction m_PlayerControll_Jump;
     private readonly InputAction m_PlayerControll_Attack;
     private readonly InputAction m_PlayerControll_Interact;
-    private readonly InputAction m_PlayerControll_Peal;
+    private readonly InputAction m_PlayerControll_Peel;
     /// <summary>
     /// Provides access to input actions defined in input action map "PlayerControll".
     /// </summary>
@@ -429,9 +429,9 @@ public partial class @PlayerInput: IInputActionCollection2, IDisposable
         /// </summary>
         public InputAction @Interact => m_Wrapper.m_PlayerControll_Interact;
         /// <summary>
-        /// Provides access to the underlying input action "PlayerControll/Peal".
+        /// Provides access to the underlying input action "PlayerControll/Peel".
         /// </summary>
-        public InputAction @Peal => m_Wrapper.m_PlayerControll_Peal;
+        public InputAction @Peel => m_Wrapper.m_PlayerControll_Peel;
         /// <summary>
         /// Provides access to the underlying input action map instance.
         /// </summary>
@@ -470,9 +470,9 @@ public partial class @PlayerInput: IInputActionCollection2, IDisposable
             @Interact.started += instance.OnInteract;
             @Interact.performed += instance.OnInteract;
             @Interact.canceled += instance.OnInteract;
-            @Peal.started += instance.OnPeal;
-            @Peal.performed += instance.OnPeal;
-            @Peal.canceled += instance.OnPeal;
+            @Peel.started += instance.OnPeel;
+            @Peel.performed += instance.OnPeel;
+            @Peel.canceled += instance.OnPeel;
         }
 
         /// <summary>
@@ -496,9 +496,9 @@ public partial class @PlayerInput: IInputActionCollection2, IDisposable
             @Interact.started -= instance.OnInteract;
             @Interact.performed -= instance.OnInteract;
             @Interact.canceled -= instance.OnInteract;
-            @Peal.started -= instance.OnPeal;
-            @Peal.performed -= instance.OnPeal;
-            @Peal.canceled -= instance.OnPeal;
+            @Peel.started -= instance.OnPeel;
+            @Peel.performed -= instance.OnPeel;
+            @Peel.canceled -= instance.OnPeel;
         }
 
         /// <summary>
@@ -568,11 +568,11 @@ public partial class @PlayerInput: IInputActionCollection2, IDisposable
         /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
         void OnInteract(InputAction.CallbackContext context);
         /// <summary>
-        /// Method invoked when associated input action "Peal" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// Method invoked when associated input action "Peel" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
         /// </summary>
         /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
         /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
         /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
-        void OnPeal(InputAction.CallbackContext context);
+        void OnPeel(InputAction.CallbackContext context);
     }
 }

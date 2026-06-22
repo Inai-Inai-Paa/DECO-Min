@@ -10,11 +10,12 @@ public class SealCountUI : UIPlayerBase
 
     [SerializeField]
     private TextMeshProUGUI _sealCountText;
-    protected override void Awake()
-    {
-        base.Awake();
 
-        _sealCountText = GetComponent<TextMeshProUGUI>();
+    protected override void Start()
+    {
+        base.Start();
+
+        _sealCountText = gameObject.GetComponent<TextMeshProUGUI>();
 
         if (_sealCountText == null)
         {

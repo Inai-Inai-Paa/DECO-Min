@@ -2404,6 +2404,18 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 3112206571652072358, guid: a110d54a51c6d21458a2e31ef43e3369, type: 3}
+      propertyPath: _playerStatus
+      value: 
+      objectReference: {fileID: 0}
+    - target: {fileID: 5892449867859563700, guid: a110d54a51c6d21458a2e31ef43e3369, type: 3}
+      propertyPath: _playerStatus
+      value: 
+      objectReference: {fileID: 0}
+    - target: {fileID: 5892449867859563700, guid: a110d54a51c6d21458a2e31ef43e3369, type: 3}
+      propertyPath: _sealCountText
+      value: 
+      objectReference: {fileID: 0}
     - target: {fileID: 6122352991708856472, guid: a110d54a51c6d21458a2e31ef43e3369, type: 3}
       propertyPath: m_Name
       value: UI  Pack

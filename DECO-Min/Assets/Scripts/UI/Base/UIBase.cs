@@ -10,7 +10,8 @@ public class UIBase : MonoBehaviour
     [SerializeField]
     protected Canvas _canvas;
 
-    protected virtual void Awake()
+
+    protected virtual void Start()
     {
         if (_canvas == null)
         {
@@ -21,10 +22,7 @@ public class UIBase : MonoBehaviour
         {
             Debug.LogWarning($"{nameof(UIBase)} : Canvas が見つかりません。UIがCanvas配下にあるか確認してください。");
         }
-    }
 
-    protected virtual void Start()
-    {
         Hide();
     }
 

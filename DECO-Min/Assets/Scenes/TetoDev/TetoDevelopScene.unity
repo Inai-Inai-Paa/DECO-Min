@@ -303,7 +303,7 @@ MonoBehaviour:
     enterSmoothnessPosition: 1.5
     enterSmoothnessTarget: 2
     enterSmoothnessRecoveryDuration: 3
-    rotationLimitMin: {x: -15, y: -180, z: 0}
+    rotationLimitMin: {x: -30, y: -180, z: 0}
     rotationLimitMax: {x: 30, y: 180, z: 0}
 --- !u!1 &293421585
 GameObject:
@@ -724,7 +724,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: '::'
   _radius: 20
   _priority: 0
-  _stateTemplate: {fileID: 11400000, guid: 32141b16232d589419a1c2a7dd79f057, type: 2}
+  _stateTemplate: {fileID: 11400000, guid: 44a13456c6d2ab2428d96996911d29e1, type: 2}
   _config:
     offset: {x: 0, y: 4.58, z: -10.83}
     fieldOfView: 60
@@ -1425,15 +1425,15 @@ MonoBehaviour:
   _priority: 0
   _stateTemplate: {fileID: 11400000, guid: 44a13456c6d2ab2428d96996911d29e1, type: 2}
   _config:
-    offset: {x: 0, y: 5, z: -22}
+    offset: {x: 0, y: 5, z: -15}
     fieldOfView: 60
     smoothnessPosition: 5
     smoothnessTarget: 50
     enterSmoothnessPosition: 1.5
     enterSmoothnessTarget: 2
     enterSmoothnessRecoveryDuration: 3
-    rotationLimitMin: {x: 0, y: -180, z: 0}
-    rotationLimitMax: {x: 70, y: 180, z: 0}
+    rotationLimitMin: {x: -15, y: -180, z: 0}
+    rotationLimitMax: {x: 45, y: 180, z: 0}
 --- !u!1 &1094603922
 GameObject:
   m_ObjectHideFlags: 0
@@ -1830,7 +1830,7 @@ MonoBehaviour:
   _priority: 0
   _stateTemplate: {fileID: 11400000, guid: 44a13456c6d2ab2428d96996911d29e1, type: 2}
   _config:
-    offset: {x: 0, y: 5, z: -25}
+    offset: {x: 0, y: 5, z: -15}
     fieldOfView: 60
     smoothnessPosition: 5
     smoothnessTarget: 50
@@ -2099,14 +2099,14 @@ MonoBehaviour:
   _priority: 0
   _stateTemplate: {fileID: 11400000, guid: 44a13456c6d2ab2428d96996911d29e1, type: 2}
   _config:
-    offset: {x: 0, y: 5, z: -17.5}
+    offset: {x: 0, y: 5, z: -15}
     fieldOfView: 60
     smoothnessPosition: 5
     smoothnessTarget: 50
     enterSmoothnessPosition: 1.5
     enterSmoothnessTarget: 2
     enterSmoothnessRecoveryDuration: 3
-    rotationLimitMin: {x: 0, y: -180, z: 0}
+    rotationLimitMin: {x: -30, y: -180, z: 0}
     rotationLimitMax: {x: 0, y: 180, z: 0}
 --- !u!1 &1733552198
 GameObject:
@@ -2568,8 +2568,8 @@ MonoBehaviour:
     enterSmoothnessPosition: 1.5
     enterSmoothnessTarget: 2
     enterSmoothnessRecoveryDuration: 3
-    rotationLimitMin: {x: -70, y: -180, z: 0}
-    rotationLimitMax: {x: 70, y: 180, z: 0}
+    rotationLimitMin: {x: -15, y: -180, z: 0}
+    rotationLimitMax: {x: 30, y: 180, z: 0}
 --- !u!1 &2088895191
 GameObject:
   m_ObjectHideFlags: 0

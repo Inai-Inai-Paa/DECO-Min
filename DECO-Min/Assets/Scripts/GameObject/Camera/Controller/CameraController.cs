@@ -776,14 +776,40 @@ public sealed class CameraController : MonoBehaviour
 	{
 #if ENABLE_INPUT_SYSTEM
 
-		if (Mouse.current == null)
+		Vector2 lookDelta = Vector2.zero;
+
+		// マウス入力
+		if (Mouse.current != null)
 		{
-			return Vector2.zero;
+			lookDelta +=
+				Mouse.current.delta.ReadValue() *
+				0.02f;
 		}
 
-		return
-			Mouse.current.delta.ReadValue() *
-			0.02f;
+		// コントローラー右スティック入力
+		if (Gamepad.current != null)
+		{
+			const float stickDeadZone = 0.15f;
+			const float stickSensitivity = 2.0f;
+
+			Vector2 stickInput =
+				Gamepad.current.rightStick.ReadValue();
+
+			// スティックドリフト防止
+			if (stickInput.sqrMagnitude >=
+				stickDeadZone * stickDeadZone)
+			{
+				// スティックはフレーム単位の移動量ではないため、
+				// Time.unscaledDeltaTimeを掛けてフレームレート非依存にする
+				lookDelta +=
+					stickInput *
+					stickSensitivity *
+					Time.unscaledDeltaTime
+					* 30f;
+			}
+		}
+
+		return lookDelta;
 
 #elif ENABLE_LEGACY_INPUT_MANAGER
 

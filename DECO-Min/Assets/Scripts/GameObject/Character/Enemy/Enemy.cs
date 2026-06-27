@@ -46,6 +46,8 @@ public partial class Enemy : Character
 
     protected float _cooldownTimer;
 
+    [SerializeField] private GameObject _mySealPrefab;
+
     private bool _isGrounded;
 
     public bool IsGrounded => _isGrounded;
@@ -299,6 +301,16 @@ public partial class Enemy : Character
             return false;
         }
 
+        Player player = targetCollider.GetComponent<Player>();
+
+        if (player != null)
+        {
+            player.TryDamage(_attackDamage);
+
+            return true;
+        }
+
+        //この下のコードの意図がわからなかったので後で聞きます
         IDamageable damageable = targetCollider.GetComponent<IDamageable>();
 
         if (damageable == null)
@@ -313,5 +325,20 @@ public partial class Enemy : Character
 
         damageable.TakeDamage(_attackDamage);
         return true;
+    }
+
+    /// <summary>
+    /// 一旦のプロトまでなので後で絶対変えて！忘れてたら教えて！
+    /// </summary>
+    /// <param name="other"></param>
+    private void OnTriggerEnter(Collider other)
+    {
+        if(other.CompareTag("PlayerAttack"))
+        {
+            Instantiate(_mySealPrefab, transform.position, Quaternion.identity);
+
+            Destroy(other.gameObject);
+            Destroy(gameObject);
+        }
     }
 }

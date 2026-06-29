@@ -791,8 +791,6 @@ public sealed class CameraController : MonoBehaviour
 			lookDelta +=
 				Mouse.current.delta.ReadValue() *
 				0.02f;
-
-			lookDelta *= -1.0f; // 左右反転
 		}
 
 		// コントローラー右スティック入力
@@ -803,8 +801,6 @@ public sealed class CameraController : MonoBehaviour
 
 			Vector2 stickInput =
 				Gamepad.current.rightStick.ReadValue();
-
-			stickInput *= -1.0f; // 左右反転
 
 			// スティックドリフト防止
 			if (stickInput.sqrMagnitude >=

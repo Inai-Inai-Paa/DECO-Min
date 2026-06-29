@@ -12,5 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 014ba3171fb3b6b439f13d82a31ddcaa, type: 3}
   m_Name: test
   m_EditorClassIdentifier: Assembly-CSharp::MissionTargetObject
-  targetObject: {fileID: 0}
-  targetName: 
+  missionPreset:
+    missionType: 0
+    objectCount: 0
+    targetObject: {fileID: 0}
+  MissionText: 

@@ -3,7 +3,7 @@ using UnityEngine;
 [CreateAssetMenu(menuName = "Mission/MissionTargetObject")]
 public class MissionTargetObject : ScriptableObject
 {
-    [SerializeField]
-    public GameObject targetObject;
-    public string targetName;
+    [Header("ƒ~ƒbƒVƒ‡ƒ“İ’è")]
+    [SerializeField] public MissionPreset missionPreset;
+    [SerializeField] public string MissionText;
 }

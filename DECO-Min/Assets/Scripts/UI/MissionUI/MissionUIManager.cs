@@ -27,8 +27,8 @@ public class MissionUIManager : MonoBehaviour
 
     public void DrawMissionUI()
     {
-        _uILine.Initialize(_missionText);
-        _uILine.UpdateText();
+       _uILine.Initialize(Missionmanager.Instance.targetObject.MissionText);
+       _uILine.UpdateText();
     }
 
     public void SetMissionRoot(bool flag)

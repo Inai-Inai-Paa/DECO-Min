@@ -2,40 +2,34 @@ using UnityEngine;
 
 public class Missionmanager : MonoBehaviour
 {
-    private bool MissionClear = false; 
+    public static Missionmanager Instance { get; private set; }
 
-    [SerializeField] private MissionTargetObject _targetObject;
-
-     public static Missionmanager Instance { get; private set; }
+    // private bool MissionClear = false; 
+    [SerializeField] public MissionTargetObject targetObject;
 
     private void Awake()
     {
         // ÉVÉìÉOÉãÉgÉì
+        Instance = this;
         if (Instance != null && Instance != this)
         {
             Destroy(gameObject);
             return;
         }
+        Debug.Log("MissionManagerê∂ê¨");
+
     }
 
     private void Start()
     {
         // èâä˙âª
-        MissionClear = false;
+    //    MissionClear = false;
     }
 
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
-
+   
     public void Clear()
     {
-        MissionClear = true;
+   //     MissionClear = true;
     }
-    public void SetMissionTarget(MissionTargetObject targetObject)
-    {
-        _targetObject = targetObject;
-    }
+   
 }

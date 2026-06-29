@@ -1,67 +1,402 @@
+ï»¿
+using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
-public class CameraVolume : MonoBehaviour
+public sealed class CameraVolume : MonoBehaviour
 {
-    [System.Serializable]
-    public struct CameraParams
-    {
-        public Vector3 offset;     // ƒvƒŒƒCƒ„[‚©‚ç‚Ì‘Š‘ÎˆÊ’u
-        public float fieldOfView;  // ‰æŠp
-        public float smoothness;   // ƒJƒƒ‰‚Ì’Ç]‘¬“x
-    }
+	[System.Serializable]
+	public struct CameraParams
+	{
+		[Tooltip("Originã‹ã‚‰è¦‹ãŸã‚«ãƒ¡ãƒ©ã®ãƒ­ãƒ¼ã‚«ãƒ«ä½ç½®")]
+		public Vector3 offset;
 
-    [Header("Volume Settings")]
-    public float radius = 20f; // ‰e‹¿”¼Œa
+		[Range(1f, 179f)]
+		public float fieldOfView;
 
-    public bool followPlayer = true; // ƒvƒŒƒCƒ„[‚ğ’Ç]‚·‚é‚©‚Ç‚¤‚©‚Ìƒtƒ‰ƒO
+		[Header("Normal Smoothness")]
 
-    [Header("Camera Settings")]
-    public CameraParams config = new CameraVolume.CameraParams
-    {
-        offset = new Vector3(0, 5, -10),
-        fieldOfView = 60f,
-        smoothness = 5f
-    };
+		[Tooltip(
+			"é€šå¸¸æ™‚ã®ã‚«ãƒ¡ãƒ©ä½ç½®è¿½å¾“é€Ÿåº¦ã€‚\n" +
+			"å€¤ãŒå¤§ãã„ã»ã©ç´ æ—©ãè¿½å¾“ã—ã¾ã™ã€‚")]
+		[Min(0.01f)]
+		public float smoothnessPosition;
 
-    // ’n–Êi‚±‚ÌƒIƒuƒWƒFƒNƒg‚Ì’¼‰ºj‚ğŠî€‚Æ‚µ‚½ƒJƒƒ‰‚ÌˆÊ’u‚Æ‰ñ“]‚ğŒvZ‚·‚éŠÖ”
-    public bool GetPreviewTransform(out Vector3 position, out Quaternion rotation, out Vector3 targetpos)
-    {
-        position = transform.position;
-        rotation = transform.rotation;
-        targetpos = transform.position;
+		[Tooltip(
+			"é€šå¸¸æ™‚ã®ã‚«ãƒ¡ãƒ©å›è»¢ãƒ»æ³¨è¦–æ–¹å‘ã®è¿½å¾“é€Ÿåº¦ã€‚\n" +
+			"å€¤ãŒå¤§ãã„ã»ã©ç´ æ—©ãè¿½å¾“ã—ã¾ã™ã€‚")]
+		[Min(0.01f)]
+		public float smoothnessTarget;
 
-        Vector3 origin = transform.position;
-        Vector3 direction = Vector3.down;
-        float maxDistance = 500f; // —]—T‚ğ‚½‚¹‚½‹——£
+		[Header("Enter Transition")]
 
-        // ’Êí‚Ì•¨—ƒŒƒCƒLƒƒƒXƒgiƒQ[ƒ€Ä¶’†‚âAã‹L‚ÅŒ©‚Â‚©‚ç‚È‚©‚Á‚½ê‡‚ÌƒtƒH[ƒ‹ƒoƒbƒNj
-        // ‚ ‚ç‚ä‚éƒŒƒCƒ„[i~0j‚ğ‘ÎÛ‚É’T‚·
-        if (Physics.Raycast(origin, direction, out RaycastHit hit, maxDistance, ~0, QueryTriggerInteraction.Ignore))
-        {
-            Vector3 groundPoint = hit.point;
-            targetpos = groundPoint;
-            position = groundPoint + (transform.rotation * config.offset);
-            rotation = transform.rotation;
-            return true;
-        }
+		[Tooltip(
+			"ã“ã®Volumeã¸é€²å…¥ã—ãŸç›´å¾Œã«ä½¿ç”¨ã™ã‚‹ã€" +
+			"ã‚«ãƒ¡ãƒ©ä½ç½®ã®Smoothness")]
+		[Min(0.01f)]
+		public float enterSmoothnessPosition;
 
-        return false; 
-    }
+		[Tooltip(
+			"ã“ã®Volumeã¸é€²å…¥ã—ãŸç›´å¾Œã«ä½¿ç”¨ã™ã‚‹ã€" +
+			"ã‚«ãƒ¡ãƒ©å›è»¢ãƒ»æ³¨è¦–æ–¹å‘ã®Smoothness")]
+		[Min(0.01f)]
+		public float enterSmoothnessTarget;
 
-    private void OnDrawGizmosSelected()
-    {
-        Gizmos.color = Color.cyan;
-        Gizmos.DrawWireSphere(transform.position, radius);
+		[Tooltip(
+			"é€²å…¥ç”¨Smoothnessã‹ã‚‰é€šå¸¸Smoothnessã¸" +
+			"å¾©å¸°ã™ã‚‹ã¾ã§ã®æ™‚é–“")]
+		[Min(0f)]
+		public float enterSmoothnessRecoveryDuration;
 
-        // ƒfƒoƒbƒO—p‚ÉƒŒƒC‚ÆƒJƒƒ‰‘z’èˆÊ’u‚ğSceneƒrƒ…[‚É‚àü‚Å•`‰æ
-        if (GetPreviewTransform(out Vector3 camPos, out _, out Vector3 targetpos))
-        {
-            Gizmos.color = Color.yellow;
-            Gizmos.DrawLine(transform.position, camPos);
-            Gizmos.color = Color.blue;
-            Gizmos.DrawLine(targetpos, camPos);
-            Gizmos.color = Color.green;
-            Gizmos.DrawLine(targetpos, transform.position);
-        }
-    }
+		[Header("Rotation Limit")]
+
+		[Tooltip(
+			"å„è»¸ã®æœ€å°æ“ä½œè§’åº¦ã€‚\n" +
+			"å€¤ã¯-180ã€œ180åº¦ã§æŒ‡å®šã—ã¾ã™ã€‚")]
+		public Vector3 rotationLimitMin;
+
+		[Tooltip(
+			"å„è»¸ã®æœ€å¤§æ“ä½œè§’åº¦ã€‚\n" +
+			"Min=-180ã€Max=180ã®è»¸ã¯å®Œå…¨è‡ªç”±ã«ãªã‚Šã¾ã™ã€‚")]
+		public Vector3 rotationLimitMax;
+	}
+
+	[Header("Volume Settings")]
+
+	[Min(0.01f)]
+	[SerializeField]
+	private float _radius =
+		20f;
+
+	[Tooltip("VolumeãŒé‡ãªã£ãŸå ´åˆã®é¸æŠå„ªå…ˆåº¦")]
+	[SerializeField]
+	private int _priority;
+
+	[Header("Camera State")]
+
+	[SerializeField]
+	private CameraState _stateTemplate;
+
+	[Header("Camera Settings")]
+
+	[SerializeField]
+	private CameraParams _config =
+		new CameraParams
+		{
+			offset =
+				new Vector3(
+					0f,
+					5f,
+					-10f),
+
+			fieldOfView =
+				60f,
+
+			smoothnessPosition =
+				5f,
+
+			smoothnessTarget =
+				20f,
+
+			enterSmoothnessPosition =
+				1.5f,
+
+			enterSmoothnessTarget =
+				2f,
+
+			enterSmoothnessRecoveryDuration =
+				3f,
+
+			rotationLimitMin =
+				new Vector3(
+					-5f,
+					-15f,
+					0f),
+
+			rotationLimitMax =
+				new Vector3(
+					45f,
+					15f,
+					0f)
+		};
+
+	private CameraController _controller;
+	private CameraState _runtimeState;
+
+	public float Radius =>
+		_radius;
+
+	public int Priority =>
+		_priority;
+
+	public CameraParams Config =>
+		_config;
+
+	public CameraState StateTemplate =>
+		_stateTemplate;
+
+	public CameraState RuntimeState =>
+		_runtimeState;
+
+	public void Initialize(
+		CameraController controller)
+	{
+		ReleaseRuntimeState();
+
+		_controller =
+			controller;
+
+		if (_controller == null)
+		{
+			Debug.LogError(
+				$"{name}: CameraControllerãŒnullã§ã™ã€‚",
+				this);
+
+			return;
+		}
+
+		if (_stateTemplate == null)
+		{
+			Debug.LogWarning(
+				$"{name}: CameraStateãŒè¨­å®šã•ã‚Œã¦ã„ã¾ã›ã‚“ã€‚",
+				this);
+
+			return;
+		}
+
+		/*
+         * ScriptableObjectã®Stateã‚¢ã‚»ãƒƒãƒˆã‚’ç›´æ¥ä½¿ç”¨ã™ã‚‹ã¨ã€
+         * è¤‡æ•°Volumeé–“ã§å®Ÿè¡Œæ™‚å‚ç…§ãŒå…±æœ‰ã•ã‚Œã‚‹ã€‚
+         *
+         * Volumeã”ã¨ã«å°‚ç”¨ã‚¤ãƒ³ã‚¹ã‚¿ãƒ³ã‚¹ã‚’ç”Ÿæˆã™ã‚‹ã€‚
+         */
+		_runtimeState =
+			Instantiate(
+				_stateTemplate);
+
+		_runtimeState.name =
+			$"{_stateTemplate.name} Runtime ({name})";
+
+		_runtimeState.hideFlags =
+			HideFlags.HideAndDontSave;
+
+		_runtimeState.Initialize(
+			_controller,
+			_controller.ControlledCamera,
+			_controller.StateMachine,
+			_controller.Target,
+			this);
+	}
+
+	public bool Contains(
+		Vector3 worldPosition)
+	{
+		if (_radius <=
+			Mathf.Epsilon)
+		{
+			return false;
+		}
+
+		Vector3 difference =
+			worldPosition -
+			transform.position;
+
+		return
+			difference.sqrMagnitude <=
+			_radius *
+			_radius;
+	}
+
+	public float GetSquaredDistance(
+		Vector3 worldPosition)
+	{
+		Vector3 difference =
+			worldPosition -
+			transform.position;
+
+		return difference.sqrMagnitude;
+	}
+
+	public bool GetGroundPosition(
+		out Vector3 groundPosition)
+	{
+		groundPosition =
+			transform.position;
+
+		const float maxDistance =
+			500f;
+
+		if (!Physics.Raycast(
+				transform.position,
+				Vector3.down,
+				out RaycastHit hit,
+				maxDistance,
+				~0,
+				QueryTriggerInteraction.Ignore))
+		{
+			return false;
+		}
+
+		groundPosition =
+			hit.point;
+
+		return true;
+	}
+
+	public bool UsesState<T>()
+		where T : CameraState
+	{
+		return
+			_runtimeState is T;
+	}
+
+	public void ReleaseRuntimeState()
+	{
+		if (_runtimeState != null)
+		{
+			if (Application.isPlaying)
+			{
+				Destroy(
+					_runtimeState);
+			}
+			else
+			{
+				DestroyImmediate(
+					_runtimeState);
+			}
+
+			_runtimeState =
+				null;
+		}
+
+		_controller =
+			null;
+	}
+
+	private void OnDestroy()
+	{
+		ReleaseRuntimeState();
+	}
+
+	private void OnValidate()
+	{
+		_radius =
+			Mathf.Max(
+				0.01f,
+				_radius);
+
+		CameraParams config =
+			_config;
+
+		config.fieldOfView =
+			Mathf.Clamp(
+				config.fieldOfView,
+				1f,
+				179f);
+
+		config.smoothnessPosition =
+			Mathf.Max(
+				0.01f,
+				config.smoothnessPosition);
+
+		config.smoothnessTarget =
+			Mathf.Max(
+				0.01f,
+				config.smoothnessTarget);
+
+		config.enterSmoothnessPosition =
+			Mathf.Max(
+				0.01f,
+				config.enterSmoothnessPosition);
+
+		config.enterSmoothnessTarget =
+			Mathf.Max(
+				0.01f,
+				config.enterSmoothnessTarget);
+
+		config.enterSmoothnessRecoveryDuration =
+			Mathf.Max(
+				0f,
+				config.enterSmoothnessRecoveryDuration);
+
+		config.rotationLimitMin =
+			ClampRotationLimit(
+				config.rotationLimitMin);
+
+		config.rotationLimitMax =
+			ClampRotationLimit(
+				config.rotationLimitMax);
+
+		SortMinMax(
+			ref config.rotationLimitMin.x,
+			ref config.rotationLimitMax.x);
+
+		SortMinMax(
+			ref config.rotationLimitMin.y,
+			ref config.rotationLimitMax.y);
+
+		SortMinMax(
+			ref config.rotationLimitMin.z,
+			ref config.rotationLimitMax.z);
+
+		_config =
+			config;
+	}
+
+	private static Vector3 ClampRotationLimit(
+		Vector3 value)
+	{
+		value.x =
+			Mathf.Clamp(
+				value.x,
+				-180f,
+				180f);
+
+		value.y =
+			Mathf.Clamp(
+				value.y,
+				-180f,
+				180f);
+
+		value.z =
+			Mathf.Clamp(
+				value.z,
+				-180f,
+				180f);
+
+		return value;
+	}
+
+	private static void SortMinMax(
+		ref float minimum,
+		ref float maximum)
+	{
+		if (minimum <=
+			maximum)
+		{
+			return;
+		}
+
+		float temporary =
+			minimum;
+
+		minimum =
+			maximum;
+
+		maximum =
+			temporary;
+	}
+
+	private void OnDrawGizmosSelected()
+	{
+		Gizmos.color =
+			Color.cyan;
+
+		Gizmos.DrawWireSphere(
+			transform.position,
+			Mathf.Max(
+				0f,
+				_radius));
+	}
 }
+

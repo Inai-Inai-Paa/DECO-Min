@@ -18,12 +18,12 @@ public class PlayerMove : PlayerState
 
     public override void Update()
     {
-        if (player.playerInputData.AttackPressed)
-            player.ChangePlayerState(_attackState);
+        if (player.playerInputData.AttackPressed && player.Status.CurrentSealCount > 0)
+            player.ChangePlayerState(Instantiate(_attackState));
 
         if(player.playerInputData.PeelScrollPressed)
         {
-            player.ChangePlayerState(_peelState);
+            player.ChangePlayerState(Instantiate(_peelState));
         }
     }
 
@@ -60,5 +60,10 @@ public class PlayerMove : PlayerState
             );
         }
         player.baseVelocity = new Vector3(velocity.x, player.baseVelocity.y, velocity.z);
+    }
+
+    public override void Exit()
+    {
+        player.baseVelocity = Vector3.zero;
     }
 }

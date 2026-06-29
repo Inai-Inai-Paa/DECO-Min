@@ -13,7 +13,7 @@ GameObject:
   - component: {fileID: 4823468206477802597}
   - component: {fileID: 3749899539029926191}
   - component: {fileID: 4208936772623775018}
-  m_Layer: 6
+  m_Layer: 0
   m_Name: Attack
   m_TagString: PlayerAttack
   m_Icon: {fileID: 0}
@@ -107,7 +107,7 @@ BoxCollider:
     serializedVersion: 2
     m_Bits: 0
   m_LayerOverridePriority: 0
-  m_IsTrigger: 0
+  m_IsTrigger: 1
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
@@ -126,5 +126,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Attack
   _speed: 20
-  _duration: 0.98
+  _duration: 0.96
   _dropVelocity: 0.3
+  _sealObject: {fileID: 1549645160757926421, guid: 20390cad68896604d861750f3073c2ab, type: 3}
+  _groundLayer:
+    serializedVersion: 2
+    m_Bits: 1
+  _rayLength: 0.3

@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using UnityEngine;
 
 /// <summary>
@@ -10,32 +11,34 @@ public class UIPlayerBase : UIBase
     [SerializeField]
     protected Player _player;
 
-    [SerializeField]
     protected PlayerStatus _playerStatus;
 
-    protected override void Awake()
+    protected override void Start()
     {
-        base.Awake();
+        base.Start();
 
         if (_player == null)
         {
             _player = FindAnyObjectByType<Player>();
+
+        }
+
+        if (_player != null && _playerStatus == null)
+        {
+            _playerStatus = _player.Status;
         }
 
         if (_player == null)
         {
             Debug.LogWarning($"{nameof(UIPlayerBase)} : Player が見つかりません。");
         }
-    }
-
-    protected override void Start()
-    {
-        Show();
 
         if (_playerStatus == null)
         {
-            Debug.LogWarning($"{nameof(UIPlayerBase)} : PlayerStatus が設定されていません。InspectorにPlayerStatusを入れて。");
+            Debug.LogWarning($"{nameof(UIPlayerBase)} : PlayerStatus が設定されていません。PlayerのStatusを確認してください。");
         }
+
+        Show();
     }
 
     protected bool IsValidPlayerStatus()

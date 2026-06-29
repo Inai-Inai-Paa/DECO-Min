@@ -13,6 +13,7 @@ public class PlayerPeel : PlayerState
     [Tooltip("Peel先オブジェクトのタグ"), SerializeField] private string _peelableTag = "Peelable";
     [Tooltip("Peel先オブジェクトのレイヤー"), SerializeField] private LayerMask _peelableLayer;
     [Tooltip("Peel行動の探知範囲"), SerializeField] private float _peelableRange = 0.5f;
+    [Tooltip("加算されるシールの数"), SerializeField] private int _addSealCount = 1;
 
     Collider[] _collider;
     private float _enterTime = 0.0f;
@@ -35,7 +36,7 @@ public class PlayerPeel : PlayerState
                     if (collider.gameObject.GetComponent<DroppingSeal>() != null)
                     {
                         _nearestPeelable = collider.gameObject.GetComponent<DroppingSeal>();
-                        _nearestPeelable.PeelSeal(); //最初の1回は剥がすアクションを自動で行う
+                        PeelAction(); //最初の1回は剥がすアクションを自動で行う
                     }  
                 }
             }
@@ -51,19 +52,19 @@ public class PlayerPeel : PlayerState
         {
             if (player.playerInputData.PeelScrollPressed)
             {
-                _nearestPeelable.PeelSeal();
+                PeelAction();
             }
             //プレイヤー移動入力を取得したら_moveStateに遷移する、成功時硬直も同時に満たしていることを確認する
             if (player.playerInputData.Move.sqrMagnitude > 0.0f && Time.time - _enterTime >= _successDuration)
             {
-                player.ChangePlayerState(_moveState);
+                player.ChangePlayerState(Instantiate(_moveState));
             }
         }
         else
         {
             if (Time.time - _enterTime >= _failDuration)
             {
-                player.ChangePlayerState(_moveState);
+                player.ChangePlayerState(Instantiate(_moveState));
             }
         }
     }
@@ -76,5 +77,17 @@ public class PlayerPeel : PlayerState
     public override void Exit()
     {
         _enterTime = 0.0f;
+    }
+
+    private void PeelAction()
+    {
+        if (_nearestPeelable)
+        {
+            if(_nearestPeelable.PeelSeal())
+            {
+                player.AddSeal(_addSealCount);
+                player.ChangePlayerState(Instantiate(_moveState));
+            }
+        }
     }
 }

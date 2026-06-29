@@ -42,7 +42,8 @@ public class Attack : MonoBehaviour
         //’…’n”»’è‚ğæ‚Á‚Ä—‚¿‚½‚çƒV[ƒ‹‰»
         if (Physics.Raycast(transform.position, Vector3.down, _rayLength, _groundLayer))
         {
-            Instantiate(_sealObject, transform.position, Quaternion.identity);
+            GameObject dropSeal = Instantiate(_sealObject, transform.position, Quaternion.identity);
+            dropSeal.GetComponent<DroppingSeal>().SetCreateSource(SealCreateSource.Player);
             Destroy(gameObject);
         }
     }

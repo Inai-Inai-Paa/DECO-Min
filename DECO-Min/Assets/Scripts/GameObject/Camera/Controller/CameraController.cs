@@ -778,12 +778,21 @@ public sealed class CameraController : MonoBehaviour
 
 		Vector2 lookDelta = Vector2.zero;
 
+		// この関数が呼ばれている間はカーソルを中央に固定する
+		if (Cursor.lockState != CursorLockMode.Locked)
+		{
+			Cursor.lockState = CursorLockMode.Locked;
+			Cursor.visible = false;
+		}
+
 		// マウス入力
 		if (Mouse.current != null)
 		{
 			lookDelta +=
 				Mouse.current.delta.ReadValue() *
 				0.02f;
+
+			lookDelta *= -1.0f; // 左右反転
 		}
 
 		// コントローラー右スティック入力
@@ -795,17 +804,19 @@ public sealed class CameraController : MonoBehaviour
 			Vector2 stickInput =
 				Gamepad.current.rightStick.ReadValue();
 
+			stickInput *= -1.0f; // 左右反転
+
 			// スティックドリフト防止
 			if (stickInput.sqrMagnitude >=
 				stickDeadZone * stickDeadZone)
 			{
-				// スティックはフレーム単位の移動量ではないため、
-				// Time.unscaledDeltaTimeを掛けてフレームレート非依存にする
+				// スティックは移動量ではなく入力強度なので、
+				// DeltaTimeを掛けてフレームレート非依存にする
 				lookDelta +=
 					stickInput *
 					stickSensitivity *
-					Time.unscaledDeltaTime
-					* 30f;
+					Time.unscaledDeltaTime *
+					30.0f;
 			}
 		}
 
@@ -813,17 +824,22 @@ public sealed class CameraController : MonoBehaviour
 
 #elif ENABLE_LEGACY_INPUT_MANAGER
 
-        return new Vector2(
-            Input.GetAxisRaw("Mouse X"),
-            Input.GetAxisRaw("Mouse Y"));
+	if (Cursor.lockState != CursorLockMode.Locked)
+	{
+		Cursor.lockState = CursorLockMode.Locked;
+		Cursor.visible = false;
+	}
+
+	return new Vector2(
+		Input.GetAxisRaw("Mouse X"),
+		Input.GetAxisRaw("Mouse Y"));
 
 #else
 
-        return Vector2.zero;
+	return Vector2.zero;
 
 #endif
 	}
-
 	private static float ReadRollInput()
 	{
 #if ENABLE_INPUT_SYSTEM

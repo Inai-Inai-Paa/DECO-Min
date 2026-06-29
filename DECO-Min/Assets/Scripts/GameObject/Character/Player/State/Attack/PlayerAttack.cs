@@ -7,13 +7,19 @@ public class PlayerAttack : PlayerState
 
     [SerializeField] private PlayerMove _playerMove;
 
-    private float _frameCounter = 0; //カウンタ
+    private float _frameCounter; //カウンタ
     [SerializeField] private float _attackStartUpTime;//攻撃が発生前の時間
     [SerializeField] private float _attackRecoveryTime;//攻撃が終わった後の硬直時間
 
     private bool _wasAttack = false;//アタックをしたか
 
     [SerializeField] private int _attackNeedSeal;//変数名終わってるか
+
+    public override void Enter()
+    {
+        _frameCounter = 0;//初期化
+        _wasAttack = false;
+    }
 
     /// <summary>
     /// カウンタを回して、行動を管理

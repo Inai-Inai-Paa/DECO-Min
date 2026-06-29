@@ -57,14 +57,14 @@ public class PlayerPeel : PlayerState
             //プレイヤー移動入力を取得したら_moveStateに遷移する、成功時硬直も同時に満たしていることを確認する
             if (player.playerInputData.Move.sqrMagnitude > 0.0f && Time.time - _enterTime >= _successDuration)
             {
-                player.ChangePlayerState(Instantiate(_moveState));
+                player.ChangePlayerState(_moveState);
             }
         }
         else
         {
             if (Time.time - _enterTime >= _failDuration)
             {
-                player.ChangePlayerState(Instantiate(_moveState));
+                player.ChangePlayerState(_moveState);
             }
         }
     }
@@ -86,7 +86,7 @@ public class PlayerPeel : PlayerState
             if(_nearestPeelable.PeelSeal())
             {
                 player.AddSeal(_addSealCount);
-                player.ChangePlayerState(Instantiate(_moveState));
+                player.ChangePlayerState(_moveState);
             }
         }
     }

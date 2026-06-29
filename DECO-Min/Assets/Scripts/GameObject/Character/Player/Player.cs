@@ -50,7 +50,7 @@ public partial class Player : Character
 
         if (initState != null)
         {
-            ChangePlayerState(initState);
+            ChangePlayerState(Instantiate(initState));
         }
     }
     private void OnDestroy()
@@ -109,7 +109,7 @@ public partial class Player : Character
             return;
 
         pendingDamage = damage;
-        ChangePlayerState(playerDamage);
+        ChangePlayerState(Instantiate(playerDamage));
     }
 
     // ƒV[ƒ‹‘Œ¸ˆ—

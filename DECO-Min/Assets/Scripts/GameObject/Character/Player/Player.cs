@@ -34,7 +34,7 @@ public partial class Player : Character
     private void Awake()
     {
         //プレイヤーステータスをキャラクターステータスから取得
-        _status = (PlayerStatus)characterStatus;
+        _status = Instantiate((PlayerStatus)characterStatus);
         _status.TotalSealCount = 100;
         _status.CurrentSealCount = 100;
     }
@@ -89,9 +89,9 @@ public partial class Player : Character
     // ダメージ処理
     public void ApplyDamage(float damage)
     {
-        characterStatus.currentHealth -= damage;
+        _status.currentHealth -= damage;
 
-        if (characterStatus.currentHealth <= 0.0f)
+        if (_status.currentHealth <= 0.0f)
         {
             // 死亡処理
         }

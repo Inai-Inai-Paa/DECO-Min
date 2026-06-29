@@ -11,6 +11,7 @@ public partial class Player : Character
     [Space(2)]
     [SerializeField]
     private PlayerState initState = null;
+    [SerializeField] private PlayerDamage playerDamage = null; //応急処置 後で変える必要あり
 
     [Header("接地判定")]
     [Space(2)]
@@ -49,7 +50,7 @@ public partial class Player : Character
 
         if (initState != null)
         {
-            ChangePlayerState(initState);
+            ChangePlayerState(Instantiate(initState));
         }
     }
     private void OnDestroy()
@@ -102,13 +103,13 @@ public partial class Player : Character
         _invincibleTimer = time;
     }
 
-    public void TryDamage(float damage, PlayerState damageState)
+    public void TryDamage(float damage)
     {
         if (_isInvincible)
             return;
 
         pendingDamage = damage;
-        ChangePlayerState(damageState);
+        ChangePlayerState(Instantiate(playerDamage));
     }
 
     // シール増減処理

@@ -201,9 +201,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7838431e3d3b4b84b922554d451757fd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::DroppingSeal
-  _requiredGauge: 5
+  _requiredGauge: 20
   _gaugeDisplayTime: 2
   _gaugeObject: {fileID: 5144667378923071778}
+  _createSource: 0
+  _chainPeelRange: 1
+  _peelableLayer:
+    serializedVersion: 2
+    m_Bits: 256
 --- !u!1 &1948508982953969929
 GameObject:
   m_ObjectHideFlags: 0

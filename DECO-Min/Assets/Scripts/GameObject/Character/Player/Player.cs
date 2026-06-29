@@ -3,6 +3,10 @@ using UnityEngine;
 public partial class Player : Character
 {
     public PlayerInputData playerInputData;
+
+    private PlayerStatus _status;
+    public PlayerStatus Status => _status;
+
     [Header("ステート")]
     [Space(2)]
     [SerializeField]
@@ -21,6 +25,18 @@ public partial class Player : Character
     private Camera mainCamera = null;
     [HideInInspector]
     public Vector3 cameraForward = Vector3.zero;
+
+    private bool _isInvincible;
+    private float _invincibleTimer;
+    public float pendingDamage { get; private set; }
+
+    private void Awake()
+    {
+        //プレイヤーステータスをキャラクターステータスから取得
+        _status = (PlayerStatus)characterStatus;
+        _status.TotalSealCount = 100;
+        _status.CurrentSealCount = 100;
+    }
 
     protected override void Start()
     {
@@ -44,6 +60,14 @@ public partial class Player : Character
 
     protected override void Update()
     {
+        if (_isInvincible)
+        {
+            _invincibleTimer -= Time.deltaTime;
+
+            if (_invincibleTimer <= 0.0f)
+                _isInvincible = false;
+        }
+
         base.Update();
     }
 
@@ -61,4 +85,42 @@ public partial class Player : Character
         nextState.Initialize(this, stateMachine);
         stateMachine.ChangeState(nextState);
     }
-};
+
+    // ダメージ処理
+    public void ApplyDamage(float damage)
+    {
+        characterStatus.currentHealth -= damage;
+
+        if (characterStatus.currentHealth <= 0.0f)
+        {
+            // 死亡処理
+        }
+    }
+
+    public void StartInvincible(float time)
+    {
+        _isInvincible = true;
+        _invincibleTimer = time;
+    }
+
+    public void TryDamage(float damage, PlayerState damageState)
+    {
+        if (_isInvincible)
+            return;
+
+        pendingDamage = damage;
+        ChangePlayerState(damageState);
+    }
+
+    // シール増減処理
+    public void AddSeal(int amount)
+    {
+        _status.CurrentSealCount += amount;
+    }
+
+    public void RemoveSeal(int amount) {
+        _status.CurrentSealCount -= amount;
+        if (_status.CurrentSealCount < 0)
+            _status.CurrentSealCount = 0;
+    }
+}

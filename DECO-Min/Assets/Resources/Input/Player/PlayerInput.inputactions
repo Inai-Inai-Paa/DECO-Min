@@ -43,13 +43,13 @@
                     "initialStateCheck": false
                 },
                 {
-                    "name": "Peal",
+                    "name": "Peel",
                     "type": "Button",
                     "id": "1405aad9-2233-4919-81aa-5de95663fdb2",
                     "expectedControlType": "",
                     "processors": "",
                     "interactions": "",
-                    "initialStateCheck": false
+                    "initialStateCheck": true
                 }
             ],
             "bindings": [
@@ -210,11 +210,11 @@
                 {
                     "name": "",
                     "id": "5836096e-fb00-4bbd-9a2d-055e07a6b582",
-                    "path": "<Keyboard>/f",
+                    "path": "<Mouse>/scroll/down",
                     "interactions": "",
                     "processors": "",
                     "groups": "",
-                    "action": "Peal",
+                    "action": "Peel",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

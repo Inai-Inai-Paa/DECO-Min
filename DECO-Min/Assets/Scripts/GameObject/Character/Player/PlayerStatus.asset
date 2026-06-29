@@ -16,5 +16,5 @@ MonoBehaviour:
   currentHealth: 100
   MoveSpeedMultiplier: 1
   AttackPowerMultiplier: 1
-  TotalSealCount: 0
-  CurrentSealCount: 0
+  TotalSealCount: 40
+  CurrentSealCount: 27

@@ -15,7 +15,7 @@ public class PlayerInputData
 
     public bool InteractPressed;
 
-    public bool PealPressed;
+    public bool PeelScrollPressed;
 
 
     public void ClearFrameInput()
@@ -70,13 +70,13 @@ public partial class Player : Character
         {
             playerInputData.InteractPressed = false;
         };
-        _playerInput.PlayerControll.Peal.started += _ =>
+        _playerInput.PlayerControll.Peel.started += _ =>
         {
-            playerInputData.PealPressed = true;
+            playerInputData.PeelScrollPressed = true;
         };
-        _playerInput.PlayerControll.Peal.canceled += _ =>
+        _playerInput.PlayerControll.Peel.canceled += _ =>
         {
-            playerInputData.InteractPressed = false;
+            playerInputData.PeelScrollPressed = false;
         };
         // PlayerInput‚ð—LŒø‰»
         _playerInput.Enable();
@@ -87,7 +87,7 @@ public partial class Player : Character
         playerInputData.JumpPressed = false;
         playerInputData.AttackPressed = false;
         playerInputData.InteractPressed = false;
-        playerInputData.PealPressed = false;
+        playerInputData.PeelScrollPressed = false;
     }
 
     private void FinalizeInput()

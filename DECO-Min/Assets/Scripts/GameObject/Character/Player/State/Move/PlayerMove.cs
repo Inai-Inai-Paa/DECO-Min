@@ -3,20 +3,28 @@ using UnityEngine;
 [CreateAssetMenu(menuName = "State/Player/Move")]
 public class PlayerMove : PlayerState
 {
-    [Header("移動速度")]
-    [Tooltip("移動速度です。")]
+    [Header("TransitionState")]
+    [SerializeField] private PlayerState _attackState;
+    [Tooltip("PeelState"),SerializeField] private PlayerState _peelState;
+
+    [Header("遘ｻ蜍暮溷ｺｦ")]
+    [Tooltip("遘ｻ蜍暮溷ｺｦ縺ｧ縺吶�")]
     public float moveSpeed = 3.0f;
 
-    [Header("ジャンプ力")]
-    [Tooltip("ジャンプ力です。")]
+    [Header("繧ｸ繝｣繝ｳ繝怜鴨")]
+    [Tooltip("繧ｸ繝｣繝ｳ繝怜鴨縺ｧ縺吶�")]
     public float jumpForce = 5.0f;
-
-    [SerializeField] private PlayerState _attackState;
+    
 
     public override void Update()
     {
-        if (player.playerInputData.AttackPressed)
+        if (player.playerInputData.AttackPressed && player.Status.CurrentSealCount > 0)
             player.ChangePlayerState(_attackState);
+
+        if(player.playerInputData.PeelScrollPressed)
+        {
+            player.ChangePlayerState(_peelState);
+        }
     }
 
     public override void FixedUpdate()
@@ -52,5 +60,10 @@ public class PlayerMove : PlayerState
             );
         }
         player.baseVelocity = new Vector3(velocity.x, player.baseVelocity.y, velocity.z);
+    }
+
+    public override void Exit()
+    {
+        player.baseVelocity = Vector3.zero;
     }
 }

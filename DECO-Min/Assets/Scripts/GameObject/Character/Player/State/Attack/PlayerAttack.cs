@@ -13,6 +13,8 @@ public class PlayerAttack : PlayerState
 
     private bool _wasAttack = false;//アタックをしたか
 
+    [SerializeField] private int _attackNeedSeal;//変数名終わってるか
+
     public override void Enter()
     {
         _frameCounter = 0;//初期化
@@ -45,8 +47,9 @@ public class PlayerAttack : PlayerState
     /// </summary>
     private void Attack()
     {
-        Debug.Log("aa");
         Instantiate(_attackPrefab, player.transform.position, player.transform.rotation);
         _wasAttack = true;
+
+        player.RemoveSeal(_attackNeedSeal);
     }
 }

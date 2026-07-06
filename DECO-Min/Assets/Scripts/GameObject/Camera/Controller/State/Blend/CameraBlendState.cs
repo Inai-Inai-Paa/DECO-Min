@@ -124,7 +124,7 @@ public sealed class CameraBlendState : CameraState
                 RestartTransitionProgress);
     }
 
-    public override void Update()
+    public override void FixedUpdate()
     {
         if (_controller == null ||
             _camera == null ||

@@ -114,7 +114,7 @@ public sealed class CameraFollowState : CameraState
     {
     }
 
-    public override void Update()
+    public override void FixedUpdate()
     {
         if (_controller == null ||
             _camera == null ||

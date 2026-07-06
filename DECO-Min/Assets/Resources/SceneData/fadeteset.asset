@@ -9,11 +9,8 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 014ba3171fb3b6b439f13d82a31ddcaa, type: 3}
-  m_Name: test
-  m_EditorClassIdentifier: Assembly-CSharp::MissionTargetObject
-  missionPreset:
-    missionType: 0
-    objectCount: 0
-    targetObject: {fileID: 0}
-  MissionText: test
+  m_Script: {fileID: 11500000, guid: 3a8e20c99edf9b54eb67e58d8489d556, type: 3}
+  m_Name: fadeteset
+  m_EditorClassIdentifier: Assembly-CSharp::SceneData
+  _sceneAsset: {fileID: 0}
+  sceneName: 

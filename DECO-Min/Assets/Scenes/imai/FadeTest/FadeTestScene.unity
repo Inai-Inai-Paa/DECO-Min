@@ -185,7 +185,7 @@ Canvas:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 34902859}
-  m_Enabled: 1
+  m_Enabled: 0
   serializedVersion: 3
   m_RenderMode: 0
   m_Camera: {fileID: 0}
@@ -250,7 +250,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4aeb35759a247c541a567c998eb382e2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Miisionmanager
-  _targetObject: {fileID: 11400000, guid: 6b43965d1590b2f488929c48f6a38708, type: 2}
+  targetObject: {fileID: 11400000, guid: 6b43965d1590b2f488929c48f6a38708, type: 2}
 --- !u!4 &307460305
 Transform:
   m_ObjectHideFlags: 0

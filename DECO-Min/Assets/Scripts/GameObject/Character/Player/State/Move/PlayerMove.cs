@@ -3,9 +3,9 @@ using UnityEngine;
 [CreateAssetMenu(menuName = "State/Player/Move")]
 public class PlayerMove : PlayerState
 {
-    [Header("TransitionState")]
+    [Header("Transition State")]
     [SerializeField] private PlayerState _attackState;
-    [Tooltip("PeelState"),SerializeField] private PlayerState _peelState;
+    [Tooltip("剥離行動"),SerializeField] private PlayerState _peelState;
 
     [Header("移動速度")]
     [Tooltip("移動速度です。")]
@@ -18,12 +18,18 @@ public class PlayerMove : PlayerState
 
     public override void Update()
     {
-        if (player.playerInputData.AttackPressed && player.Status.CurrentSealCount > 0)
-            player.ChangePlayerState(Instantiate(_attackState));
+        if (player.isGrounded)
+        {   // ジャンプ中には遷移しないステート群
 
-        if(player.playerInputData.PeelScrollPressed)
-        {
-            player.ChangePlayerState(Instantiate(_peelState));
+            // Attack
+            if (player.playerInputData.AttackPressed && player.Status.CurrentSealCount > 0)
+                player.ChangePlayerState(Instantiate(_attackState));
+
+            // Peel
+            if (player.playerInputData.PeelScrollPressed)
+            {
+                player.ChangePlayerState(Instantiate(_peelState));
+            }
         }
     }
 

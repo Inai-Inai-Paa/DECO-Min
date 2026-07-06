@@ -55,6 +55,7 @@ public partial class Player : Character
     }
     private void OnDestroy()
     {
+        stateMachine?.Shutdown();
         FinalizeInput();
     }
 
@@ -113,8 +114,10 @@ public partial class Player : Character
     }
 
     // ƒV[ƒ‹‘Œ¸ˆ—
-    public void AddSeal(int amount)
+    public void AddSeal(int amount, bool isAddTortal)
     {
+        if(isAddTortal)
+            _status.TotalSealCount += amount;
         _status.CurrentSealCount += amount;
     }
 

@@ -16,3 +16,4 @@ MonoBehaviour:
   _peelState: {fileID: 11400000, guid: fc38929fd95380344ad28e8a57b36287, type: 2}
   moveSpeed: 10
   jumpForce: 10
+  _attackState: {fileID: 11400000, guid: 61783e7d3b5767b49abd2b1e47a0f4fe, type: 2}

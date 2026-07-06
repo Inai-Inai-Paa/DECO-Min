@@ -6,6 +6,7 @@ public class PlayerMove : PlayerState
     [Header("Transition State")]
     [SerializeField] private PlayerState _attackState;
     [Tooltip("剥離行動"),SerializeField] private PlayerState _peelState;
+    [Tooltip("剥離行動のクールダウン"),SerializeField] private float _peelCooldown = 1.0f;
 
     [Header("移動速度")]
     [Tooltip("移動速度です。")]
@@ -26,7 +27,7 @@ public class PlayerMove : PlayerState
                 player.ChangePlayerState(Instantiate(_attackState));
 
             // Peel
-            if (player.playerInputData.PeelScrollPressed)
+            if (player.playerInputData.PeelScrollPressed && player.TryPeelAction(_peelCooldown))
             {
                 player.ChangePlayerState(Instantiate(_peelState));
             }

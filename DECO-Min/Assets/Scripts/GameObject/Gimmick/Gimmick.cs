@@ -4,7 +4,9 @@ using UnityEngine;
 public class Gimmick : MonoBehaviour
 {
     protected StateMachine _stateMachine;
-    protected Player _player;
+    public Player player;
+
+    [SerializeField]
     protected GimmickActiveState _activeState;
 
     protected virtual void Start()
@@ -23,8 +25,15 @@ public class Gimmick : MonoBehaviour
 
     protected virtual void Active()
     {
-
         _activeState.Initialize(this, _stateMachine);
         _stateMachine.ChangeState(Instantiate(_activeState));
     }
+
+    public void ChangeState(GimmickState state)
+    {
+        GimmickState stateInstance = Instantiate(state);
+        stateInstance.Initialize(this, _stateMachine);
+		_stateMachine.ChangeState(stateInstance);
+        
+	}
 }

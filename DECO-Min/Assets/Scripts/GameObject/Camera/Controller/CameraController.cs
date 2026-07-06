@@ -137,7 +137,7 @@ public sealed class CameraController : MonoBehaviour
 		if (_defaultRuntimeState != null)
 		{
 			_stateMachine.ChangeState(
-				_defaultRuntimeState);
+				(State)_defaultRuntimeState);
 		}
 
 		UpdateCurrentVolume();

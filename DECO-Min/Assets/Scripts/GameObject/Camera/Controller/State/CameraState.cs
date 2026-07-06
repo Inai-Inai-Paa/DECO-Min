@@ -2,161 +2,168 @@ using UnityEngine;
 
 public abstract class CameraState : State
 {
-    // カメラ制御全体を管理するController
-    protected CameraController _controller;
+	[Header("Ground Push")]
 
-    // 操作対象のCamera
-    protected Camera _camera;
+	[Tooltip("カメラが地面にめり込むのを防ぐかどうか")]
+	[SerializeField]
+	private bool _pushGround =
+		true;
 
-    // Stateの切り替えを管理するStateMachine
-    protected StateMachine _stateMachine;
+	[Tooltip("地面から最低限離す距離")]
+	[Min(0f)]
+	[SerializeField]
+	private float _groundClearance =
+		0.15f;
 
-    // カメラが追従する対象
-    protected Transform _target;
+	[Tooltip("カメラ位置の上方向から地面を探す高さ")]
+	[Min(0.01f)]
+	[SerializeField]
+	private float _groundProbeHeight =
+		3f;
 
-    // このStateを所有しているCameraVolume
-    protected CameraVolume _volume;
-    private float _enterTransitionElapsed;
-    /// <summary>
-    /// CameraStateの実行時初期化。
-    /// </summary>
-    public virtual void Initialize(
-        CameraController controller,
-        Camera camera,
-        StateMachine stateMachine,
-        Transform target,
-        CameraVolume volume)
-    {
-        _controller =
-            controller;
+	[Tooltip("地面として扱うLayer")]
+	[SerializeField]
+	private LayerMask _groundMask =
+		~0;
 
-        _camera =
-            camera;
+	[Tooltip("Trigger Colliderを地面判定に含めるか")]
+	[SerializeField]
+	private QueryTriggerInteraction _groundTriggerInteraction =
+		QueryTriggerInteraction.Ignore;
 
-        _stateMachine =
-            stateMachine;
+	protected CameraController _controller;
+	protected Camera _camera;
+	protected StateMachine _stateMachine;
+	protected Transform _target;
+	protected CameraVolume _volume;
 
-        _target =
-            target;
+	public virtual void Initialize(
+		CameraController controller,
+		Camera camera,
+		StateMachine stateMachine,
+		Transform target,
+		CameraVolume volume)
+	{
+		_controller =
+			controller;
 
-        _volume =
-            volume;
-    }
+		_camera =
+			camera;
 
-    /// <summary>
-    /// Editor上で表示する標準プレビューを計算する。
-    ///
-    /// CameraVolumeのTransform回転を基準姿勢として扱い、
-    /// CameraVolume.Config.offsetをローカルオフセットとして適用する。
-    /// </summary>
-    public virtual bool TryGetPreview(
-        CameraVolume volume,
-        out CameraPreviewData preview)
-    {
-        preview =
-            default;
+		_stateMachine =
+			stateMachine;
 
-        if (volume == null)
-        {
-            return false;
-        }
+		_target =
+			target;
 
-        CameraVolume.CameraParams config =
-            volume.Config;
+		_volume =
+			volume;
+	}
 
-        /*
-         * 地面が見つかった場合はVolume直下の地面、
-         * 見つからない場合はVolume自身の座標をOriginとする。
-         */
-        Vector3 origin =
-            volume.GetGroundPosition(
-                out Vector3 groundPosition)
-                ? groundPosition
-                : volume.transform.position;
+	public override void Enter()
+	{
+	}
 
-        /*
-         * CameraVolumeのTransform回転を、
-         * カメラ配置の基準姿勢として使用する。
-         */
-        Quaternion baseRotation =
-            volume.transform.rotation;
+	public override void Exit()
+	{
+	}
 
-        /*
-         * Config.offsetはCameraVolume基準の
-         * ローカルオフセットとして扱う。
-         */
-        Vector3 cameraPosition =
-            origin +
-            baseRotation *
-            config.offset;
+	public override void Update()
+	{
+	}
 
-        Quaternion cameraRotation =
-            CreateLookRotation(
-                cameraPosition,
-                origin,
-                baseRotation);
+	public override void FixedUpdate()
+	{
+	}
 
-        preview =
-            new CameraPreviewData
-            {
-                cameraPosition =
-                    cameraPosition,
+	public virtual bool TryGetPreview(
+		CameraVolume volume,
+		out CameraPreviewData preview)
+	{
+		preview =
+			default;
 
-                cameraRotation =
-                    cameraRotation,
+		return false;
+	}
 
-                targetPosition =
-                    origin,
+	/// <summary>
+	/// Cameraの目標位置が地面より下にある場合、
+	/// 最低クリアランス分だけ上へ押し出す。
+	///
+	/// Follow/Blendなどの継承先Stateは、
+	/// targetCameraPositionを計算した直後と、
+	/// 補間後の実Camera位置にこの関数を通す。
+	/// </summary>
+	protected Vector3 ApplyGroundPush(
+		Vector3 cameraPosition)
+	{
+		if (!_pushGround)
+		{
+			return cameraPosition;
+		}
 
-                targetRotation =
-                    baseRotation,
+		Vector3 rayOrigin =
+			cameraPosition +
+			Vector3.up *
+			_groundProbeHeight;
 
-                fieldOfView =
-                    Mathf.Clamp(
-                        config.fieldOfView,
-                        1f,
-                        179f)
-            };
+		float rayDistance =
+			_groundProbeHeight +
+			Mathf.Max(
+				0f,
+				_groundClearance) +
+			100f;
 
-        return true;
-    }
+		if (!Physics.Raycast(
+				rayOrigin,
+				Vector3.down,
+				out RaycastHit hit,
+				rayDistance,
+				_groundMask,
+				_groundTriggerInteraction))
+		{
+			return cameraPosition;
+		}
 
-    /// <summary>
-    /// カメラ位置から対象位置を向く回転を生成する。
-    ///
-    /// 真上や真下を向く場合のLookRotation不安定化も回避する。
-    /// </summary>
-    protected static Quaternion CreateLookRotation(
-        Vector3 cameraPosition,
-        Vector3 targetPosition,
-        Quaternion fallbackRotation)
-    {
-        Vector3 forward =
-            targetPosition -
-            cameraPosition;
+		float minimumY =
+			hit.point.y +
+			Mathf.Max(
+				0f,
+				_groundClearance);
 
-        if (forward.sqrMagnitude <=
-            0.000001f)
-        {
-            return fallbackRotation;
-        }
+		if (cameraPosition.y >=
+			minimumY)
+		{
+			return cameraPosition;
+		}
 
-        forward.Normalize();
+		cameraPosition.y =
+			minimumY;
 
-        /*
-         * forwardとVector3.upがほぼ平行な場合は、
-         * Vector3.forwardを上方向として使用する。
-         */
-        Vector3 up =
-            Mathf.Abs(
-                Vector3.Dot(
-                    forward,
-                    Vector3.up)) > 0.999f
-                ? Vector3.forward
-                : Vector3.up;
+		return cameraPosition;
+	}
 
-        return Quaternion.LookRotation(
-            forward,
-            up);
-    }
+	/// <summary>
+	/// Editor Preview用。
+	/// Runtimeと同じ地面押し出しを使う。
+	/// </summary>
+	protected Vector3 ApplyGroundPushForPreview(
+		Vector3 cameraPosition)
+	{
+		return ApplyGroundPush(
+			cameraPosition);
+	}
+
+	protected virtual void OnValidate()
+	{
+		_groundClearance =
+			Mathf.Max(
+				0f,
+				_groundClearance);
+
+		_groundProbeHeight =
+			Mathf.Max(
+				0.01f,
+				_groundProbeHeight);
+	}
 }

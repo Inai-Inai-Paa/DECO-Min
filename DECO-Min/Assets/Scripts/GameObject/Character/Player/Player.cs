@@ -31,6 +31,9 @@ public partial class Player : Character
     private float _invincibleTimer;
     public float pendingDamage { get; private set; }
 
+    // PeelAction
+    private float _peelLastTime = -Mathf.Infinity;
+
     private void Awake()
     {
         //プレイヤーステータスをキャラクターステータスから取得
@@ -125,5 +128,21 @@ public partial class Player : Character
         _status.CurrentSealCount -= amount;
         if (_status.CurrentSealCount < 0)
             _status.CurrentSealCount = 0;
+    }
+
+    // 剥離行動クールダウン
+    public bool TryPeelAction(float cooldown)
+    {
+        if (Time.time - _peelLastTime >= cooldown)
+        {
+            _peelLastTime = Time.time;
+            return true;
+        }
+        return false;
+    }
+
+    public void ResetPeelCooldown()
+    {
+        _peelLastTime = -Mathf.Infinity;
     }
 }

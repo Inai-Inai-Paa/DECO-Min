@@ -41,10 +41,16 @@ public class PlayerPeel : PlayerState
                     if (collider.gameObject.GetComponent<DroppingSeal>() != null)
                     {
                         _nearestPeelable = collider.gameObject.GetComponent<DroppingSeal>();
-                        PeelAction(); //最初の1回は剥がすアクションを自動で行う
+                        
                     }  
                 }
             }
+        }
+
+        if (_nearestPeelable != null)
+        {
+            player.ResetPeelCooldown(); //剥離行動に成功した場合はCDのリセット
+            PeelAction(); //最初の1回は剥がすアクションを自動で行う
         }
 
         _enterTime = Time.time;

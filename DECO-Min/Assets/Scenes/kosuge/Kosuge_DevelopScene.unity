@@ -163,12 +163,19 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 84c52781d499770479c24bcf28a421e0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: '::'
-  radius: 15
-  followPlayer: 0
-  config:
-    offset: {x: 0, y: 0, z: -24.7}
+  _radius: 20
+  _priority: 0
+  _stateTemplate: {fileID: 0}
+  _config:
+    offset: {x: 0, y: 5, z: -10}
     fieldOfView: 60
-    smoothness: 5
+    smoothnessPosition: 5
+    smoothnessTarget: 20
+    enterSmoothnessPosition: 1.5
+    enterSmoothnessTarget: 2
+    enterSmoothnessRecoveryDuration: 3
+    rotationLimitMin: {x: -5, y: -15, z: 0}
+    rotationLimitMax: {x: 45, y: 15, z: 0}
 --- !u!1 &65675817
 GameObject:
   m_ObjectHideFlags: 0
@@ -285,12 +292,19 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 84c52781d499770479c24bcf28a421e0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: '::'
-  radius: 23.54
-  followPlayer: 1
-  config:
-    offset: {x: 0, y: 0, z: -24.7}
+  _radius: 20
+  _priority: 0
+  _stateTemplate: {fileID: 0}
+  _config:
+    offset: {x: 0, y: 5, z: -10}
     fieldOfView: 60
-    smoothness: 5
+    smoothnessPosition: 5
+    smoothnessTarget: 20
+    enterSmoothnessPosition: 1.5
+    enterSmoothnessTarget: 2
+    enterSmoothnessRecoveryDuration: 3
+    rotationLimitMin: {x: -5, y: -15, z: 0}
+    rotationLimitMax: {x: 45, y: 15, z: 0}
 --- !u!1 &293421585
 GameObject:
   m_ObjectHideFlags: 0
@@ -335,12 +349,19 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 84c52781d499770479c24bcf28a421e0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: '::'
-  radius: 20
-  followPlayer: 0
-  config:
-    offset: {x: 0, y: 0, z: -17.12}
+  _radius: 20
+  _priority: 0
+  _stateTemplate: {fileID: 0}
+  _config:
+    offset: {x: 0, y: 5, z: -10}
     fieldOfView: 60
-    smoothness: 5
+    smoothnessPosition: 5
+    smoothnessTarget: 20
+    enterSmoothnessPosition: 1.5
+    enterSmoothnessTarget: 2
+    enterSmoothnessRecoveryDuration: 3
+    rotationLimitMin: {x: -5, y: -15, z: 0}
+    rotationLimitMax: {x: 45, y: 15, z: 0}
 --- !u!1 &294128418
 GameObject:
   m_ObjectHideFlags: 0
@@ -385,12 +406,19 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 84c52781d499770479c24bcf28a421e0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: '::'
-  radius: 27.58
-  followPlayer: 0
-  config:
-    offset: {x: 0, y: 0, z: -20.11}
+  _radius: 20
+  _priority: 0
+  _stateTemplate: {fileID: 0}
+  _config:
+    offset: {x: 0, y: 5, z: -10}
     fieldOfView: 60
-    smoothness: 5
+    smoothnessPosition: 5
+    smoothnessTarget: 20
+    enterSmoothnessPosition: 1.5
+    enterSmoothnessTarget: 2
+    enterSmoothnessRecoveryDuration: 3
+    rotationLimitMin: {x: -5, y: -15, z: 0}
+    rotationLimitMax: {x: 45, y: 15, z: 0}
 --- !u!1 &453035112
 GameObject:
   m_ObjectHideFlags: 0
@@ -435,12 +463,19 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 84c52781d499770479c24bcf28a421e0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: '::'
-  radius: 20
-  followPlayer: 0
-  config:
-    offset: {x: 0, y: -2.4, z: -20}
+  _radius: 20
+  _priority: 0
+  _stateTemplate: {fileID: 0}
+  _config:
+    offset: {x: 0, y: 5, z: -10}
     fieldOfView: 60
-    smoothness: 5
+    smoothnessPosition: 5
+    smoothnessTarget: 20
+    enterSmoothnessPosition: 1.5
+    enterSmoothnessTarget: 2
+    enterSmoothnessRecoveryDuration: 3
+    rotationLimitMin: {x: -5, y: -15, z: 0}
+    rotationLimitMax: {x: 45, y: 15, z: 0}
 --- !u!1 &528635473
 GameObject:
   m_ObjectHideFlags: 0
@@ -687,12 +722,19 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 84c52781d499770479c24bcf28a421e0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: '::'
-  radius: 25
-  followPlayer: 0
-  config:
-    offset: {x: 0, y: 0, z: -34.59}
+  _radius: 20
+  _priority: 0
+  _stateTemplate: {fileID: 0}
+  _config:
+    offset: {x: 0, y: 5, z: -10}
     fieldOfView: 60
-    smoothness: 5
+    smoothnessPosition: 5
+    smoothnessTarget: 20
+    enterSmoothnessPosition: 1.5
+    enterSmoothnessTarget: 2
+    enterSmoothnessRecoveryDuration: 3
+    rotationLimitMin: {x: -5, y: -15, z: 0}
+    rotationLimitMax: {x: 45, y: 15, z: 0}
 --- !u!1 &669240082
 GameObject:
   m_ObjectHideFlags: 0
@@ -732,6 +774,138 @@ Transform:
   - {fileID: 778034207}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &701693765
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 701693771}
+  - component: {fileID: 701693770}
+  - component: {fileID: 701693769}
+  - component: {fileID: 701693768}
+  - component: {fileID: 701693772}
+  m_Layer: 0
+  m_Name: Cube
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!65 &701693768
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 701693765}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 1, y: 1, z: 1}
+  m_Center: {x: 0, y: 0, z: 0}
+--- !u!23 &701693769
+MeshRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 701693765}
+  m_Enabled: 1
+  m_CastShadows: 1
+  m_ReceiveShadows: 1
+  m_DynamicOccludee: 1
+  m_StaticShadowCaster: 0
+  m_MotionVectors: 1
+  m_LightProbeUsage: 1
+  m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 2
+  m_RayTraceProcedural: 0
+  m_RayTracingAccelStructBuildFlagsOverride: 0
+  m_RayTracingAccelStructBuildFlags: 1
+  m_SmallMeshCulling: 1
+  m_ForceMeshLod: -1
+  m_MeshLodSelectionBias: 0
+  m_RenderingLayerMask: 1
+  m_RendererPriority: 0
+  m_Materials:
+  - {fileID: 2100000, guid: 31321ba15b8f8eb4c954353edc038b1d, type: 2}
+  m_StaticBatchInfo:
+    firstSubMesh: 0
+    subMeshCount: 0
+  m_StaticBatchRoot: {fileID: 0}
+  m_ProbeAnchor: {fileID: 0}
+  m_LightProbeVolumeOverride: {fileID: 0}
+  m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
+  m_PreserveUVs: 0
+  m_IgnoreNormalsForChartDetection: 0
+  m_ImportantGI: 0
+  m_StitchLightmapSeams: 1
+  m_SelectedEditorRenderState: 3
+  m_MinimumChartSize: 4
+  m_AutoUVMaxDistance: 0.5
+  m_AutoUVMaxAngle: 89
+  m_LightmapParameters: {fileID: 0}
+  m_GlobalIlluminationMeshLod: 0
+  m_SortingLayerID: 0
+  m_SortingLayer: 0
+  m_SortingOrder: 0
+  m_MaskInteraction: 0
+  m_AdditionalVertexStreams: {fileID: 0}
+--- !u!33 &701693770
+MeshFilter:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 701693765}
+  m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!4 &701693771
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 701693765}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -4.33111, y: 0.25, z: 3.18}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &701693772
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 701693765}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f05d7c7b0457ea94a8b2864b75b10d36, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::SealWeightDropper
+  _requiredSealCount: 5
+  _sealParent: {fileID: 701693771}
+  _dropOffset: {x: 0, y: -3, z: 0}
+  _dropMoveSpeed: 2
+  _returnMoveSpeed: 2
+  _arrivalDistance: 0.01
+  _sealWeightDropActiveState: {fileID: 11400000, guid: a0996a323d85ecf4d94c5f036905370a, type: 2}
 --- !u!1 &709695408
 GameObject:
   m_ObjectHideFlags: 0
@@ -1379,12 +1553,19 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 84c52781d499770479c24bcf28a421e0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: '::'
-  radius: 15
-  followPlayer: 1
-  config:
-    offset: {x: 0, y: 0, z: -24.7}
+  _radius: 20
+  _priority: 0
+  _stateTemplate: {fileID: 0}
+  _config:
+    offset: {x: 0, y: 5, z: -10}
     fieldOfView: 60
-    smoothness: 5
+    smoothnessPosition: 5
+    smoothnessTarget: 20
+    enterSmoothnessPosition: 1.5
+    enterSmoothnessTarget: 2
+    enterSmoothnessRecoveryDuration: 3
+    rotationLimitMin: {x: -5, y: -15, z: 0}
+    rotationLimitMax: {x: 45, y: 15, z: 0}
 --- !u!1 &1094603922
 GameObject:
   m_ObjectHideFlags: 0
@@ -1649,6 +1830,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CameraBlendController
   _player: {fileID: 1860342536}
+  _controlledCamera: {fileID: 0}
+  _defaultStateTemplate: {fileID: 0}
+  _mouseSensitivity: {x: 4, y: 4}
+  _invertVertical: 0
+  _rollSpeed: 60
 --- !u!1 &1181961645
 GameObject:
   m_ObjectHideFlags: 0
@@ -1742,12 +1928,19 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 84c52781d499770479c24bcf28a421e0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: '::'
-  radius: 25
-  followPlayer: 1
-  config:
-    offset: {x: 0, y: 0, z: -29.2}
+  _radius: 20
+  _priority: 0
+  _stateTemplate: {fileID: 0}
+  _config:
+    offset: {x: 0, y: 5, z: -10}
     fieldOfView: 60
-    smoothness: 5
+    smoothnessPosition: 5
+    smoothnessTarget: 20
+    enterSmoothnessPosition: 1.5
+    enterSmoothnessTarget: 2
+    enterSmoothnessRecoveryDuration: 3
+    rotationLimitMin: {x: -5, y: -15, z: 0}
+    rotationLimitMax: {x: 45, y: 15, z: 0}
 --- !u!1 &1362510401
 GameObject:
   m_ObjectHideFlags: 0
@@ -1871,12 +2064,19 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 84c52781d499770479c24bcf28a421e0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: '::'
-  radius: 15
-  followPlayer: 1
-  config:
-    offset: {x: 0, y: 0, z: -24.7}
+  _radius: 20
+  _priority: 0
+  _stateTemplate: {fileID: 0}
+  _config:
+    offset: {x: 0, y: 5, z: -10}
     fieldOfView: 60
-    smoothness: 5
+    smoothnessPosition: 5
+    smoothnessTarget: 20
+    enterSmoothnessPosition: 1.5
+    enterSmoothnessTarget: 2
+    enterSmoothnessRecoveryDuration: 3
+    rotationLimitMin: {x: -5, y: -15, z: 0}
+    rotationLimitMax: {x: 45, y: 15, z: 0}
 --- !u!1 &1733552198
 GameObject:
   m_ObjectHideFlags: 0
@@ -2041,6 +2241,7 @@ MonoBehaviour:
   baseVelocity: {x: 0, y: 0, z: 0}
   additionalVelocity: {x: 0, y: 0, z: 0}
   initState: {fileID: 11400000, guid: 40f005a6f8380964b86e33a7c8008637, type: 2}
+  playerDamage: {fileID: 0}
   groundCheckPos: {x: 0, y: -0.9, z: 0}
   groundLayer:
     serializedVersion: 2
@@ -2282,6 +2483,37 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1935226920}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!1 &1935575582
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1935575583}
+  m_Layer: 0
+  m_Name: = gimmick
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1935575583
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1935575582}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -4.33111, y: -0.5, z: 18.23604}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &2059007618
 GameObject:
   m_ObjectHideFlags: 0
@@ -2326,12 +2558,19 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 84c52781d499770479c24bcf28a421e0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: '::'
-  radius: 27.58
-  followPlayer: 1
-  config:
-    offset: {x: 0, y: 0, z: -33.09}
+  _radius: 20
+  _priority: 0
+  _stateTemplate: {fileID: 0}
+  _config:
+    offset: {x: 0, y: 5, z: -10}
     fieldOfView: 60
-    smoothness: 5
+    smoothnessPosition: 5
+    smoothnessTarget: 20
+    enterSmoothnessPosition: 1.5
+    enterSmoothnessTarget: 2
+    enterSmoothnessRecoveryDuration: 3
+    rotationLimitMin: {x: -5, y: -15, z: 0}
+    rotationLimitMax: {x: 45, y: 15, z: 0}
 --- !u!1 &900589678076961850
 GameObject:
   m_ObjectHideFlags: 0
@@ -2581,3 +2820,5 @@ SceneRoots:
   - {fileID: 7548802758049441037}
   - {fileID: 709695409}
   - {fileID: 4228804590492221092}
+  - {fileID: 1935575583}
+  - {fileID: 701693771}

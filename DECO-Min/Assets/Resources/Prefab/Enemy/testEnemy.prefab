@@ -165,8 +165,18 @@ MonoBehaviour:
   _groundCheckDistance: 0.2
   _alertDistance: 10
   _lostDistance: 15
+  _useMoveArea: 1
+  _moveAreaCenter: {fileID: 0}
+  _moveAreaOffset: {x: 0, y: 0, z: 0}
+  _moveAreaSize: {x: 16, y: 8, z: 16}
+  _returnToSpawnDelay: 5
+  _navMeshSearchDistance: 3
   _attackDamage: 10
   _attackCooldown: 1.5
+  _maxSealHealth: 3
+  _sealAttackTag: PlayerAttack
+  _finisherTag: PlayerFinisher
+  _treatSealAttackAsFinisherWhenDown: 1
   _mySealPrefab: {fileID: 1549645160757926421, guid: 20390cad68896604d861750f3073c2ab, type: 3}
   _patrolCenter: {fileID: 0}
   _patrolRadius: 8
@@ -180,6 +190,9 @@ MonoBehaviour:
   _obstacleLayer:
     serializedVersion: 2
     m_Bits: 0
+  _downState: {fileID: 0}
+  _patrolStateAfterDown: {fileID: 0}
+  _downRecoverTime: 30
 --- !u!54 &5330962661926858196
 Rigidbody:
   m_ObjectHideFlags: 0

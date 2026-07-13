@@ -2,22 +2,12 @@ using UnityEngine;
 using UnityEngine.AI;
 
 /// <summary>
-/// ˆê’è”ÍˆÍ‚ğœpœj‚µAƒvƒŒƒCƒ„[‚ğ”­Œ©‚·‚é‚Æƒ`ƒƒ[ƒWƒ^ƒbƒNƒ‹UŒ‚‚ğs‚¤“GAI
+/// ä¸€å®šç¯„å›²ã‚’å¾˜å¾Šã—ã€ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã‚’ç™ºè¦‹ã™ã‚‹ã¨ãƒãƒ£ãƒ¼ã‚¸ã‚¿ãƒƒã‚¯ãƒ«æ”»æ’ƒã‚’è¡Œã†æ•µAI
 /// </summary>
 [RequireComponent(typeof(NavMeshAgent))]
 public class TackleEnemy : Enemy
 {
-    private enum TackleEnemyState
-    {
-        Patrol,
-        Alert,
-        Chase,
-        Charge,
-        Tackle,
-        Cooldown
-    }
-
-    [Header("œpœj")]
+    [Header("å¾˜å¾Š")]
     [SerializeField]
     private Transform _patrolCenter = null;
     [SerializeField]
@@ -25,11 +15,11 @@ public class TackleEnemy : Enemy
     [SerializeField]
     private float _patrolPointInterval = 3.0f;
 
-    [Header("Œx‰ú")]
+    [Header("è­¦æˆ’")]
     [SerializeField]
     private float _alertTime = 1.5f;
 
-    [Header("ƒ^ƒbƒNƒ‹UŒ‚")]
+    [Header("ã‚¿ãƒƒã‚¯ãƒ«æ”»æ’ƒ")]
     [SerializeField]
     private float _attackStartDistance = 3.0f;
     [SerializeField]
@@ -43,220 +33,201 @@ public class TackleEnemy : Enemy
     [SerializeField]
     private LayerMask _obstacleLayer;
 
-    private TackleEnemyState _currentState = TackleEnemyState.Patrol;
+    [Header("ãƒ€ã‚¦ãƒ³")]
+    [SerializeField]
+    private EnemyState _downState;
+    [SerializeField]
+    private EnemyState _patrolStateAfterDown;
+    [SerializeField]
+    private EnemyState _returnState;
+    [SerializeField]
+    private float _downRecoverTime = 30.0f;
 
-    private float _patrolTimer;
-    private float _alertTimer;
-    private float _chargeTimer;
-    private float _tackleMoveDistance;
-
-    private Vector3 _tackleDirection;
-
-    private bool _hasHitTarget;
+    public float PatrolPointInterval => _patrolPointInterval;
+    public float AlertTime => _alertTime;
+    public float ChargeTime => _chargeTime;
+    public float TackleSpeed => _tackleSpeed;
+    public float TackleDistance => _tackleDistance;
+    public float DownRecoverTime => _downRecoverTime;
 
     protected override void Start()
     {
         base.Start();
 
+        if (stateMachine.GetState<EnemyState>() == null)
+        {
+            ChangeEnemyState(ScriptableObject.CreateInstance<TackleEnemyPatrol>());
+        }
+    }
+
+    protected override void InitializeEnemyReferences()
+    {
+        base.InitializeEnemyReferences();
+
         if (_patrolCenter == null)
         {
             _patrolCenter = transform;
         }
-
-        ChangeAIState(TackleEnemyState.Patrol);
     }
 
-    protected override void Update()
+    protected override void EnterDown()
     {
-        base.Update();
+        base.EnterDown();
 
-        if (!HasTarget())
-        {
-            return;
-        }
+        EnemyState nextState = _downState != null
+            ? Instantiate(_downState)
+            : ScriptableObject.CreateInstance<TackleEnemyDown>();
 
-        switch (_currentState)
-        {
-            case TackleEnemyState.Patrol:
-                UpdatePatrol();
-                break;
-
-            case TackleEnemyState.Alert:
-                UpdateAlert();
-                break;
-
-            case TackleEnemyState.Chase:
-                UpdateChase();
-                break;
-
-            case TackleEnemyState.Charge:
-                UpdateCharge();
-                break;
-
-            case TackleEnemyState.Tackle:
-                UpdateTackle();
-                break;
-
-            case TackleEnemyState.Cooldown:
-                UpdateCooldown();
-                break;
-        }
+        ChangeEnemyState(nextState);
     }
 
-    /// <summary>
-    /// ƒ^ƒbƒNƒ‹“G—p‚Ìó‘Ô‚ğ•ÏX‚·‚é
-    /// </summary>
-    private void ChangeAIState(TackleEnemyState nextState)
+    protected override void RecoverFromDown()
     {
-        _currentState = nextState;
+        base.RecoverFromDown();
 
-        switch (_currentState)
-        {
-            case TackleEnemyState.Patrol:
-                ResumeMove();
-                _patrolTimer = 0.0f;
-                SetRandomPatrolPoint();
-                break;
+        EnemyState nextState = _patrolStateAfterDown != null
+            ? Instantiate(_patrolStateAfterDown)
+            : ScriptableObject.CreateInstance<TackleEnemyPatrol>();
 
-            case TackleEnemyState.Alert:
-                StopMove();
-                _alertTimer = 0.0f;
-                break;
-
-            case TackleEnemyState.Chase:
-                ResumeMove();
-                break;
-
-            case TackleEnemyState.Charge:
-                StopMove();
-                _chargeTimer = 0.0f;
-                break;
-
-            case TackleEnemyState.Tackle:
-                StopMove();
-                _tackleMoveDistance = 0.0f;
-                _hasHitTarget = false;
-                _tackleDirection = GetDirectionToTarget();
-                break;
-
-            case TackleEnemyState.Cooldown:
-                StopMove();
-                ResetAttackCooldown();
-                break;
-        }
+        ChangeEnemyState(nextState);
     }
 
-    private void UpdatePatrol()
+    public bool HasTargetForState()
     {
-        if (IsTargetInAlertDistance())
-        {
-            ChangeAIState(TackleEnemyState.Alert);
-            return;
-        }
-
-        _patrolTimer += Time.deltaTime;
-
-        if (_patrolTimer >= _patrolPointInterval || IsArrived())
-        {
-            _patrolTimer = 0.0f;
-            SetRandomPatrolPoint();
-        }
+        return HasTarget();
     }
 
-    private void UpdateAlert()
+    public bool IsTargetInAlertDistanceForState()
+    {
+        if (!IsTargetWithinHomeChaseDistanceForState())
+        {
+            return false;
+        }
+
+        if (!IsTargetInMoveArea())
+        {
+            return IsTargetInAttackStartDistance();
+        }
+
+        return IsTargetInAlertDistance() || IsTargetInAttackStartDistance();
+    }
+
+    public bool IsTargetLostForState()
+    {
+        if (!IsTargetWithinHomeChaseDistanceForState())
+        {
+            return true;
+        }
+
+        if (!IsTargetInMoveArea())
+        {
+            return !IsTargetInAttackStartDistance();
+        }
+
+        return IsTargetLost();
+    }
+
+    public bool IsTargetInAttackStartDistance()
+    {
+        return IsTargetWithinHomeChaseDistanceForState() && IsTargetInDistance(_attackStartDistance);
+    }
+
+    public bool IsTargetWithinHomeChaseDistanceForState()
+    {
+        return IsTargetWithinHomeChaseDistance();
+    }
+
+    public bool IsTargetInSpawnAreaForState()
+    {
+        return IsTargetInSpawnArea();
+    }
+
+    public Vector3 GetDirectionToTargetForState()
+    {
+        return GetDirectionToTarget();
+    }
+
+    public void LookAtTargetForState()
     {
         LookAtTarget();
-
-        if (!IsTargetInAlertDistance())
-        {
-            ChangeAIState(TackleEnemyState.Patrol);
-            return;
-        }
-
-        _alertTimer += Time.deltaTime;
-
-        if (_alertTimer >= _alertTime)
-        {
-            ChangeAIState(TackleEnemyState.Chase);
-        }
     }
 
-    private void UpdateChase()
+    public void SetTargetDestination()
     {
-        if (IsTargetLost())
+        if (_target == null)
         {
-            ChangeAIState(TackleEnemyState.Patrol);
-            return;
-        }
-
-        if (IsTargetInDistance(_attackStartDistance))
-        {
-            ChangeAIState(TackleEnemyState.Charge);
             return;
         }
 
         SetMoveDestination(_target.position);
     }
 
-    private void UpdateCharge()
+    public void StopMoveForState()
     {
-        LookAtTarget();
-
-        if (IsTargetLost())
-        {
-            ChangeAIState(TackleEnemyState.Patrol);
-            return;
-        }
-
-        _chargeTimer += Time.deltaTime;
-
-        if (_chargeTimer >= _chargeTime)
-        {
-            ChangeAIState(TackleEnemyState.Tackle);
-        }
+        StopMove();
     }
 
-    private void UpdateTackle()
+    public void ResumeMoveForState()
     {
-        float moveDistance = _tackleSpeed * Time.deltaTime;
-        Vector3 moveValue = _tackleDirection * moveDistance;
+        ResumeMove();
+    }
 
-        // •Ç‚È‚Ç‚É“–‚½‚è‚»‚¤‚È‚çƒ^ƒbƒNƒ‹I—¹
-        if (Physics.Raycast(transform.position, _tackleDirection, moveDistance, _obstacleLayer))
-        {
-            ChangeAIState(TackleEnemyState.Cooldown);
-            return;
-        }
-
+    public void MoveDirectForState(Vector3 moveValue)
+    {
         MoveDirect(moveValue);
-        _tackleMoveDistance += moveDistance;
-
-        CheckTackleHit();
-
-        if (_tackleMoveDistance >= _tackleDistance)
-        {
-            ChangeAIState(TackleEnemyState.Cooldown);
-        }
     }
 
-    private void UpdateCooldown()
+    public void BeginDirectMovementForState()
     {
-        if (!UpdateAttackCooldown())
-        {
-            return;
-        }
-
-        if (IsTargetInAlertDistance())
-        {
-            ChangeAIState(TackleEnemyState.Chase);
-        }
-        else
-        {
-            ChangeAIState(TackleEnemyState.Patrol);
-        }
+        BeginDirectMovement();
     }
 
-    private void SetRandomPatrolPoint()
+    public void EndDirectMovementForState()
+    {
+        EndDirectMovement();
+    }
+
+    public bool IsArrivedForState()
+    {
+        return IsArrived();
+    }
+
+    public bool IsAtHomeForState()
+    {
+        return IsAtHome();
+    }
+
+    public void SetHomeDestinationForState()
+    {
+        SetHomeDestination();
+    }
+
+    public bool TryCorrectToNearbyNavMeshPositionForState()
+    {
+        return TryCorrectToNearbyNavMeshPosition();
+    }
+
+    public void ResetAttackCooldownForState()
+    {
+        ResetAttackCooldown();
+    }
+
+    public bool UpdateAttackCooldownForState()
+    {
+        return UpdateAttackCooldown();
+    }
+
+    public void RecoverFromDownForState()
+    {
+        RecoverFromDown();
+    }
+
+    public bool IsTackleBlocked(Vector3 direction, float distance)
+    {
+        return Physics.Raycast(transform.position, direction, distance, _obstacleLayer);
+    }
+
+    public void SetRandomPatrolPoint()
     {
         Vector2 randomCircle = Random.insideUnitCircle * _patrolRadius;
         Vector3 randomPoint = _patrolCenter.position + new Vector3(randomCircle.x, 0.0f, randomCircle.y);
@@ -267,13 +238,8 @@ public class TackleEnemy : Enemy
         }
     }
 
-    private void CheckTackleHit()
+    public bool TryTackleHit()
     {
-        if (_hasHitTarget)
-        {
-            return;
-        }
-
         Collider[] hitColliders = Physics.OverlapSphere(
             transform.position,
             _tackleHitRadius,
@@ -284,11 +250,31 @@ public class TackleEnemy : Enemy
         {
             if (TryAttackDamage(hitCollider))
             {
-                _hasHitTarget = true;
-                ChangeAIState(TackleEnemyState.Cooldown);
-                return;
+                return true;
             }
         }
+
+        return false;
+    }
+
+    protected override void ReturnToSpawn()
+    {
+        base.ReturnToSpawn();
+
+        EnemyState nextState = _patrolStateAfterDown != null
+            ? Instantiate(_patrolStateAfterDown)
+            : ScriptableObject.CreateInstance<TackleEnemyPatrol>();
+
+        ChangeEnemyState(nextState);
+    }
+
+    public override void BeginReturnToHome()
+    {
+        EnemyState nextState = _returnState != null
+            ? Instantiate(_returnState)
+            : ScriptableObject.CreateInstance<TackleEnemyReturn>();
+
+        ChangeEnemyState(nextState);
     }
 
     private void OnDrawGizmosSelected()

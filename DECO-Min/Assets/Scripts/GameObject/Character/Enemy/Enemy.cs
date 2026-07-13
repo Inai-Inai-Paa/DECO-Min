@@ -1,18 +1,19 @@
+using System;
 using UnityEngine;
 using UnityEngine.AI;
 using UnityEngine.Serialization;
 
 /// <summary>
-/// “GƒLƒƒƒ‰ƒNƒ^[‚Ì‹¤’Êˆ—‚ğŠÇ—‚·‚éŠî’êƒNƒ‰ƒX
+/// æ•µã‚­ãƒ£ãƒ©ã‚¯ã‚¿ãƒ¼ã®å…±é€šå‡¦ç†ã‚’ç®¡ç†ã™ã‚‹åŸºåº•ã‚¯ãƒ©ã‚¹
 /// </summary>
 public partial class Enemy : Character
 {
-    [Header("ƒXƒe[ƒg")]
+    [Header("ã‚¹ãƒ†ãƒ¼ãƒˆ")]
     [Space(2)]
     [SerializeField, FormerlySerializedAs("initState")]
     private EnemyState _initState = null;
 
-    [Header("‹¤’ÊQÆ")]
+    [Header("å…±é€šå‚ç…§")]
     [Space(2)]
     [SerializeField]
     protected Transform _target = null;
@@ -21,7 +22,7 @@ public partial class Enemy : Character
     [SerializeField]
     protected LayerMask _targetLayer;
 
-    [Header("Ú’n”»’è")]
+    [Header("æ¥åœ°åˆ¤å®š")]
     [Space(2)]
     [SerializeField, FormerlySerializedAs("groundCheckPos")]
     private Vector3 _groundCheckPos = Vector3.zero;
@@ -30,14 +31,37 @@ public partial class Enemy : Character
     [SerializeField]
     private float _groundCheckDistance = 0.2f;
 
-    [Header("õ“G‹¤’Ê")]
+    [Header("ç´¢æ•µå…±é€š")]
     [Space(2)]
     [SerializeField]
     protected float _alertDistance = 8.0f;
     [SerializeField]
     protected float _lostDistance = 12.0f;
 
-    [Header("UŒ‚‹¤’Ê")]
+    [Header("Move Area")]
+    [Space(2)]
+    [SerializeField]
+    private bool _useMoveArea = false;
+    [SerializeField]
+    private Transform _moveAreaCenter = null;
+    [SerializeField]
+    private Vector3 _moveAreaOffset = Vector3.zero;
+    [SerializeField]
+    private Vector3 _moveAreaSize = new Vector3(16.0f, 8.0f, 16.0f);
+    [SerializeField]
+    private float _returnToSpawnDelay = 5.0f;
+    [SerializeField]
+    private float _navMeshSearchDistance = 3.0f;
+
+    [Header("Home")]
+    [SerializeField]
+    private float _maxChaseDistanceFromHome = 18.0f;
+    [SerializeField]
+    private float _returnImpossibleTime = 8.0f;
+    [SerializeField]
+    private float _homeDespawnWaitTime = 2.0f;
+
+    [Header("æ”»æ’ƒå…±é€š")]
     [Space(2)]
     [SerializeField]
     protected int _attackDamage = 10;
@@ -46,27 +70,62 @@ public partial class Enemy : Character
 
     protected float _cooldownTimer;
 
+    [Header("ãƒ€ã‚¦ãƒ³å…±é€š")]
+    [Space(2)]
+    [SerializeField]
+    private int _maxSealHealth = 3;
+    [SerializeField]
+    private string _sealAttackTag = "PlayerAttack";
+    [SerializeField]
+    private string _finisherTag = "PlayerFinisher";
+    [SerializeField]
+    private bool _treatSealAttackAsFinisherWhenDown = true;
+
     [SerializeField] private GameObject _mySealPrefab;
 
     private bool _isGrounded;
+    private int _currentSealHealth;
+    private bool _isDown;
+    private bool _isDead;
+    private bool _isDespawning;
+    private bool _hasNotifiedRemoved;
+    private Vector3 _spawnPosition;
+    private Quaternion _spawnRotation;
+    private float _outsideMoveAreaTimer;
+    private bool _isUsingDirectMovement;
+    private bool _hasSpawnPose;
+    private EnemySpawner _spawnOwner;
 
     public bool IsGrounded => _isGrounded;
+    public bool IsDown => _isDown;
+    public bool IsDead => _isDead;
+    public bool IsDespawning => _isDespawning;
+    public Vector3 HomePosition => _spawnPosition;
+    public Quaternion HomeRotation => _spawnRotation;
+    public float ReturnImpossibleTime => _returnImpossibleTime;
+    public float HomeDespawnWaitTime => _homeDespawnWaitTime;
+    public event Action<Enemy> Died;
+    public event Action<Enemy> Removed;
 
     protected override void Start()
     {
+        InitializeRuntimeStatus();
         base.Start();
 
         InitializeEnemyReferences();
+        SetSpawnPose(transform.position, transform.rotation);
+        ResetRuntimeStatus();
 
         if (_initState != null)
         {
-            ChangeEnemyState(_initState);
+            ChangeEnemyState(Instantiate(_initState));
         }
     }
 
     protected override void Update()
     {
         base.Update();
+        UpdateMoveAreaReturn();
     }
 
     protected override void FixedUpdate()
@@ -77,7 +136,7 @@ public partial class Enemy : Character
     }
 
     /// <summary>
-    /// “G‚ªg—p‚·‚é‹¤’ÊQÆ‚ğ‰Šú‰»‚·‚é
+    /// æ•µãŒä½¿ç”¨ã™ã‚‹å…±é€šå‚ç…§ã‚’åˆæœŸåŒ–ã™ã‚‹
     /// </summary>
     protected virtual void InitializeEnemyReferences()
     {
@@ -98,7 +157,7 @@ public partial class Enemy : Character
     }
 
     /// <summary>
-    /// Ú’n”»’è‚ğXV‚·‚é
+    /// æ¥åœ°åˆ¤å®šã‚’æ›´æ–°ã™ã‚‹
     /// </summary>
     protected virtual void UpdateGroundCheck()
     {
@@ -111,7 +170,7 @@ public partial class Enemy : Character
     }
 
     /// <summary>
-    /// “G—pƒXƒe[ƒg‚ğ•ÏX‚·‚é
+    /// æ•µç”¨ã‚¹ãƒ†ãƒ¼ãƒˆã‚’å¤‰æ›´ã™ã‚‹
     /// </summary>
     public void ChangeEnemyState(EnemyState nextState)
     {
@@ -125,7 +184,7 @@ public partial class Enemy : Character
     }
 
     /// <summary>
-    /// ƒ^[ƒQƒbƒg‚ª‘¶İ‚·‚é‚©Šm”F‚·‚é
+    /// ã‚¿ãƒ¼ã‚²ãƒƒãƒˆãŒå­˜åœ¨ã™ã‚‹ã‹ç¢ºèªã™ã‚‹
     /// </summary>
     protected bool HasTarget()
     {
@@ -133,7 +192,7 @@ public partial class Enemy : Character
     }
 
     /// <summary>
-    /// ƒ^[ƒQƒbƒg‚Æ‚Ì‹——£‚ğæ“¾‚·‚é
+    /// ã‚¿ãƒ¼ã‚²ãƒƒãƒˆã¨ã®è·é›¢ã‚’å–å¾—ã™ã‚‹
     /// </summary>
     protected float GetDistanceToTarget()
     {
@@ -146,7 +205,7 @@ public partial class Enemy : Character
     }
 
     /// <summary>
-    /// ƒ^[ƒQƒbƒg‚ªw’è‹——£“à‚É‚¢‚é‚©Šm”F‚·‚é
+    /// ã‚¿ãƒ¼ã‚²ãƒƒãƒˆãŒæŒ‡å®šè·é›¢å†…ã«ã„ã‚‹ã‹ç¢ºèªã™ã‚‹
     /// </summary>
     protected bool IsTargetInDistance(float distance)
     {
@@ -154,7 +213,7 @@ public partial class Enemy : Character
     }
 
     /// <summary>
-    /// ƒ^[ƒQƒbƒg‚ªŒx‰ú‹——£“à‚É‚¢‚é‚©Šm”F‚·‚é
+    /// ã‚¿ãƒ¼ã‚²ãƒƒãƒˆãŒè­¦æˆ’è·é›¢å†…ã«ã„ã‚‹ã‹ç¢ºèªã™ã‚‹
     /// </summary>
     protected bool IsTargetInAlertDistance()
     {
@@ -162,7 +221,7 @@ public partial class Enemy : Character
     }
 
     /// <summary>
-    /// ƒ^[ƒQƒbƒg‚ğŒ©¸‚Á‚½‚©Šm”F‚·‚é
+    /// ã‚¿ãƒ¼ã‚²ãƒƒãƒˆã‚’è¦‹å¤±ã£ãŸã‹ç¢ºèªã™ã‚‹
     /// </summary>
     protected bool IsTargetLost()
     {
@@ -170,7 +229,7 @@ public partial class Enemy : Character
     }
 
     /// <summary>
-    /// ƒ^[ƒQƒbƒg•ûŒü‚Ì…•½ƒxƒNƒgƒ‹‚ğæ“¾‚·‚é
+    /// ã‚¿ãƒ¼ã‚²ãƒƒãƒˆæ–¹å‘ã®æ°´å¹³ãƒ™ã‚¯ãƒˆãƒ«ã‚’å–å¾—ã™ã‚‹
     /// </summary>
     protected Vector3 GetDirectionToTarget()
     {
@@ -186,7 +245,7 @@ public partial class Enemy : Character
     }
 
     /// <summary>
-    /// ƒ^[ƒQƒbƒg‚Ì•ûŒü‚ğŒü‚­
+    /// ã‚¿ãƒ¼ã‚²ãƒƒãƒˆã®æ–¹å‘ã‚’å‘ã
     /// </summary>
     protected void LookAtTarget(float rotateSpeed = 10.0f)
     {
@@ -207,7 +266,7 @@ public partial class Enemy : Character
     }
 
     /// <summary>
-    /// NavMeshAgent‚Ì–Ú“I’n‚ğİ’è‚·‚é
+    /// NavMeshAgentã®ç›®çš„åœ°ã‚’è¨­å®šã™ã‚‹
     /// </summary>
     protected void SetMoveDestination(Vector3 destination)
     {
@@ -216,12 +275,15 @@ public partial class Enemy : Character
             return;
         }
 
-        _agent.isStopped = false;
-        _agent.SetDestination(destination);
+        if (NavMesh.SamplePosition(destination, out NavMeshHit hit, _navMeshSearchDistance, NavMesh.AllAreas))
+        {
+            _agent.isStopped = false;
+            _agent.SetDestination(hit.position);
+        }
     }
 
     /// <summary>
-    /// “G‚ÌˆÚ“®‚ğ’â~‚·‚é
+    /// æ•µã®ç§»å‹•ã‚’åœæ­¢ã™ã‚‹
     /// </summary>
     protected void StopMove()
     {
@@ -234,7 +296,7 @@ public partial class Enemy : Character
     }
 
     /// <summary>
-    /// “G‚ÌˆÚ“®‚ğÄŠJ‚·‚é
+    /// æ•µã®ç§»å‹•ã‚’å†é–‹ã™ã‚‹
     /// </summary>
     protected void ResumeMove()
     {
@@ -247,11 +309,11 @@ public partial class Enemy : Character
     }
 
     /// <summary>
-    /// NavMeshAgent‚Å’¼üˆÚ“®‚·‚é
+    /// NavMeshAgentã§ç›´ç·šç§»å‹•ã™ã‚‹
     /// </summary>
     protected void MoveDirect(Vector3 moveValue)
     {
-        if (_agent != null && _agent.enabled)
+        if (_agent != null && _agent.enabled && !_isUsingDirectMovement)
         {
             _agent.Move(moveValue);
             return;
@@ -261,7 +323,7 @@ public partial class Enemy : Character
     }
 
     /// <summary>
-    /// NavMeshAgent‚ª–Ú“I’n‚É“’…‚µ‚½‚©Šm”F‚·‚é
+    /// NavMeshAgentãŒç›®çš„åœ°ã«åˆ°ç€ã—ãŸã‹ç¢ºèªã™ã‚‹
     /// </summary>
     protected bool IsArrived()
     {
@@ -273,8 +335,237 @@ public partial class Enemy : Character
         return _agent.remainingDistance <= _agent.stoppingDistance;
     }
 
+    public void SetSpawnPose(Vector3 position, Quaternion rotation)
+    {
+        _spawnPosition = position;
+        _spawnRotation = rotation;
+        _hasSpawnPose = true;
+    }
+
+    public void SetSpawnOwner(EnemySpawner spawnOwner)
+    {
+        _spawnOwner = spawnOwner;
+    }
+
+    public void ResetRuntimeStatus()
+    {
+        if (characterStatus != null)
+        {
+            characterStatus.currentHealth = characterStatus.maxHealth;
+        }
+
+        _cooldownTimer = 0.0f;
+        _outsideMoveAreaTimer = 0.0f;
+        _isDown = false;
+        _isDead = false;
+        _isDespawning = false;
+        _hasNotifiedRemoved = false;
+        ResetSealHealth();
+    }
+
+    protected bool IsPositionInMoveArea(Vector3 position)
+    {
+        if (!_useMoveArea)
+        {
+            return true;
+        }
+
+        Vector3 center = GetMoveAreaCenter();
+        Vector3 halfSize = _moveAreaSize * 0.5f;
+        Vector3 local = position - center;
+
+        return Mathf.Abs(local.x) <= halfSize.x
+            && Mathf.Abs(local.y) <= halfSize.y
+            && Mathf.Abs(local.z) <= halfSize.z;
+    }
+
+    protected bool IsTargetInMoveArea()
+    {
+        return _target == null || IsPositionInMoveArea(_target.position);
+    }
+
+    protected bool IsTargetWithinHomeChaseDistance()
+    {
+        if (_target == null || _maxChaseDistanceFromHome <= 0.0f)
+        {
+            return true;
+        }
+
+        return Vector3.Distance(_spawnPosition, _target.position) <= _maxChaseDistanceFromHome;
+    }
+
+    protected bool IsTargetInSpawnArea()
+    {
+        return _spawnOwner == null || _spawnOwner.IsPlayerInSpawnArea(_target);
+    }
+
+    protected void SetHomeDestination()
+    {
+        SetMoveDestination(_spawnPosition);
+    }
+
+    protected bool IsAtHome()
+    {
+        return Vector3.Distance(transform.position, _spawnPosition) <= GetArrivalDistance();
+    }
+
+    protected bool TryCorrectToNearbyNavMeshPosition()
+    {
+        if (NavMesh.SamplePosition(transform.position, out NavMeshHit hit, _navMeshSearchDistance, NavMesh.AllAreas))
+        {
+            if (_agent != null && _agent.enabled)
+            {
+                _agent.Warp(hit.position);
+            }
+            else
+            {
+                transform.position = hit.position;
+            }
+
+            return true;
+        }
+
+        if (NavMesh.SamplePosition(_spawnPosition, out hit, _navMeshSearchDistance, NavMesh.AllAreas))
+        {
+            if (_agent != null && _agent.enabled)
+            {
+                _agent.Warp(hit.position);
+            }
+            else
+            {
+                transform.position = hit.position;
+            }
+
+            return true;
+        }
+
+        return false;
+    }
+
+    protected void BeginDirectMovement()
+    {
+        if (_isUsingDirectMovement)
+        {
+            return;
+        }
+
+        _isUsingDirectMovement = true;
+
+        if (_agent != null && _agent.enabled)
+        {
+            _agent.isStopped = true;
+            _agent.enabled = false;
+        }
+    }
+
+    protected void EndDirectMovement()
+    {
+        if (!_isUsingDirectMovement)
+        {
+            return;
+        }
+
+        _isUsingDirectMovement = false;
+
+        if (_agent == null || _agent.enabled)
+        {
+            return;
+        }
+
+        if (NavMesh.SamplePosition(transform.position, out NavMeshHit hit, _navMeshSearchDistance, NavMesh.AllAreas))
+        {
+            transform.position = hit.position;
+            _agent.enabled = true;
+            return;
+        }
+
+        if (NavMesh.SamplePosition(_spawnPosition, out hit, _navMeshSearchDistance, NavMesh.AllAreas))
+        {
+            transform.position = hit.position;
+            transform.rotation = _spawnRotation;
+            _agent.enabled = true;
+        }
+    }
+
+    protected virtual void ReturnToSpawn()
+    {
+        EndDirectMovement();
+
+        if (_agent != null && NavMesh.SamplePosition(_spawnPosition, out NavMeshHit hit, _navMeshSearchDistance, NavMesh.AllAreas))
+        {
+            if (_agent.enabled)
+            {
+                _agent.Warp(hit.position);
+            }
+            else
+            {
+                transform.position = hit.position;
+                _agent.enabled = true;
+            }
+
+            _agent.isStopped = true;
+            _agent.ResetPath();
+        }
+        else
+        {
+            transform.position = _spawnPosition;
+        }
+
+        transform.rotation = _spawnRotation;
+        _outsideMoveAreaTimer = 0.0f;
+    }
+
+    public virtual void BeginReturnToHome()
+    {
+        ReturnToSpawn();
+    }
+
+    public virtual void Despawn()
+    {
+        if (_isDead || _isDespawning)
+        {
+            return;
+        }
+
+        _isDespawning = true;
+        CleanupForRemoval();
+        Destroy(gameObject);
+    }
+
+    private void UpdateMoveAreaReturn()
+    {
+        if (!_useMoveArea || _isDead)
+        {
+            return;
+        }
+
+        if (IsPositionInMoveArea(transform.position))
+        {
+            _outsideMoveAreaTimer = 0.0f;
+            return;
+        }
+
+        _outsideMoveAreaTimer += Time.deltaTime;
+
+        if (_outsideMoveAreaTimer >= _returnToSpawnDelay)
+        {
+            ReturnToSpawn();
+        }
+    }
+
+    private Vector3 GetMoveAreaCenter()
+    {
+        if (_moveAreaCenter != null)
+        {
+            return _moveAreaCenter.position + _moveAreaOffset;
+        }
+
+        Vector3 center = _hasSpawnPose ? _spawnPosition : transform.position;
+        return center + _moveAreaOffset;
+    }
+
     /// <summary>
-    /// UŒ‚ƒN[ƒ‹ƒ_ƒEƒ“‚ğƒŠƒZƒbƒg‚·‚é
+    /// æ”»æ’ƒã‚¯ãƒ¼ãƒ«ãƒ€ã‚¦ãƒ³ã‚’ãƒªã‚»ãƒƒãƒˆã™ã‚‹
     /// </summary>
     protected void ResetAttackCooldown()
     {
@@ -282,7 +573,7 @@ public partial class Enemy : Character
     }
 
     /// <summary>
-    /// UŒ‚ƒN[ƒ‹ƒ_ƒEƒ“‚ÌŠÔ‚ği‚ß‚é
+    /// æ”»æ’ƒã‚¯ãƒ¼ãƒ«ãƒ€ã‚¦ãƒ³ã®æ™‚é–“ã‚’é€²ã‚ã‚‹
     /// </summary>
     protected bool UpdateAttackCooldown()
     {
@@ -291,8 +582,151 @@ public partial class Enemy : Character
         return _cooldownTimer >= _attackCooldown;
     }
 
+    protected virtual void EnterDown()
+    {
+        _isDown = true;
+        StopMove();
+    }
+
+    protected virtual void RecoverFromDown()
+    {
+        _isDown = false;
+        ResetSealHealth();
+        ResumeMove();
+    }
+
+    protected virtual void FinishDown()
+    {
+        if (_mySealPrefab != null)
+        {
+            GameObject sealObject = Instantiate(_mySealPrefab, transform.position, Quaternion.identity);
+            DroppingSeal droppingSeal = sealObject.GetComponent<DroppingSeal>();
+
+            if (droppingSeal != null)
+            {
+                droppingSeal.SetCreateSource(SealCreateSource.Enemy);
+            }
+        }
+
+        Die();
+    }
+
+    public void SetTarget(Transform target)
+    {
+        _target = target;
+    }
+
+    protected virtual void Die()
+    {
+        if (_isDead)
+        {
+            return;
+        }
+
+        _isDead = true;
+        Died?.Invoke(this);
+        Destroy(gameObject);
+    }
+
+    protected virtual void OnDestroy()
+    {
+        NotifyRemoved();
+        EnemyManager.Instance?.UnregisterEnemy(this);
+    }
+
+    private void CleanupForRemoval()
+    {
+        StopAllCoroutines();
+        CancelInvoke();
+        StopMove();
+
+        if (stateMachine != null)
+        {
+            stateMachine.Shutdown();
+        }
+
+        if (_agent != null && _agent.enabled)
+        {
+            _agent.isStopped = true;
+            _agent.ResetPath();
+        }
+
+        Collider[] colliders = GetComponentsInChildren<Collider>();
+        foreach (Collider targetCollider in colliders)
+        {
+            targetCollider.enabled = false;
+        }
+
+        ParticleSystem[] particles = GetComponentsInChildren<ParticleSystem>();
+        foreach (ParticleSystem particle in particles)
+        {
+            particle.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
+        }
+
+        AudioSource[] audioSources = GetComponentsInChildren<AudioSource>();
+        foreach (AudioSource audioSource in audioSources)
+        {
+            audioSource.Stop();
+        }
+    }
+
+    private void NotifyRemoved()
+    {
+        if (_hasNotifiedRemoved)
+        {
+            return;
+        }
+
+        _hasNotifiedRemoved = true;
+        Removed?.Invoke(this);
+
+        if (_spawnOwner != null)
+        {
+            _spawnOwner.NotifyEnemyRemoved(this);
+            _spawnOwner = null;
+        }
+    }
+
+    private float GetArrivalDistance()
+    {
+        if (_agent != null)
+        {
+            return Mathf.Max(0.2f, _agent.stoppingDistance + 0.2f);
+        }
+
+        return 0.5f;
+    }
+
+    private void InitializeRuntimeStatus()
+    {
+        if (characterStatus != null)
+        {
+            characterStatus = Instantiate(characterStatus);
+        }
+    }
+
+    private void ResetSealHealth()
+    {
+        _currentSealHealth = Mathf.Max(1, _maxSealHealth);
+    }
+
+    private void TakeSealHit()
+    {
+        if (_isDown)
+        {
+            return;
+        }
+
+        _currentSealHealth = Mathf.Max(0, _currentSealHealth - 1);
+
+        if (_currentSealHealth <= 0)
+        {
+            EnterDown();
+        }
+    }
+
     /// <summary>
-    /// ‘ÎÛ‚Éƒ_ƒ[ƒW‚ğ—^‚¦‚ç‚ê‚é‚©Šm”F‚µA‰Â”\‚È‚çƒ_ƒ[ƒW‚ğ—^‚¦‚é
+    /// å¯¾è±¡ã«ãƒ€ãƒ¡ãƒ¼ã‚¸ã‚’ä¸ãˆã‚‰ã‚Œã‚‹ã‹ç¢ºèªã—ã€å¯èƒ½ãªã‚‰ãƒ€ãƒ¡ãƒ¼ã‚¸ã‚’ä¸ãˆã‚‹
     /// </summary>
     protected bool TryAttackDamage(Collider targetCollider)
     {
@@ -310,7 +744,6 @@ public partial class Enemy : Character
             return true;
         }
 
-        //‚±‚Ì‰º‚ÌƒR[ƒh‚ÌˆÓ}‚ª‚í‚©‚ç‚È‚©‚Á‚½‚Ì‚ÅŒã‚Å•·‚«‚Ü‚·
         IDamageable damageable = targetCollider.GetComponent<IDamageable>();
 
         if (damageable == null)
@@ -328,17 +761,41 @@ public partial class Enemy : Character
     }
 
     /// <summary>
-    /// ˆê’U‚Ìƒvƒƒg‚Ü‚Å‚È‚Ì‚ÅŒã‚Åâ‘Î•Ï‚¦‚ÄI–Y‚ê‚Ä‚½‚ç‹³‚¦‚ÄI
+    /// ã‚·ãƒ¼ãƒ«æ”»æ’ƒã¨ãƒ•ã‚£ãƒ‹ãƒƒã‚·ãƒ£ãƒ¼ã®ãƒ’ãƒƒãƒˆå‡¦ç†
     /// </summary>
     /// <param name="other"></param>
     private void OnTriggerEnter(Collider other)
     {
-        if(other.CompareTag("PlayerAttack"))
+        if (other == null)
         {
-            Instantiate(_mySealPrefab, transform.position, Quaternion.identity);
-
-            Destroy(other.gameObject);
-            Destroy(gameObject);
+            return;
         }
+
+        bool isSealAttack = HasTag(other, _sealAttackTag);
+        bool isFinisher = HasTag(other, _finisherTag);
+
+        if (_isDown)
+        {
+            if (isFinisher || (_treatSealAttackAsFinisherWhenDown && isSealAttack))
+            {
+                Destroy(other.gameObject);
+                FinishDown();
+            }
+
+            return;
+        }
+
+        if (!isSealAttack)
+        {
+            return;
+        }
+
+        Destroy(other.gameObject);
+        TakeSealHit();
+    }
+
+    private bool HasTag(Collider targetCollider, string tagName)
+    {
+        return !string.IsNullOrEmpty(tagName) && targetCollider.gameObject.tag == tagName;
     }
 }

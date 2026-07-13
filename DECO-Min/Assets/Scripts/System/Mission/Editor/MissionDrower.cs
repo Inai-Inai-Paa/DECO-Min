@@ -1,8 +1,8 @@
 using UnityEditor;
 using UnityEngine;
-using static MissionPreset;
+using static LimitMissionPreset;
 
-[CustomPropertyDrawer(typeof(MissionPreset))]
+[CustomPropertyDrawer(typeof(LimitMissionPreset))]
 public class MissionDrower : PropertyDrawer
 {
     private const float _lineHeight = 20f;
@@ -13,7 +13,7 @@ public class MissionDrower : PropertyDrawer
     {
         int lines = 0;
 
-        SerializedProperty missiontype = property.FindPropertyRelative(nameof(MissionPreset.missionType));
+        SerializedProperty missiontype = property.FindPropertyRelative(nameof(LimitMissionPreset.missionType));
         
         lines += 3;
 
@@ -25,21 +25,24 @@ public class MissionDrower : PropertyDrawer
     {
         EditorGUI.BeginProperty(position, label, property);
 
-        SerializedProperty missionType = property.FindPropertyRelative(nameof(MissionPreset.missionType));
-        SerializedProperty objectCount = property.FindPropertyRelative(nameof(MissionPreset.objectCount));
-        SerializedProperty targetObject = property.FindPropertyRelative(nameof(MissionPreset.targetObject));
+        SerializedProperty missionType = property.FindPropertyRelative(nameof(LimitMissionPreset.missionType));
+        SerializedProperty objectCount = property.FindPropertyRelative(nameof(LimitMissionPreset.objectCount));
+        SerializedProperty targetObject = property.FindPropertyRelative(nameof(LimitMissionPreset.targetObject));
         Rect r = new Rect(position.x, position.y, position.width, _lineHeight);
         DrawRow(ref r, "ミッション方式", missionType);
         
-        DrawRow(ref r, "必要数", objectCount);
-        DrawRow(ref r, "対象", targetObject);
+        switch((MissionTpye)missionType.enumValueIndex)
+        {
+            case MissionTpye.Defeat:
+            case MissionTpye.Collect:
+                DrawRow(ref r, "必要数", objectCount);
+                DrawRow(ref r, "対象", targetObject);
+                break;
+            case MissionTpye.Place:
+                DrawRow(ref r, "対象エリア", targetObject);
+                break;
 
-
-
-        //switch((MissionPreset.MissionTpye)missionType.enumValueIndex)
-        //{
-
-        //}
+        }
 
         EditorGUI.EndProperty();
     }

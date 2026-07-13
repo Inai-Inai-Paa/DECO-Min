@@ -6,8 +6,6 @@ public class MissionUIManager : MonoBehaviour
 
     [SerializeField] private GameObject _missionUIRoot;
 
-    [SerializeField] private string _missionText;
-
     [SerializeField] private MissionUILine _uILine;
 
     private void Awake()
@@ -27,7 +25,7 @@ public class MissionUIManager : MonoBehaviour
 
     public void DrawMissionUI()
     {
-       _uILine.Initialize(Missionmanager.Instance.targetObject.MissionText);
+       _uILine.Initialize(Missionmanager.Instance.targetObject.missionText);
        _uILine.UpdateText();
     }
 
@@ -36,8 +34,4 @@ public class MissionUIManager : MonoBehaviour
         _missionUIRoot.SetActive(flag);
     }
 
-    public string GetMissionText()
-    {
-        return _missionText;
-    }
 }

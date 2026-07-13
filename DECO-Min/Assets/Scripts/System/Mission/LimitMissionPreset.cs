@@ -1,13 +1,13 @@
 using UnityEngine;
 
 [System.Serializable]
-public class MissionPreset
+public class LimitMissionPreset
 {
     public enum MissionTpye
     {
-        Boss,
         Defeat,
         Collect,
+        Place,
     }
 
     public MissionTpye missionType;

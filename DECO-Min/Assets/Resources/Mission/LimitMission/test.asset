@@ -9,11 +9,11 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 014ba3171fb3b6b439f13d82a31ddcaa, type: 3}
+  m_Script: {fileID: 11500000, guid: a8938bf0f4eb6f147b22ba043caa8b5a, type: 3}
   m_Name: test
-  m_EditorClassIdentifier: Assembly-CSharp::MissionTargetObject
+  m_EditorClassIdentifier: Assembly-CSharp::TimeLimitMission
   missionPreset:
     missionType: 0
     objectCount: 0
     targetObject: {fileID: 0}
-  MissionText: test
+  MissionText: 

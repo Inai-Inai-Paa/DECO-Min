@@ -5,7 +5,8 @@ public class Missionmanager : MonoBehaviour
     public static Missionmanager Instance { get; private set; }
 
     private bool MissionClear = false; 
-    [SerializeField] public MissionTargetObject targetObject;
+    [SerializeField] public MainMissionTargetObject targetObject;
+
 
     private void Awake()
     {
@@ -26,7 +27,7 @@ public class Missionmanager : MonoBehaviour
         MissionClear = false;
     }
 
-    public void SetMission(MissionTargetObject missionTargetObject)
+    public void SetMission(MainMissionTargetObject missionTargetObject)
     {
         targetObject = missionTargetObject;
     }
@@ -34,5 +35,10 @@ public class Missionmanager : MonoBehaviour
     {
        MissionClear = true;
     }
-   
+
+    public void Killed()
+    {
+        Clear();
+    }
+
 }

@@ -1,16 +1,38 @@
-using Unity.VisualScripting;
 using UnityEngine;
 
 [CreateAssetMenu(menuName = "State/Player/Move")]
 public class PlayerMove : PlayerState
 {
-    [Header("�ړ����x")]
-    [Tooltip("�ړ����x�ł��B")]
+    [Header("Transition State")]
+    [SerializeField] private PlayerState _attackState;
+    [Tooltip("剥離行動"),SerializeField] private PlayerState _peelState;
+    [Tooltip("剥離行動のクールダウン"),SerializeField] private float _peelCooldown = 1.0f;
+
+    [Header("移動速度")]
+    [Tooltip("移動速度です。")]
     public float moveSpeed = 3.0f;
 
-    [Header("�W�����v��")]
-    [Tooltip("�W�����v�͂ł��B")]
+    [Header("ジャンプ力")]
+    [Tooltip("ジャンプ力です。")]
     public float jumpForce = 5.0f;
+    
+
+    public override void Update()
+    {
+        if (player.isGrounded)
+        {   // ジャンプ中には遷移しないステート群
+
+            // Attack
+            if (player.playerInputData.AttackPressed && player.Status.CurrentSealCount > 0)
+                player.ChangePlayerState(Instantiate(_attackState));
+
+            // Peel
+            if (player.playerInputData.PeelScrollPressed && player.TryPeelAction(_peelCooldown))
+            {
+                player.ChangePlayerState(Instantiate(_peelState));
+            }
+        }
+    }
 
     public override void FixedUpdate()
     {
@@ -45,5 +67,10 @@ public class PlayerMove : PlayerState
             );
         }
         player.baseVelocity = new Vector3(velocity.x, player.baseVelocity.y, velocity.z);
+    }
+
+    public override void Exit()
+    {
+        player.baseVelocity = Vector3.zero;
     }
 }

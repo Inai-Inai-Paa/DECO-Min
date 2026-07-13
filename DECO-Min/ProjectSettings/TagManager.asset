@@ -3,7 +3,12 @@
 --- !u!78 &1
 TagManager:
   serializedVersion: 3
-  tags: []
+  tags:
+  - Pealable
+  - Enemy
+  - PlayerAttack
+  - EnemyAttack
+  - Ground
   layers:
   - Default
   - TransparentFX
@@ -14,7 +19,7 @@ TagManager:
   - Player
   - Enemy
   - Seal
-  - 
+  - Ground
   - 
   - 
   - 

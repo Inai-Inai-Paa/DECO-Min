@@ -12,5 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2ed13fbe432f5374aa550959765d747f, type: 3}
   m_Name: PlayerMove
   m_EditorClassIdentifier: Assembly-CSharp::PlayerMove
+  _attackState: {fileID: 11400000, guid: 61783e7d3b5767b49abd2b1e47a0f4fe, type: 2}
+  _peelState: {fileID: 11400000, guid: fc38929fd95380344ad28e8a57b36287, type: 2}
+  _peelCooldown: 1
   moveSpeed: 10
   jumpForce: 10

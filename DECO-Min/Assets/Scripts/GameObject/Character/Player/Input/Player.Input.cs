@@ -11,6 +11,13 @@ public class PlayerInputData
     public bool JumpPressed;
     public float JumpPressedTime;
 
+    public bool AttackPressed;
+
+    public bool InteractPressed;
+
+    public bool PeelScrollPressed;
+
+
     public void ClearFrameInput()
     {
         JumpPressed = false;
@@ -47,6 +54,30 @@ public partial class Player : Character
         {
             playerInputData.JumpHeld = false;
         };
+        _playerInput.PlayerControll.Attack.started += _ =>
+        {
+            playerInputData.AttackPressed = true;
+        };
+        _playerInput.PlayerControll.Attack.canceled += _ =>
+        {
+            playerInputData.AttackPressed = false;
+        };
+        _playerInput.PlayerControll.Interact.started += _ =>
+        {
+            playerInputData.InteractPressed = true;
+        };
+        _playerInput.PlayerControll.Interact.canceled += _ =>
+        {
+            playerInputData.InteractPressed = false;
+        };
+        _playerInput.PlayerControll.Peel.started += _ =>
+        {
+            playerInputData.PeelScrollPressed = true;
+        };
+        _playerInput.PlayerControll.Peel.canceled += _ =>
+        {
+            playerInputData.PeelScrollPressed = false;
+        };
         // PlayerInput‚ð—LŒø‰»
         _playerInput.Enable();
 
@@ -54,6 +85,9 @@ public partial class Player : Character
         playerInputData.Move = Vector2.zero;
         playerInputData.JumpHeld = false;
         playerInputData.JumpPressed = false;
+        playerInputData.AttackPressed = false;
+        playerInputData.InteractPressed = false;
+        playerInputData.PeelScrollPressed = false;
     }
 
     private void FinalizeInput()

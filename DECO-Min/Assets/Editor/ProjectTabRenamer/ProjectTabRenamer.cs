@@ -61,7 +61,12 @@ public static class ProjectTabRenamer
                             {
                                 defaultTitle = new GUIContent(window.titleContent);
                             }
-                            window.titleContent = new GUIContent($"{folderName}");
+
+							var baseContent = window.titleContent;
+							window.titleContent = new GUIContent(folderName,
+                        	    baseContent.image,
+                        	    baseContent.tooltip
+                            );
                             continue;
                         }
                     }

@@ -1,11 +1,9 @@
-using Unity.VisualScripting;
 using UnityEngine;
 
 public class Gimmick : MonoBehaviour
 {
     protected StateMachine _stateMachine;
     protected Player _player;
-    protected GimmickActiveState _activeState;
 
     protected virtual void Start()
     {
@@ -21,10 +19,10 @@ public class Gimmick : MonoBehaviour
         _stateMachine.FixedUpdate();
     }
 
-    protected virtual void Active()
+    public virtual void ChangeGimmickState(GimmickState state)
     {
-
-        _activeState.Initialize(this, _stateMachine);
-        _stateMachine.ChangeState(Instantiate(_activeState));
+        GimmickState nextState = Instantiate(state);
+        nextState.Initialize(this, _stateMachine);
+        _stateMachine.ChangeState(nextState);
     }
 }

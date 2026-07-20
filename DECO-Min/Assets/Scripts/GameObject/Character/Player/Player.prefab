@@ -52,6 +52,7 @@ MonoBehaviour:
   characterStatus: {fileID: 11400000, guid: 4c5f55ee34b98f547a6f828fc8fdfa09, type: 2}
   baseVelocity: {x: 0, y: 0, z: 0}
   additionalVelocity: {x: 0, y: 0, z: 0}
+  _skill: {fileID: 11400000, guid: 94436f963f8d2f64dba0bd36e44830d1, type: 2}
   initState: {fileID: 11400000, guid: 40f005a6f8380964b86e33a7c8008637, type: 2}
   playerDamage: {fileID: 11400000, guid: 11c3664f31ecda3468acc597caa819b2, type: 2}
   groundCheckPos: {x: 0, y: -0.9, z: 0}

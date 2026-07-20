@@ -25,7 +25,9 @@ public class GimmickBridgeActiveState : GimmickState
             return;
         }
 
-        if (_bridgeGimmick.Player.playerInputData.InteractPressed && _coolTime == 0)
+        //プレイヤーがブロックできるかの確認をする
+        if (_bridgeGimmick.Player.Skill.CanUseBlock &&
+            _bridgeGimmick.Player.playerInputData.InteractPressed && _coolTime == 0)
         {
             //橋を表示
             _bridgeGimmick._bridge.SetActive(!_bridgeGimmick._bridge.activeSelf);

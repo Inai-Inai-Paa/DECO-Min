@@ -6,6 +6,8 @@ public partial class Player : Character
 
     private PlayerStatus _status;
     public PlayerStatus Status => _status;
+    [SerializeField] private PlayerSkill _skill;
+    public PlayerSkill Skill => _skill;
 
     [Header("ステート")]
     [Space(2)]

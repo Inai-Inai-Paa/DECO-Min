@@ -86,6 +86,12 @@ public class Trampoline : Gimmick
         {
             spAnim = _player.gameObject.AddComponent<SplineAnimate>();
         }
+
+        if(spAnim.Container != null)
+        {
+            //既にアタッチされているなら実行中と判断しスキップ
+            return;
+        }
         
         if(!_isReverse)
         {

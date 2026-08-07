@@ -67,7 +67,6 @@ public class PlayerTrampoline : PlayerState
             Vector3 dir = _targetPosition - player.transform.position;
             float dist = dir.magnitude;
 
-            Debug.Log($"Approaching: Distance to target = {dist}, Threshold = {_approachThreshold}");
             if (dist > _approachThreshold)
             {
                 Vector3 moveDir = dir.normalized;
@@ -100,7 +99,6 @@ public class PlayerTrampoline : PlayerState
 
             // 向きが十分揃ったら再生開始
             float angle = Quaternion.Angle(player.transform.rotation, targetRot);
-            Debug.Log($"Angle to target: {angle}");
             if (angle < 5.0f) // しきい値（度）
             {
                 _isFacing = true;

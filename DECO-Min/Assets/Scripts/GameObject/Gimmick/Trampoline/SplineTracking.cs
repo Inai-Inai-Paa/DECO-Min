@@ -8,6 +8,7 @@ public class SplineTracking : MonoBehaviour
     [Header("Tracking")]
     [Tooltip("トラッキング対象の始点"), SerializeField] private Transform _startPos;
     [Tooltip("トラッキング対象の終点"), SerializeField] private Transform _endPos;
+    [Tooltip("トラッキング時の位置補正"),SerializeField] private Vector3 _positionOffset = new Vector3(0.0f, 0.5f, 0.0f);
 
     [Header("Debug")]
     [Tooltip("実行時のアップデート設定"), SerializeField] private bool _updateInPlayMode = true;
@@ -45,8 +46,8 @@ public class SplineTracking : MonoBehaviour
         var spline = _splineContainer.Spline;
         if (spline.Count < 2) return;
 
-        SetKnotPoint(spline, 0, _startPos.position);
-        SetKnotPoint(spline, spline.Count - 1, _endPos.position);
+        SetKnotPoint(spline, 0, _startPos.position + _positionOffset);
+        SetKnotPoint(spline, spline.Count - 1, _endPos.position + _positionOffset);
     }
 
     private void SetKnotPoint(Spline spline, int knotIndex, Vector3 worldPosition)

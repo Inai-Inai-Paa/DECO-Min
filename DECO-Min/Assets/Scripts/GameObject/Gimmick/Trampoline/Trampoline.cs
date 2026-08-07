@@ -3,8 +3,12 @@ using UnityEngine.Splines;
 
 public class Trampoline : Gimmick
 {
+    [Header("Player Staet Ref")]
+    [Tooltip("プレイヤートランポリン状態"), SerializeField] private PlayerState _playerTrampolineState;
+
     [Header("Trampoline Ref")]
-    [Tooltip("トランポリン挙動のスプライン"), SerializeField] private SplineContainer _trampolineCurve;
+    [Tooltip("トランポリン挙動のスプライン(登り方向)"), SerializeField] private SplineContainer _LeaveCurve;
+    [Tooltip("トランポリン挙動のスプライン(降り方向)"), SerializeField] private SplineContainer _ReturnCurve;
 
     [Header("Trampoline Setting")]
     [Tooltip("トランポリンの基点"),SerializeField] private GameObject _basePoint;
@@ -15,8 +19,8 @@ public class Trampoline : Gimmick
     [Tooltip("インタラクトUI"),SerializeField] private Canvas _interactUI;
     [Tooltip("インタラクトUIの位置(足場基点)"), SerializeField] private Vector3 _interactUIOffset;
 
-    private bool isPlayerOnTrampoline = false;
-    private bool onStartPoint = false;
+    private bool _onStartPoint = false;
+    private bool _isReverse = false;
 
     protected override void Start()
     {
@@ -31,11 +35,26 @@ public class Trampoline : Gimmick
             Debug.LogError("LandingPointが設定されていません。");
         }
 
-        if(_interactUI == null)
+        if(_LeaveCurve == null)
+        {
+            Debug.LogError("LeaveCurveが設定されていません。");
+        }
+
+        if (_ReturnCurve == null)
+        {
+            Debug.LogError("ReturnCurveが設定されていません。");
+        }
+
+        if (_interactUI == null)
         {
             Debug.LogError("InteractUIが設定されていません。");
         }
         _interactUI.gameObject.SetActive(false);
+
+        if(player == null)
+        {
+            player = GameObject.FindGameObjectWithTag("Player").GetComponent<Player>();
+        }
 
     }
 
@@ -44,6 +63,14 @@ public class Trampoline : Gimmick
     {
         base.Update();
 
+        if(_onStartPoint)
+        {
+            if (player != null && player.playerInputData.InteractPressed)
+            {
+                PlaySplineAnimate();
+                _interactUI.gameObject.SetActive(false);
+            }
+        }
     }
 
     protected override void FixedUpdate()
@@ -51,10 +78,28 @@ public class Trampoline : Gimmick
         base.FixedUpdate();
     }
 
-    public void PlaySplineAnimate(bool reverse)
+    private void PlaySplineAnimate()
     {
-        if(player == null) return;
+        if (player == null) return;
+        var spAnim = player.GetComponent<SplineAnimate>();
+        if(spAnim == null)
+        {
+            spAnim = player.gameObject.AddComponent<SplineAnimate>();
+        }
+        
+        if(!_isReverse)
+        {
+            spAnim.Container = _LeaveCurve;
+        }
+        else
+        {
+            spAnim.Container = _ReturnCurve;
+        }
 
+        spAnim.MaxSpeed = _splineMoveSpeed;
+        spAnim.StartOffset = 0.0f;
+
+        player.ChangePlayerState(Instantiate(_playerTrampolineState));
     }
 
     public void ChangeUIActive(bool isActive, bool isStartPoint = false)
@@ -67,7 +112,9 @@ public class Trampoline : Gimmick
 
         if(isActive)
         {
-            onStartPoint = isStartPoint;
+            _isReverse = !isStartPoint;
         }
+
+        _onStartPoint = isActive;
     }
 }

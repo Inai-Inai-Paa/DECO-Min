@@ -15,4 +15,8 @@ MonoBehaviour:
   Object:
     targetObject: {fileID: 0}
     objectCount: 0
+  subMissions:
+  - missionType: 0
+    objectCount: 0
+    targetObject: {fileID: 0}
   missionText: 

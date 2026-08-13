@@ -10,4 +10,5 @@ public class TimeLimitMission : ScriptableObject
     [Tooltip("éûä‘êßå¿(ïb)")]
     [SerializeField] public float timeLimit = 60;
 
+    [SerializeField] public GameObject reward;
 }

@@ -326,12 +326,12 @@ public sealed class CameraBlendState : CameraState
             _blendSamples.Add(
                 sample);
 
-            weightedOrigin +=
-                sample.origin *
+            weightedOrigin += sample.targetOffset +
+				sample.origin *
                 sample.weight;
 
             weightedOffset +=
-                sample.offset *
+                sample.cameraOffset *
                 sample.weight;
 
             weightedForward +=
@@ -542,10 +542,10 @@ public sealed class CameraBlendState : CameraState
             new BlendSample
             {
                 origin =
-                    origin,
+                    origin + config.targetOffset,
 
-                offset =
-                    config.offset,
+                cameraOffset =
+                    config.cameraOffset,
 
                 baseForward =
                     baseRotation *
@@ -669,11 +669,47 @@ public sealed class CameraBlendState : CameraState
         Transform cameraTransform =
             _camera.transform;
 
+        if(_volume && _volume.Config.preventTerrainPenetration)
+        {
+			// Implement terrain penetration prevention logic here
+			Vector3 cameraOffset =
+			targetCameraPosition - targetLookPosition;
+
+			float cameraDistance =
+				cameraOffset.magnitude;
+
+			if (cameraDistance > Mathf.Epsilon)
+			{
+				Vector3 direction =
+					cameraOffset / cameraDistance;
+
+				if (Physics.Raycast(
+						targetLookPosition,
+						direction,
+						out RaycastHit hit,
+						cameraDistance,
+						_volume.Config.terrainLayerMask,
+						QueryTriggerInteraction.Ignore))
+				{
+					const float collisionMargin = 0.1f;
+
+					float correctedDistance =
+						Mathf.Max(
+							0.0f,
+							hit.distance - collisionMargin);
+
+					targetCameraPosition =
+						targetLookPosition +
+						direction * correctedDistance;
+				}
+			}
+		}
+
         cameraTransform.position =
             Vector3.Lerp(
                 cameraTransform.position,
                 targetCameraPosition,
-                positionInterpolationRate);
+                1);
 
         Quaternion targetRotation =
             CreateStableLookRotation(
@@ -685,7 +721,7 @@ public sealed class CameraBlendState : CameraState
             Quaternion.Slerp(
                 cameraTransform.rotation,
                 targetRotation,
-                targetInterpolationRate);
+                1);
 
         if (!_camera.orthographic)
         {
@@ -693,7 +729,7 @@ public sealed class CameraBlendState : CameraState
                 Mathf.Lerp(
                     _camera.fieldOfView,
                     targetFieldOfView,
-                    positionInterpolationRate);
+                    1);
         }
     }
 
@@ -823,7 +859,7 @@ public sealed class CameraBlendState : CameraState
                     volume.GetGroundPosition(
                         out Vector3 groundPosition)
                         ? groundPosition
-                        : volume.transform.position;
+                        : volume.transform.position + config.targetOffset; ;
 
                 break;
             }
@@ -849,7 +885,7 @@ public sealed class CameraBlendState : CameraState
         Vector3 cameraPosition =
             origin +
             baseRotation *
-            config.offset;
+            config.cameraOffset;
 
         Quaternion cameraRotation =
             CreateStableLookRotation(
@@ -905,9 +941,10 @@ public sealed class CameraBlendState : CameraState
     private struct BlendSample
     {
         public Vector3 origin;
-        public Vector3 offset;
+		public Vector3 targetOffset;
+		public Vector3 cameraOffset;
 
-        public Vector3 baseForward;
+		public Vector3 baseForward;
         public Vector3 baseUp;
 
         public Vector3 rotationLimitMin;

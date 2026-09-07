@@ -20,4 +20,8 @@ public class LimitMissionPreset
     public EnemyData KillObject;
     public CollectData CollectObject;
     public int timeLimit;
+    public string missionText;
+
+    public GameObject reward;
+    public int rewardSeal;
 }

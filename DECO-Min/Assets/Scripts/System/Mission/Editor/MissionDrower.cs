@@ -1,3 +1,4 @@
+using Unity.VisualScripting;
 using UnityEditor;
 using UnityEngine;
 using static LimitMissionPreset;
@@ -8,15 +9,24 @@ public class MissionDrower : PropertyDrawer
     private const float _lineHeight = 20f;
     private const float _space = 4f;
     private const float _labelWidth = 120f;
-
     public override float GetPropertyHeight(SerializedProperty property, GUIContent label)
     {
         int lines = 0;
-
-        SerializedProperty missiontype = property.FindPropertyRelative(nameof(LimitMissionPreset.missionType));
         
-        lines += 3;
+        SerializedProperty missiontype = property.FindPropertyRelative(nameof(LimitMissionPreset.missionType));
 
+        lines += 4;
+        switch ((MissionTpye)missiontype.enumValueIndex)
+        {
+            case MissionTpye.Defeat:
+                lines += 1;
+                break;
+            case MissionTpye.Collect:
+                lines += 1;
+                break;
+            case MissionTpye.Place:
+                break;
+        }
         var type = (MissionTpye)missiontype.enumValueIndex;
         return lines * (_lineHeight + _space);
     }
@@ -28,21 +38,30 @@ public class MissionDrower : PropertyDrawer
         SerializedProperty missionType = property.FindPropertyRelative(nameof(LimitMissionPreset.missionType));
         SerializedProperty objectCount = property.FindPropertyRelative(nameof(LimitMissionPreset.objectCount));
         SerializedProperty targetObject = property.FindPropertyRelative(nameof(LimitMissionPreset.targetObject));
+        SerializedProperty timeLimit = property.FindPropertyRelative(nameof(LimitMissionPreset.timeLimit));
+        SerializedProperty rewardObject = property.FindPropertyRelative(nameof(LimitMissionPreset.reward));
+        SerializedProperty rewardSeal = property.FindPropertyRelative(nameof(LimitMissionPreset.rewardSeal));
         Rect r = new Rect(position.x, position.y, position.width, _lineHeight);
         DrawRow(ref r, "ミッション方式", missionType);
         
         switch((MissionTpye)missionType.enumValueIndex)
         {
             case MissionTpye.Defeat:
-            case MissionTpye.Collect:
-                DrawRow(ref r, "必要数", objectCount);
                 DrawRow(ref r, "対象", targetObject);
+                DrawRow(ref r, "必要数", objectCount);
+                break;
+            case MissionTpye.Collect:
+
+                DrawRow(ref r, "対象", targetObject);
+                DrawRow(ref r, "必要数", objectCount);
                 break;
             case MissionTpye.Place:
                 DrawRow(ref r, "対象エリア", targetObject);
                 break;
 
         }
+        DrawRow(ref r, "報酬 (ぼんどろ)", rewardObject);
+        DrawRow(ref r, "報酬 (シール枚数)", rewardSeal);
 
         EditorGUI.EndProperty();
     }

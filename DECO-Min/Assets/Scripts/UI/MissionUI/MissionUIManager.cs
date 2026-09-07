@@ -16,22 +16,25 @@ public class MissionUIManager : MonoBehaviour
             Destroy(gameObject);
             return;
         }
+        Instance = this;
     }
 
     public void Start()
     {
-        DrawMissionUI();
+        
+        SetMissionRoot(false);
     }
 
     public void DrawMissionUI()
     {
-       _uILine.Initialize(Missionmanager.Instance.targetObject.missionText);
+       _uILine.Initialize(Missionmanager.Instance.targetObject.Object.missionText);
        _uILine.UpdateText();
     }
 
     public void SetMissionRoot(bool flag)
     {
         _missionUIRoot.SetActive(flag);
+        DrawMissionUI();
     }
 
 }

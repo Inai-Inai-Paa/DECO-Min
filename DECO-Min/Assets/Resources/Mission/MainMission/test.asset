@@ -15,8 +15,35 @@ MonoBehaviour:
   Object:
     targetObject: {fileID: 0}
     objectCount: 0
+    missionText: 
   subMissions:
   - missionType: 0
+    isClear: 0
     objectCount: 0
     targetObject: {fileID: 0}
-  missionText: 
+    KillObject: {fileID: 0}
+    CollectObject: {fileID: 0}
+    timeLimit: 0
+    missionText: 
+    reward: {fileID: 0}
+    rewardSeal: 0
+  - missionType: 0
+    isClear: 0
+    objectCount: 0
+    targetObject: {fileID: 0}
+    KillObject: {fileID: 0}
+    CollectObject: {fileID: 0}
+    timeLimit: 0
+    missionText: 
+    reward: {fileID: 0}
+    rewardSeal: 0
+  - missionType: 1
+    isClear: 0
+    objectCount: 0
+    targetObject: {fileID: 0}
+    KillObject: {fileID: 0}
+    CollectObject: {fileID: 0}
+    timeLimit: 0
+    missionText: 
+    reward: {fileID: 0}
+    rewardSeal: 0

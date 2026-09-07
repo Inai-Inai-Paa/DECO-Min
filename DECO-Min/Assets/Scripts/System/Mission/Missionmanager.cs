@@ -4,6 +4,8 @@ public class Missionmanager : MonoBehaviour
 {
     public static Missionmanager Instance { get; private set; }
 
+    public bool missionStartFlg = false;
+
     private bool MissionClear = false; 
     [SerializeField] public MainMissionTargetObject targetObject;
 
@@ -19,7 +21,6 @@ public class Missionmanager : MonoBehaviour
             Destroy(gameObject);
             return;
         }
-        Debug.Log("MissionManagerê∂ê¨");
 
     }
 
@@ -86,4 +87,10 @@ public class Missionmanager : MonoBehaviour
             }
         }
     }
+
+    public void SetMissionStartFlg(bool flg)
+    {
+        missionStartFlg = flg;
+    }
+
 }

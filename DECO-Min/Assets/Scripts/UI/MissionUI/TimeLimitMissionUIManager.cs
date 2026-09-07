@@ -21,7 +21,7 @@ public class TimeLimitMissionUIManager : MonoBehaviour
 
     public void DrawMissionUI()
     {
-       _uILine.Initialize(Missionmanager.Instance.targetObject.missionText);
+       _uILine.Initialize(Missionmanager.Instance.targetObject.Object.missionText);
        _uILine.UpdateText();
     }
 

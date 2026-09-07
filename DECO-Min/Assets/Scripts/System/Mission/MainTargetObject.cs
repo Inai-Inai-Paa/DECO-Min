@@ -9,5 +9,5 @@ public class MainMissionTargetObject : ScriptableObject
 
     [Header("’†ƒ~ƒbƒVƒ‡ƒ“İ’è")]
     [SerializeField] public List<LimitMissionPreset> subMissions;
-    [SerializeField] public string missionText;
+  
 }

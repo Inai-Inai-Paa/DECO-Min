@@ -72,7 +72,7 @@ public abstract class CameraState : State
             volume.GetGroundPosition(
                 out Vector3 groundPosition)
                 ? groundPosition
-                : volume.transform.position;
+                : volume.transform.position + config.targetOffset;
 
         /*
          * CameraVolumeÇÃTransformâÒì]ÇÅA
@@ -88,7 +88,7 @@ public abstract class CameraState : State
         Vector3 cameraPosition =
             origin +
             baseRotation *
-            config.offset;
+            config.cameraOffset;
 
         Quaternion cameraRotation =
             CreateLookRotation(

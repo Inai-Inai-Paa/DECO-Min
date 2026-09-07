@@ -8,8 +8,17 @@ public sealed class CameraVolume : MonoBehaviour
 	[System.Serializable]
 	public struct CameraParams
 	{
+		[Tooltip("カメラが地形にめり込まないか")]
+		public bool preventTerrainPenetration;
+
+		[Tooltip("カメラがめり込まない地形のレイヤーマスク")]
+		public LayerMask terrainLayerMask;
+
+		[Tooltip("Originのオフセット")]
+		public Vector3 targetOffset;
+
 		[Tooltip("Originから見たカメラのローカル位置")]
-		public Vector3 offset;
+		public Vector3 cameraOffset;
 
 		[Range(1f, 179f)]
 		public float fieldOfView;
@@ -83,7 +92,19 @@ public sealed class CameraVolume : MonoBehaviour
 	private CameraParams _config =
 		new CameraParams
 		{
-			offset =
+			preventTerrainPenetration =
+				true,
+
+			terrainLayerMask = 
+				1,
+
+			targetOffset =
+				new Vector3(
+					0f,
+					1.5f,
+					0f),
+
+			cameraOffset =
 				new Vector3(
 					0f,
 					5f,

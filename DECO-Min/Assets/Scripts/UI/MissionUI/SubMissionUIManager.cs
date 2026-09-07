@@ -1,12 +1,12 @@
 using UnityEngine;
 
-public class TimeLimitMissionUIManager : MonoBehaviour
+public class SubMissionUIManager : MonoBehaviour
 {
-    public static TimeLimitMissionUIManager Instance { get; private set; }
+    public static SubMissionUIManager Instance { get; private set; }
 
     [SerializeField] private GameObject _missionUIs;
 
-    [SerializeField] private TimeLimitMissionUILine _uILine;
+    [SerializeField] private SubMissionUILine _uILine;
 
     private void Awake()
     {

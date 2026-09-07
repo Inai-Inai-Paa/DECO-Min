@@ -72,13 +72,13 @@ public class Missionmanager : MonoBehaviour
         {
             switch (submission.missionType)
             {
-                case LimitMissionPreset.MissionTpye.Defeat:
+                case SubMissionPreset.MissionTpye.Defeat:
                     if (submission.objectCount < _KillCounter.GetKillCount(submission.KillObject))
                     {
                         submission.isClear = true;
                     }
                     break;
-                case LimitMissionPreset.MissionTpye.Collect:
+                case SubMissionPreset.MissionTpye.Collect:
                     if (submission.objectCount < _CollectCounter.GetCollectCount(submission.CollectObject))
                     {
                         submission.isClear = true;

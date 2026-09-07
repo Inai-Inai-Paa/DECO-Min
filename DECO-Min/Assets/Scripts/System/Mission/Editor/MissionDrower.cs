@@ -1,9 +1,9 @@
 using Unity.VisualScripting;
 using UnityEditor;
 using UnityEngine;
-using static LimitMissionPreset;
+using static SubMissionPreset;
 
-[CustomPropertyDrawer(typeof(LimitMissionPreset))]
+[CustomPropertyDrawer(typeof(SubMissionPreset))]
 public class MissionDrower : PropertyDrawer
 {
     private const float _lineHeight = 20f;
@@ -13,7 +13,7 @@ public class MissionDrower : PropertyDrawer
     {
         int lines = 0;
         
-        SerializedProperty missiontype = property.FindPropertyRelative(nameof(LimitMissionPreset.missionType));
+        SerializedProperty missiontype = property.FindPropertyRelative(nameof(SubMissionPreset.missionType));
 
         lines += 4;
         switch ((MissionTpye)missiontype.enumValueIndex)
@@ -35,12 +35,12 @@ public class MissionDrower : PropertyDrawer
     {
         EditorGUI.BeginProperty(position, label, property);
 
-        SerializedProperty missionType = property.FindPropertyRelative(nameof(LimitMissionPreset.missionType));
-        SerializedProperty objectCount = property.FindPropertyRelative(nameof(LimitMissionPreset.objectCount));
-        SerializedProperty targetObject = property.FindPropertyRelative(nameof(LimitMissionPreset.targetObject));
-        SerializedProperty timeLimit = property.FindPropertyRelative(nameof(LimitMissionPreset.timeLimit));
-        SerializedProperty rewardObject = property.FindPropertyRelative(nameof(LimitMissionPreset.reward));
-        SerializedProperty rewardSeal = property.FindPropertyRelative(nameof(LimitMissionPreset.rewardSeal));
+        SerializedProperty missionType = property.FindPropertyRelative(nameof(SubMissionPreset.missionType));
+        SerializedProperty objectCount = property.FindPropertyRelative(nameof(SubMissionPreset.objectCount));
+        SerializedProperty targetObject = property.FindPropertyRelative(nameof(SubMissionPreset.targetObject));
+        SerializedProperty timeLimit = property.FindPropertyRelative(nameof(SubMissionPreset.timeLimit));
+        SerializedProperty rewardObject = property.FindPropertyRelative(nameof(SubMissionPreset.reward));
+        SerializedProperty rewardSeal = property.FindPropertyRelative(nameof(SubMissionPreset.rewardSeal));
         Rect r = new Rect(position.x, position.y, position.width, _lineHeight);
         DrawRow(ref r, "ƒ~ƒbƒVƒ‡ƒ“•ûŽ®", missionType);
         

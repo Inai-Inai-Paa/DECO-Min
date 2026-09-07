@@ -1,7 +1,7 @@
 using UnityEngine;
 
 [System.Serializable]
-public class LimitMissionPreset
+public class SubMissionPreset
 {
     public enum MissionTpye
     {

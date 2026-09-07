@@ -1,7 +1,7 @@
 using TMPro;
 using UnityEngine;
 
-public class TimeLimitMissionUILine : MonoBehaviour
+public class SubMissionUILine : MonoBehaviour
 {
     [SerializeField] private TMP_Text _textUI;
 

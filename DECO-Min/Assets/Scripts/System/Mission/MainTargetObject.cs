@@ -8,6 +8,6 @@ public class MainMissionTargetObject : ScriptableObject
     [SerializeField] public MainMissionPreset Object;
 
     [Header("’†ƒ~ƒbƒVƒ‡ƒ“İ’è")]
-    [SerializeField] public List<LimitMissionPreset> subMissions;
+    [SerializeField] public List<SubMissionPreset> subMissions;
   
 }

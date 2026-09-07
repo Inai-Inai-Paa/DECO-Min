@@ -1,10 +1,10 @@
 using UnityEngine;
 
-[CreateAssetMenu(menuName = "Mission/TimeLimitMission")]
-public class TimeLimitMission : ScriptableObject
+[CreateAssetMenu(menuName = "Mission/SubMission")]
+public class SubMission : ScriptableObject
 {
     [Header("ƒ~ƒbƒVƒ‡ƒ“İ’è")]
-    [SerializeField] public LimitMissionPreset missionPreset;
+    [SerializeField] public SubMissionPreset missionPreset;
     [SerializeField] public string MissionText;
 
     [Tooltip("ŠÔ§ŒÀ(•b)")]

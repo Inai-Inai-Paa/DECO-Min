@@ -20,10 +20,10 @@ public class SceneChangeManager : MonoBehaviour
 
     public void SceneChange(SceneData sceneData)
     {
-        if (_istransitioning) return;
-        if (FadeManager.Instance == null) return;
-        if (FadeManager.Instance.isFading) return;
-
+        if (_istransitioning) return;                   // シーン遷移中
+        if (FadeManager.Instance == null) return;       // フェードマネージャーが無い
+        if (FadeManager.Instance.isFading) return;      // フェード中             
+                                                        // は return
 
         StartCoroutine(SceneChangeRoutine(sceneData));
     }

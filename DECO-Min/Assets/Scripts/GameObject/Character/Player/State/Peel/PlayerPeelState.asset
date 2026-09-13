@@ -20,3 +20,5 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 256
   _peelableRange: 1.5
+  _peelableChainRange: 2.5
+  _addSealCount: 1

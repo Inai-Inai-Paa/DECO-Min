@@ -39,4 +39,10 @@ public class StateMachine
     {
         return currentState as T;
     }
+
+    public void Shutdown()
+    {
+        currentState?.Exit();
+        currentState = null;
+    }
 }

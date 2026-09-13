@@ -1,4 +1,3 @@
-using Unity.VisualScripting;
 using UnityEngine;
 
 [CreateAssetMenu(menuName = "State/Player/Damage")]
@@ -16,6 +15,6 @@ public class PlayerDamage : PlayerState
     {
         player.ApplyDamage(player.pendingDamage);
         player.StartInvincible(_invincibleTime);    // –³“GŽžŠÔŠJŽn
-        player.ChangePlayerState(_nextState);
+        player.ChangePlayerState(Instantiate(_nextState));
     }
 }

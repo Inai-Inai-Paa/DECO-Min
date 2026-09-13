@@ -13,6 +13,11 @@ public class PlayerPeel : PlayerState
     [Tooltip("Peel先オブジェクトのタグ"), SerializeField] private string _peelableTag = "Peelable";
     [Tooltip("Peel先オブジェクトのレイヤー"), SerializeField] private LayerMask _peelableLayer;
     [Tooltip("Peel行動の探知範囲"), SerializeField] private float _peelableRange = 0.5f;
+    public float GetPeelableRange() { return _peelableRange; }
+
+    [Tooltip("Peel成功時にまとまって剥がす範囲"), SerializeField] private float _peelableChainRange = 2.0f;
+    public float GetPeelableChainRange() { return _peelableChainRange; }
+
     [Tooltip("加算されるシールの数"), SerializeField] private int _addSealCount = 1;
 
     Collider[] _collider;
@@ -36,10 +41,16 @@ public class PlayerPeel : PlayerState
                     if (collider.gameObject.GetComponent<DroppingSeal>() != null)
                     {
                         _nearestPeelable = collider.gameObject.GetComponent<DroppingSeal>();
-                        PeelAction(); //最初の1回は剥がすアクションを自動で行う
+                        
                     }  
                 }
             }
+        }
+
+        if (_nearestPeelable != null)
+        {
+            player.ResetPeelCooldown(); //剥離行動に成功した場合はCDのリセット
+            PeelAction(); //最初の1回は剥がすアクションを自動で行う
         }
 
         _enterTime = Time.time;
@@ -57,14 +68,14 @@ public class PlayerPeel : PlayerState
             //プレイヤー移動入力を取得したら_moveStateに遷移する、成功時硬直も同時に満たしていることを確認する
             if (player.playerInputData.Move.sqrMagnitude > 0.0f && Time.time - _enterTime >= _successDuration)
             {
-                player.ChangePlayerState(_moveState);
+                player.ChangePlayerState(Instantiate(_moveState));
             }
         }
         else
         {
             if (Time.time - _enterTime >= _failDuration)
             {
-                player.ChangePlayerState(_moveState);
+                player.ChangePlayerState(Instantiate(_moveState));
             }
         }
     }
@@ -83,10 +94,27 @@ public class PlayerPeel : PlayerState
     {
         if (_nearestPeelable)
         {
-            if(_nearestPeelable.PeelSeal())
+            if (_nearestPeelable.PeelSeal())
             {
-                player.AddSeal(_addSealCount);
-                player.ChangePlayerState(_moveState);
+                //近辺のシールを探索して、プレイヤーが剥がしたシールの数だけ回収する
+                Collider[] nearbyColliders = Physics.OverlapSphere(_nearestPeelable.transform.position, _peelableChainRange, _peelableLayer);
+                int peelCount_new = 0;
+                int peelCount_has = 0;
+                foreach (var collider in nearbyColliders)
+                {
+                    DroppingSeal seal = collider.GetComponent<DroppingSeal>();
+                    if (seal != null)
+                    {
+                        var result = seal.ChainPeel();
+                        peelCount_new += result.newCount;
+                        peelCount_has += result.hasCount;
+                    }
+                }
+
+                player.AddSeal(peelCount_new,true);
+                player.AddSeal(peelCount_has,false);
+
+                player.ChangePlayerState(Instantiate(_moveState));
             }
         }
     }

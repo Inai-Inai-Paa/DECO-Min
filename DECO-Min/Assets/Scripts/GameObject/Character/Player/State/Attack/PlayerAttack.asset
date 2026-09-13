@@ -16,4 +16,4 @@ MonoBehaviour:
   _playerMove: {fileID: 11400000, guid: 40f005a6f8380964b86e33a7c8008637, type: 2}
   _attackStartUpTime: 0.3
   _attackRecoveryTime: 0.5
-  _attackNeedSeal: 1
+  _attackNeedSeal: 5

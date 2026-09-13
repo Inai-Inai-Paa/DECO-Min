@@ -1,4 +1,5 @@
 using UnityEngine;
+using static UnityEngine.Rendering.DebugUI;
 
 public partial class Player : Character
 {
@@ -6,11 +7,14 @@ public partial class Player : Character
 
     private PlayerStatus _status;
     public PlayerStatus Status => _status;
+    [SerializeField] private PlayerSkill _skill;
+    public PlayerSkill Skill => _skill;
 
     [Header("ステート")]
     [Space(2)]
     [SerializeField]
     private PlayerState initState = null;
+    [SerializeField] private PlayerDamage playerDamage = null; //応急処置 後で変える必要あり
 
     [Header("接地判定")]
     [Space(2)]
@@ -30,6 +34,22 @@ public partial class Player : Character
     private float _invincibleTimer;
     public float pendingDamage { get; private set; }
 
+    // PeelAction
+    private float _peelLastTime = -Mathf.Infinity;
+
+    [Header("アニメーション")]
+    [SerializeField] public Animator _animator;
+    [SerializeField] private float _idleStartTime = 3f;
+    private float _idleTimer;
+
+    private void Awake()
+    {
+        //プレイヤーステータスをキャラクターステータスから取得
+        _status = Instantiate((PlayerStatus)characterStatus);
+        _status.TotalSealCount = 100;
+        _status.CurrentSealCount = 100;
+    }
+
     protected override void Start()
     {
         // Call the base class's Awake method to ensure that the state machine is initialized
@@ -39,16 +59,14 @@ public partial class Player : Character
 
         mainCamera = Camera.main;
 
-        //プレイヤーステータスをキャラクターステータスから取得
-        _status = (PlayerStatus)characterStatus;
-
         if (initState != null)
         {
-            ChangePlayerState(initState);
+            ChangePlayerState(Instantiate(initState));
         }
     }
     private void OnDestroy()
     {
+        stateMachine?.Shutdown();
         FinalizeInput();
     }
 
@@ -71,7 +89,26 @@ public partial class Player : Character
         isGrounded = Physics.Raycast(transform.position + groundCheckPos, Vector3.down, rayDistance, groundLayer);
         cameraForward = Vector3.Scale(mainCamera.transform.forward, new Vector3(1, 0, 1)).normalized;
 
-        base.FixedUpdate();
+        //アニメーション関係
+        _animator.SetBool("IsGround", isGrounded);
+
+        AnimatorStateInfo stateInfo = _animator.GetCurrentAnimatorStateInfo(0);
+        //アニメーション名を参照して終わったらフグのアニメーション起動
+        if ((stateInfo.IsName("Idle")))
+        {
+            _idleTimer += Time.deltaTime;
+            if (_idleTimer >= _idleStartTime)
+            {
+                _animator.SetTrigger("Idle");
+                _idleTimer = 0.0f;
+            }
+        }
+        else
+        {
+            _idleTimer = 0.0f;
+        }
+
+            base.FixedUpdate();
     }
 
     public void ChangePlayerState(PlayerState nextState)
@@ -83,9 +120,9 @@ public partial class Player : Character
     // ダメージ処理
     public void ApplyDamage(float damage)
     {
-        characterStatus.currentHealth -= damage;
+        _status.currentHealth -= damage;
 
-        if (characterStatus.currentHealth <= 0.0f)
+        if (_status.currentHealth <= 0.0f)
         {
             // 死亡処理
         }
@@ -97,18 +134,20 @@ public partial class Player : Character
         _invincibleTimer = time;
     }
 
-    public void TryDamage(float damage, PlayerState damageState)
+    public void TryDamage(float damage)
     {
         if (_isInvincible)
             return;
 
         pendingDamage = damage;
-        ChangePlayerState(damageState);
+        ChangePlayerState(Instantiate(playerDamage));
     }
 
     // シール増減処理
-    public void AddSeal(int amount)
+    public void AddSeal(int amount, bool isAddTortal)
     {
+        if(isAddTortal)
+            _status.TotalSealCount += amount;
         _status.CurrentSealCount += amount;
     }
 
@@ -116,5 +155,21 @@ public partial class Player : Character
         _status.CurrentSealCount -= amount;
         if (_status.CurrentSealCount < 0)
             _status.CurrentSealCount = 0;
+    }
+
+    // 剥離行動クールダウン
+    public bool TryPeelAction(float cooldown)
+    {
+        if (Time.time - _peelLastTime >= cooldown)
+        {
+            _peelLastTime = Time.time;
+            return true;
+        }
+        return false;
+    }
+
+    public void ResetPeelCooldown()
+    {
+        _peelLastTime = -Mathf.Infinity;
     }
 }

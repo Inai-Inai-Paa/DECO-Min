@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 3a8e20c99edf9b54eb67e58d8489d556, type: 3}
-  m_Name: fadeteset
+  m_Name: proto_Result
   m_EditorClassIdentifier: Assembly-CSharp::SceneData
-  _sceneAsset: {fileID: 102900000, guid: b44f1c358ebe730478e53f5eacbba12e, type: 3}
-  sceneName: FadeTestScene
+  _sceneAsset: {fileID: 102900000, guid: 1ea19d7cf19e11842b8a3572aa0177d3, type: 3}
+  sceneName: proto_Result

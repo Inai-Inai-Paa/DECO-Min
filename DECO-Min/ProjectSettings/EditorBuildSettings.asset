@@ -5,9 +5,18 @@ EditorBuildSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 2
   m_Scenes:
-  - enabled: 1
+  - enabled: 0
     path: Assets/Demo/Scenes/SampleScene.unity
     guid: 99c9720ab356a0642a771bea13969a05
+  - enabled: 1
+    path: Assets/Scenes/imai/FadeTest/test_Title.unity
+    guid: be0fa1711462512449290cbd4302e550
+  - enabled: 1
+    path: Assets/Scenes/imai/FadeTest/test_Result.unity
+    guid: 1ea19d7cf19e11842b8a3572aa0177d3
+  - enabled: 1
+    path: Assets/Scenes/imai/FadeTest/FadeTestScene.unity
+    guid: b44f1c358ebe730478e53f5eacbba12e
   m_configObjects:
     com.unity.dt.app-ui: {fileID: 11400000, guid: 1b1c20d82303e4b5781c3ef50ac1449f, type: 2}
     com.unity.input.settings: {fileID: 11400000, guid: 7e3738909bd2d7d4ba768926d20baf08, type: 2}

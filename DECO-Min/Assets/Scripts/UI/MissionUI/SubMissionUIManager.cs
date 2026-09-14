@@ -21,7 +21,7 @@ public class SubMissionUIManager : MonoBehaviour
 
     public void DrawMissionUI()
     {
-       _uILine.Initialize(Missionmanager.Instance.targetObject.Object.missionText);
+//       _uILine.Initialize(Missionmanager.Instance.targetObject.MainMission.missionText);
        _uILine.UpdateText();
     }
 

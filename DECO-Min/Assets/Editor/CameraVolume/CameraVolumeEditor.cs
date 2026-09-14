@@ -97,11 +97,11 @@ public sealed class CameraVolumeEditor : Editor
         }
 
         UpdatePreviewObject(
-            preview.targetPosition,
+            preview.targetPosition + volume.Config.targetOffset,
             preview.targetRotation);
 
         UpdatePreviewCamera(
-            preview.cameraPosition,
+            preview.cameraPosition + volume.Config.targetOffset,
             preview.cameraRotation,
             preview.fieldOfView);
 

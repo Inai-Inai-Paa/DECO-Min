@@ -91,7 +91,7 @@ public sealed class CameraFollowState : CameraState
                     _camera.transform.position,
                     pivotPosition,
                     _volume.transform.rotation,
-                    config.offset,
+                    config.cameraOffset,
                     out Vector3 orbitAngles))
         {
             return;
@@ -184,7 +184,7 @@ public sealed class CameraFollowState : CameraState
         Vector3 targetCameraPosition =
             pivotPosition +
             orbitRotation *
-            config.offset;
+            config.cameraOffset;
 
         Transform cameraTransform =
             _camera.transform;
@@ -193,7 +193,7 @@ public sealed class CameraFollowState : CameraState
             Vector3.Lerp(
                 cameraTransform.position,
                 targetCameraPosition,
-                positionInterpolationRate);
+                1);
 
         Quaternion targetCameraRotation =
             CreateStableLookRotation(
@@ -213,7 +213,7 @@ public sealed class CameraFollowState : CameraState
             Quaternion.Slerp(
                 cameraTransform.rotation,
                 targetCameraRotation,
-                targetInterpolationRate);
+                1);
 
         if (!_camera.orthographic)
         {
@@ -227,7 +227,7 @@ public sealed class CameraFollowState : CameraState
                 Mathf.Lerp(
                     _camera.fieldOfView,
                     targetFieldOfView,
-                    positionInterpolationRate);
+                    1);
         }
     }
 
@@ -466,7 +466,7 @@ public sealed class CameraFollowState : CameraState
             volume.GetGroundPosition(
                 out Vector3 groundPosition)
                 ? groundPosition
-                : volume.transform.position;
+                : volume.transform.position + config.targetOffset; ;
 
         Vector3 pivotPosition =
             targetPosition +
@@ -480,7 +480,7 @@ public sealed class CameraFollowState : CameraState
         Vector3 cameraPosition =
             pivotPosition +
             orbitRotation *
-            config.offset;
+            config.cameraOffset;
 
         Quaternion cameraRotation =
             CreateStableLookRotation(

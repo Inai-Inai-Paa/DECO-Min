@@ -2,20 +2,17 @@ using UnityEngine;
 using TMPro;
 
 /// <summary>
-/// シール数を「Current / Max」で表示するUI。
+/// シール数を「× 9999」の形式で表示するUI。
 /// </summary>
 public class SealCountUI : UIPlayerBase
 {
-    [Header("Seal Count UI")]
-
-    [SerializeField]
     private TextMeshProUGUI _sealCountText;
 
     protected override void Start()
     {
         base.Start();
 
-        _sealCountText = gameObject.GetComponent<TextMeshProUGUI>();
+        _sealCountText = GetComponent<TextMeshProUGUI>();
 
         if (_sealCountText == null)
         {
@@ -25,19 +22,11 @@ public class SealCountUI : UIPlayerBase
 
     private void Update()
     {
-        if (_playerStatus == null)
+        if (_playerStatus == null || _sealCountText == null)
         {
             return;
         }
 
-        if (_sealCountText == null)
-        {
-            return;
-        }
-
-        _sealCountText.text =
-            _playerStatus.CurrentSealCount.ToString()
-            + " / "
-            + _playerStatus.TotalSealCount.ToString();
+        _sealCountText.text = "× " + _playerStatus.CurrentSealCount.ToString();
     }
 }

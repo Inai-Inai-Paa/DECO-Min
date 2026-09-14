@@ -1,34 +1,30 @@
 using UnityEngine;
-using UnityEngine.UI;
 
 /// <summary>
-/// プレイヤー自身のHPゲージを表示するUI。
-/// Imageは自分のGameObjectから取得する。
+/// プレイヤー自身のHPをハートアイコンで表示するUI。
 /// </summary>
 public class UIPlayerHealthGauge : UIPlayerBase
 {
-    private Image _healthGauge;
+    [SerializeField] private UIHealthHeart[] _hearts;
 
     protected override void Start()
     {
         base.Start();
 
-        _healthGauge = GetComponent<Image>();
-
-        if (_healthGauge == null)
+        if (_hearts == null || _hearts.Length == 0)
         {
-            Debug.LogWarning($"{nameof(UIPlayerHealthGauge)} : Image が見つかりません。同じGameObjectに付けてください。");
+            Debug.LogWarning($"{nameof(UIPlayerHealthGauge)} : ハートUIが設定されていません。");
         }
     }
 
     private void Update()
     {
-        if (_playerStatus == null)
+        if (!IsValidPlayerStatus())
         {
             return;
         }
 
-        if (_healthGauge == null)
+        if (_hearts == null || _hearts.Length == 0)
         {
             return;
         }
@@ -42,6 +38,19 @@ public class UIPlayerHealthGauge : UIPlayerBase
             );
         }
 
-        _healthGauge.fillAmount = healthRate;
+        int halfHeartCount = Mathf.FloorToInt(
+            healthRate * _hearts.Length * 2.0f
+        );
+
+        for (int i = 0; i < _hearts.Length; i++)
+        {
+            int heartHalfCount = Mathf.Clamp(
+                halfHeartCount - i * 2,
+                0,
+                2
+            );
+
+            _hearts[i].SetHealth(heartHalfCount * 0.5f);
+        }
     }
 }

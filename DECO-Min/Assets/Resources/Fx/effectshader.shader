@@ -39,7 +39,7 @@
 
         Cull [_Cull]
         ZWrite Off
-        Blend One One
+        Blend SrcAlpha OneMinusSrcAlpha
 
         Pass
         {

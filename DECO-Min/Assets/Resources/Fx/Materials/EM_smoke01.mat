@@ -20,7 +20,7 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: EM_wss_test
+  m_Name: EM_smoke01
   m_Shader: {fileID: 4800000, guid: 9ee18f500e8fbda42b85b85ee8a007e2, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0

@@ -136,11 +136,11 @@ Material:
     - _Glossiness: 0
     - _GlossyReflections: 0
     - _LightingEnabled: 1
-    - _MainRotAngle: 90
+    - _MainRotAngle: 0
     - _MainScrollX: 0
     - _MainScrollY: 0
     - _MaskMin: 0
-    - _MaskPow: 1
+    - _MaskPow: 1.47
     - _MaskRotAngle: 0
     - _MaskScrollX: 0
     - _MaskScrollY: 0
@@ -167,7 +167,7 @@ Material:
     - _CameraFadeParams: {r: 0, g: Infinity, b: 0, a: 0}
     - _Color: {r: 1, g: 1, b: 1, a: 1}
     - _EdgeColor: {r: 1, g: 0, b: 0, a: 1}
-    - _Emission: {r: 1, g: 1, b: 1, a: 1}
+    - _Emission: {r: 2, g: 2, b: 2, a: 1}
     - _EmissionColor: {r: 1, g: 1, b: 1, a: 1}
     - _SoftParticleFadeParams: {r: 0, g: 0, b: 0, a: 0}
     - _SpecColor: {r: 0.19999996, g: 0.19999996, b: 0.19999996, a: 1}

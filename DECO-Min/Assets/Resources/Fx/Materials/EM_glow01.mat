@@ -136,11 +136,11 @@ Material:
     - _Glossiness: 0
     - _GlossyReflections: 0
     - _LightingEnabled: 1
-    - _MainRotAngle: 90
+    - _MainRotAngle: 0
     - _MainScrollX: 0
     - _MainScrollY: 0
-    - _MaskMin: 0
-    - _MaskPow: 1
+    - _MaskMin: 0.23
+    - _MaskPow: 2.67
     - _MaskRotAngle: 0
     - _MaskScrollX: 0
     - _MaskScrollY: 0

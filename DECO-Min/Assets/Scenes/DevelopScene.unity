@@ -163,12 +163,24 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 84c52781d499770479c24bcf28a421e0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: '::'
-  radius: 15
-  followPlayer: 0
-  config:
-    offset: {x: 0, y: 0, z: -24.7}
+  _radius: 20
+  _priority: 0
+  _stateTemplate: {fileID: 0}
+  _config:
+    preventTerrainPenetration: 1
+    terrainLayerMask:
+      serializedVersion: 2
+      m_Bits: 1
+    targetOffset: {x: 0, y: 1.5, z: 0}
+    cameraOffset: {x: 0, y: 5, z: -10}
     fieldOfView: 60
-    smoothness: 5
+    smoothnessPosition: 5
+    smoothnessTarget: 20
+    enterSmoothnessPosition: 1.5
+    enterSmoothnessTarget: 2
+    enterSmoothnessRecoveryDuration: 3
+    rotationLimitMin: {x: -5, y: -15, z: 0}
+    rotationLimitMax: {x: 45, y: 15, z: 0}
 --- !u!1 &65675817
 GameObject:
   m_ObjectHideFlags: 0
@@ -285,12 +297,24 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 84c52781d499770479c24bcf28a421e0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: '::'
-  radius: 23.54
-  followPlayer: 1
-  config:
-    offset: {x: 0, y: 0, z: -24.7}
+  _radius: 20
+  _priority: 0
+  _stateTemplate: {fileID: 0}
+  _config:
+    preventTerrainPenetration: 1
+    terrainLayerMask:
+      serializedVersion: 2
+      m_Bits: 1
+    targetOffset: {x: 0, y: 1.5, z: 0}
+    cameraOffset: {x: 0, y: 5, z: -10}
     fieldOfView: 60
-    smoothness: 5
+    smoothnessPosition: 5
+    smoothnessTarget: 20
+    enterSmoothnessPosition: 1.5
+    enterSmoothnessTarget: 2
+    enterSmoothnessRecoveryDuration: 3
+    rotationLimitMin: {x: -5, y: -15, z: 0}
+    rotationLimitMax: {x: 45, y: 15, z: 0}
 --- !u!1 &293421585
 GameObject:
   m_ObjectHideFlags: 0
@@ -335,12 +359,24 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 84c52781d499770479c24bcf28a421e0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: '::'
-  radius: 20
-  followPlayer: 0
-  config:
-    offset: {x: 0, y: 0, z: -17.12}
+  _radius: 20
+  _priority: 0
+  _stateTemplate: {fileID: 0}
+  _config:
+    preventTerrainPenetration: 1
+    terrainLayerMask:
+      serializedVersion: 2
+      m_Bits: 1
+    targetOffset: {x: 0, y: 1.5, z: 0}
+    cameraOffset: {x: 0, y: 5, z: -10}
     fieldOfView: 60
-    smoothness: 5
+    smoothnessPosition: 5
+    smoothnessTarget: 20
+    enterSmoothnessPosition: 1.5
+    enterSmoothnessTarget: 2
+    enterSmoothnessRecoveryDuration: 3
+    rotationLimitMin: {x: -5, y: -15, z: 0}
+    rotationLimitMax: {x: 45, y: 15, z: 0}
 --- !u!1 &294128418
 GameObject:
   m_ObjectHideFlags: 0
@@ -385,12 +421,24 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 84c52781d499770479c24bcf28a421e0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: '::'
-  radius: 27.58
-  followPlayer: 0
-  config:
-    offset: {x: 0, y: 0, z: -20.11}
+  _radius: 20
+  _priority: 0
+  _stateTemplate: {fileID: 0}
+  _config:
+    preventTerrainPenetration: 1
+    terrainLayerMask:
+      serializedVersion: 2
+      m_Bits: 1
+    targetOffset: {x: 0, y: 1.5, z: 0}
+    cameraOffset: {x: 0, y: 5, z: -10}
     fieldOfView: 60
-    smoothness: 5
+    smoothnessPosition: 5
+    smoothnessTarget: 20
+    enterSmoothnessPosition: 1.5
+    enterSmoothnessTarget: 2
+    enterSmoothnessRecoveryDuration: 3
+    rotationLimitMin: {x: -5, y: -15, z: 0}
+    rotationLimitMax: {x: 45, y: 15, z: 0}
 --- !u!1 &453035112
 GameObject:
   m_ObjectHideFlags: 0
@@ -435,12 +483,24 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 84c52781d499770479c24bcf28a421e0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: '::'
-  radius: 20
-  followPlayer: 0
-  config:
-    offset: {x: 0, y: -2.4, z: -20}
+  _radius: 20
+  _priority: 0
+  _stateTemplate: {fileID: 0}
+  _config:
+    preventTerrainPenetration: 1
+    terrainLayerMask:
+      serializedVersion: 2
+      m_Bits: 1
+    targetOffset: {x: 0, y: 1.5, z: 0}
+    cameraOffset: {x: 0, y: 5, z: -10}
     fieldOfView: 60
-    smoothness: 5
+    smoothnessPosition: 5
+    smoothnessTarget: 20
+    enterSmoothnessPosition: 1.5
+    enterSmoothnessTarget: 2
+    enterSmoothnessRecoveryDuration: 3
+    rotationLimitMin: {x: -5, y: -15, z: 0}
+    rotationLimitMax: {x: 45, y: 15, z: 0}
 --- !u!1 &528635473
 GameObject:
   m_ObjectHideFlags: 0
@@ -687,12 +747,24 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 84c52781d499770479c24bcf28a421e0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: '::'
-  radius: 25
-  followPlayer: 0
-  config:
-    offset: {x: 0, y: 0, z: -34.59}
+  _radius: 20
+  _priority: 0
+  _stateTemplate: {fileID: 0}
+  _config:
+    preventTerrainPenetration: 1
+    terrainLayerMask:
+      serializedVersion: 2
+      m_Bits: 1
+    targetOffset: {x: 0, y: 1.5, z: 0}
+    cameraOffset: {x: 0, y: 5, z: -10}
     fieldOfView: 60
-    smoothness: 5
+    smoothnessPosition: 5
+    smoothnessTarget: 20
+    enterSmoothnessPosition: 1.5
+    enterSmoothnessTarget: 2
+    enterSmoothnessRecoveryDuration: 3
+    rotationLimitMin: {x: -5, y: -15, z: 0}
+    rotationLimitMax: {x: 45, y: 15, z: 0}
 --- !u!1 &669240082
 GameObject:
   m_ObjectHideFlags: 0
@@ -1379,12 +1451,24 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 84c52781d499770479c24bcf28a421e0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: '::'
-  radius: 15
-  followPlayer: 1
-  config:
-    offset: {x: 0, y: 0, z: -24.7}
+  _radius: 20
+  _priority: 0
+  _stateTemplate: {fileID: 0}
+  _config:
+    preventTerrainPenetration: 1
+    terrainLayerMask:
+      serializedVersion: 2
+      m_Bits: 1
+    targetOffset: {x: 0, y: 1.5, z: 0}
+    cameraOffset: {x: 0, y: 5, z: -10}
     fieldOfView: 60
-    smoothness: 5
+    smoothnessPosition: 5
+    smoothnessTarget: 20
+    enterSmoothnessPosition: 1.5
+    enterSmoothnessTarget: 2
+    enterSmoothnessRecoveryDuration: 3
+    rotationLimitMin: {x: -5, y: -15, z: 0}
+    rotationLimitMax: {x: 45, y: 15, z: 0}
 --- !u!1 &1094603922
 GameObject:
   m_ObjectHideFlags: 0
@@ -1679,6 +1763,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CameraBlendController
   _player: {fileID: 1860342536}
+  _controlledCamera: {fileID: 0}
+  _defaultStateTemplate: {fileID: 0}
+  _mouseSensitivity: {x: 4, y: 4}
+  _invertVertical: 0
+  _rollSpeed: 60
 --- !u!1 &1181961645
 GameObject:
   m_ObjectHideFlags: 0
@@ -1772,12 +1861,24 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 84c52781d499770479c24bcf28a421e0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: '::'
-  radius: 25
-  followPlayer: 1
-  config:
-    offset: {x: 0, y: 0, z: -29.2}
+  _radius: 20
+  _priority: 0
+  _stateTemplate: {fileID: 0}
+  _config:
+    preventTerrainPenetration: 1
+    terrainLayerMask:
+      serializedVersion: 2
+      m_Bits: 1
+    targetOffset: {x: 0, y: 1.5, z: 0}
+    cameraOffset: {x: 0, y: 5, z: -10}
     fieldOfView: 60
-    smoothness: 5
+    smoothnessPosition: 5
+    smoothnessTarget: 20
+    enterSmoothnessPosition: 1.5
+    enterSmoothnessTarget: 2
+    enterSmoothnessRecoveryDuration: 3
+    rotationLimitMin: {x: -5, y: -15, z: 0}
+    rotationLimitMax: {x: 45, y: 15, z: 0}
 --- !u!1 &1362510401
 GameObject:
   m_ObjectHideFlags: 0
@@ -2034,12 +2135,24 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 84c52781d499770479c24bcf28a421e0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: '::'
-  radius: 15
-  followPlayer: 1
-  config:
-    offset: {x: 0, y: 0, z: -24.7}
+  _radius: 20
+  _priority: 0
+  _stateTemplate: {fileID: 0}
+  _config:
+    preventTerrainPenetration: 1
+    terrainLayerMask:
+      serializedVersion: 2
+      m_Bits: 1
+    targetOffset: {x: 0, y: 1.5, z: 0}
+    cameraOffset: {x: 0, y: 5, z: -10}
     fieldOfView: 60
-    smoothness: 5
+    smoothnessPosition: 5
+    smoothnessTarget: 20
+    enterSmoothnessPosition: 1.5
+    enterSmoothnessTarget: 2
+    enterSmoothnessRecoveryDuration: 3
+    rotationLimitMin: {x: -5, y: -15, z: 0}
+    rotationLimitMax: {x: 45, y: 15, z: 0}
 --- !u!1 &1733552198
 GameObject:
   m_ObjectHideFlags: 0
@@ -2203,13 +2316,17 @@ MonoBehaviour:
   characterStatus: {fileID: 11400000, guid: 4c5f55ee34b98f547a6f828fc8fdfa09, type: 2}
   baseVelocity: {x: 0, y: 0, z: 0}
   additionalVelocity: {x: 0, y: 0, z: 0}
+  _skill: {fileID: 0}
   initState: {fileID: 11400000, guid: 40f005a6f8380964b86e33a7c8008637, type: 2}
+  playerDamage: {fileID: 0}
   groundCheckPos: {x: 0, y: -0.9, z: 0}
   groundLayer:
     serializedVersion: 2
     m_Bits: 1
   isGrounded: 0
   cameraForward: {x: 0, y: 0, z: 0}
+  _animator: {fileID: 0}
+  _idleStartTime: 3
 --- !u!136 &1860342537
 CapsuleCollider:
   m_ObjectHideFlags: 0
@@ -2489,12 +2606,24 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 84c52781d499770479c24bcf28a421e0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: '::'
-  radius: 27.58
-  followPlayer: 1
-  config:
-    offset: {x: 0, y: 0, z: -33.09}
+  _radius: 20
+  _priority: 0
+  _stateTemplate: {fileID: 0}
+  _config:
+    preventTerrainPenetration: 1
+    terrainLayerMask:
+      serializedVersion: 2
+      m_Bits: 1
+    targetOffset: {x: 0, y: 1.5, z: 0}
+    cameraOffset: {x: 0, y: 5, z: -10}
     fieldOfView: 60
-    smoothness: 5
+    smoothnessPosition: 5
+    smoothnessTarget: 20
+    enterSmoothnessPosition: 1.5
+    enterSmoothnessTarget: 2
+    enterSmoothnessRecoveryDuration: 3
+    rotationLimitMin: {x: -5, y: -15, z: 0}
+    rotationLimitMax: {x: 45, y: 15, z: 0}
 --- !u!1 &2088895191
 GameObject:
   m_ObjectHideFlags: 0

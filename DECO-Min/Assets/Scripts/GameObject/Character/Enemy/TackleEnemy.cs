@@ -18,6 +18,7 @@ public class TackleEnemy : Enemy
     [Header("警戒")]
     [SerializeField]
     private float _alertTime = 1.5f;
+    private bool _wasTargetDetected = false;
 
     [Header("タックル攻撃")]
     [SerializeField]
@@ -42,6 +43,9 @@ public class TackleEnemy : Enemy
     private EnemyState _returnState;
     [SerializeField]
     private float _downRecoverTime = 30.0f;
+
+    [Header("アニメーション")]
+    public Animator _animator;
 
     public float PatrolPointInterval => _patrolPointInterval;
     public float AlertTime => _alertTime;

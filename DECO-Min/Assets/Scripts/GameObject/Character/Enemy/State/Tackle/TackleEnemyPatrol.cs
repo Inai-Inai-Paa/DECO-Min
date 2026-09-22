@@ -24,6 +24,7 @@ public class TackleEnemyPatrol : TackleEnemyState
 
         if (tackleEnemy.IsTargetInAlertDistanceForState())
         {
+            tackleEnemy._animator.SetTrigger("Find");
             ChangeTackleState<TackleEnemyAlert>(_alertState);
             return;
         }

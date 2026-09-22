@@ -16,18 +16,21 @@ public class TackleEnemyChase : TackleEnemyState
     {
         if (!tackleEnemy.IsTargetWithinHomeChaseDistanceForState())
         {
+            tackleEnemy._animator.SetTrigger("Return");
             ChangeTackleState<TackleEnemyReturn>(null);
             return;
         }
 
         if (!tackleEnemy.HasTargetForState() || tackleEnemy.IsTargetLostForState())
         {
+            tackleEnemy._animator.SetTrigger("Return");
             ChangeTackleState<TackleEnemyPatrol>(_patrolState);
             return;
         }
 
         if (tackleEnemy.IsTargetInAttackStartDistance())
         {
+            tackleEnemy._animator.SetTrigger("Charge");
             ChangeTackleState<TackleEnemyCharge>(_chargeState);
             return;
         }

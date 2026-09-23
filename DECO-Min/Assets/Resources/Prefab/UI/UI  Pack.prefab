@@ -223,6 +223,7 @@ GameObject:
   m_Component:
   - component: {fileID: 3681355937362928450}
   - component: {fileID: 4481023326080267631}
+  - component: {fileID: 2129495617662893884}
   m_Layer: 0
   m_Name: Heart (1)
   m_TagString: Untagged
@@ -263,6 +264,59 @@ MonoBehaviour:
   _offImage: {fileID: 3459390623930435407}
   _onLeftImage: {fileID: 9024342545007778274}
   _onRightImage: {fileID: 7605648493376969554}
+--- !u!114 &2129495617662893884
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2692640098986257415}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bccdbbf47a3c2124e866a2dad1f075e5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::UIAnimation
+  _useScale: 1
+  _scaleAmount: {x: 1.2, y: 1.2, z: 1}
+  _usePosition: 0
+  _moveAmount: {x: 0, y: 0, z: 0}
+  _useRotation: 0
+  _rotationAmount: {x: 0, y: 0, z: 0}
+  _duration: 0.2
+  _loop: 0
+  _curve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 0.5
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 1
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
 --- !u!1 &2947948322948070803
 GameObject:
   m_ObjectHideFlags: 0
@@ -485,6 +539,7 @@ GameObject:
   m_Component:
   - component: {fileID: 7149367265062739926}
   - component: {fileID: 4644652174934973474}
+  - component: {fileID: 5061250468547620140}
   m_Layer: 0
   m_Name: Heart (4)
   m_TagString: Untagged
@@ -525,6 +580,59 @@ MonoBehaviour:
   _offImage: {fileID: 7371243003324120591}
   _onLeftImage: {fileID: 1836145499934414144}
   _onRightImage: {fileID: 5167098100280357887}
+--- !u!114 &5061250468547620140
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3363231964721402310}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bccdbbf47a3c2124e866a2dad1f075e5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::UIAnimation
+  _useScale: 1
+  _scaleAmount: {x: 1.2, y: 1.2, z: 1}
+  _usePosition: 0
+  _moveAmount: {x: 0, y: 0, z: 0}
+  _useRotation: 0
+  _rotationAmount: {x: 0, y: 0, z: 0}
+  _duration: 0.2
+  _loop: 0
+  _curve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 0.5
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 1
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
 --- !u!1 &3380531050248033648
 GameObject:
   m_ObjectHideFlags: 0
@@ -795,6 +903,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1239576688574645516}
   - component: {fileID: 3259383398761609630}
+  - component: {fileID: 8299956626427428246}
   m_Layer: 0
   m_Name: Heart
   m_TagString: Untagged
@@ -835,6 +944,59 @@ MonoBehaviour:
   _offImage: {fileID: 8961966352326224843}
   _onLeftImage: {fileID: 1316499167780165368}
   _onRightImage: {fileID: 3346091899729253669}
+--- !u!114 &8299956626427428246
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4610031045564319106}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bccdbbf47a3c2124e866a2dad1f075e5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::UIAnimation
+  _useScale: 1
+  _scaleAmount: {x: 1.2, y: 1.2, z: 1}
+  _usePosition: 0
+  _moveAmount: {x: 0, y: 0, z: 0}
+  _useRotation: 0
+  _rotationAmount: {x: 0, y: 0, z: 0}
+  _duration: 0.2
+  _loop: 0
+  _curve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 0.5
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 1
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
 --- !u!1 &4948827419607584107
 GameObject:
   m_ObjectHideFlags: 0
@@ -959,6 +1121,10 @@ MonoBehaviour:
   - {fileID: 8882688234669159882}
   - {fileID: 9179411841309266699}
   - {fileID: 4644652174934973474}
+  _waveDelay: 0.05
+  _loop: 0
+  _loopInterval: 0.2
+  _debugHealth: 0
 --- !u!1 &5036751175399035980
 GameObject:
   m_ObjectHideFlags: 0
@@ -1299,13 +1465,13 @@ MonoBehaviour:
     serializedVersion: 2
     rgba: 4278190080
   m_fontColor: {r: 0, g: 0, b: 0, a: 1}
-  m_enableVertexGradient: 0
+  m_enableVertexGradient: 1
   m_colorMode: 3
   m_fontColorGradient:
-    topLeft: {r: 1, g: 1, b: 1, a: 1}
-    topRight: {r: 1, g: 1, b: 1, a: 1}
-    bottomLeft: {r: 1, g: 1, b: 1, a: 1}
-    bottomRight: {r: 1, g: 1, b: 1, a: 1}
+    topLeft: {r: 0.8, g: 0.8, b: 0.8, a: 1}
+    topRight: {r: 0.8, g: 0.8, b: 0.8, a: 1}
+    bottomLeft: {r: 0.2, g: 0.19607843, b: 0.19607843, a: 1}
+    bottomRight: {r: 0.2, g: 0.19607843, b: 0.19607843, a: 1}
   m_fontColorGradientPreset: {fileID: 0}
   m_spriteAsset: {fileID: 0}
   m_tintAllSprites: 0
@@ -1325,7 +1491,7 @@ MonoBehaviour:
   m_HorizontalAlignment: 1
   m_VerticalAlignment: 1024
   m_textAlignment: 65535
-  m_characterSpacing: 0
+  m_characterSpacing: 0.8
   m_characterHorizontalScale: 1
   m_wordSpacing: 0
   m_lineSpacing: 0
@@ -1874,6 +2040,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1986167615899157044}
   - component: {fileID: 9179411841309266699}
+  - component: {fileID: 1530638902925626161}
   m_Layer: 0
   m_Name: Heart (3)
   m_TagString: Untagged
@@ -1914,6 +2081,59 @@ MonoBehaviour:
   _offImage: {fileID: 1830859756995605929}
   _onLeftImage: {fileID: 7455168900723258457}
   _onRightImage: {fileID: 2255404976327615714}
+--- !u!114 &1530638902925626161
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8488167081117610538}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bccdbbf47a3c2124e866a2dad1f075e5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::UIAnimation
+  _useScale: 1
+  _scaleAmount: {x: 1.2, y: 1.2, z: 1}
+  _usePosition: 0
+  _moveAmount: {x: 0, y: 0, z: 0}
+  _useRotation: 0
+  _rotationAmount: {x: 0, y: 0, z: 0}
+  _duration: 0.2
+  _loop: 0
+  _curve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 0.5
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 1
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
 --- !u!1 &8488413414368848979
 GameObject:
   m_ObjectHideFlags: 0
@@ -2123,6 +2343,7 @@ GameObject:
   m_Component:
   - component: {fileID: 8996072453203828345}
   - component: {fileID: 8882688234669159882}
+  - component: {fileID: 3327767686513848625}
   m_Layer: 0
   m_Name: Heart (2)
   m_TagString: Untagged
@@ -2163,3 +2384,56 @@ MonoBehaviour:
   _offImage: {fileID: 6673137841769855998}
   _onLeftImage: {fileID: 4354826627292309654}
   _onRightImage: {fileID: 8359800974684327263}
+--- !u!114 &3327767686513848625
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9152686158479676290}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bccdbbf47a3c2124e866a2dad1f075e5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::UIAnimation
+  _useScale: 1
+  _scaleAmount: {x: 1.2, y: 1.2, z: 1}
+  _usePosition: 0
+  _moveAmount: {x: 0, y: 0, z: 0}
+  _useRotation: 0
+  _rotationAmount: {x: 0, y: 0, z: 0}
+  _duration: 0.2
+  _loop: 0
+  _curve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 0.5
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 1
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4

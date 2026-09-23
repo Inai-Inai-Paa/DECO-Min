@@ -1,4 +1,5 @@
 using UnityEngine;
+using static UnityEngine.Rendering.DebugUI;
 
 public partial class Player : Character
 {
@@ -35,6 +36,11 @@ public partial class Player : Character
 
     // PeelAction
     private float _peelLastTime = -Mathf.Infinity;
+
+    [Header("アニメーション")]
+    [SerializeField] public Animator _animator;
+    [SerializeField] private float _idleStartTime = 3f;
+    private float _idleTimer;
 
     private void Awake()
     {
@@ -83,7 +89,26 @@ public partial class Player : Character
         isGrounded = Physics.Raycast(transform.position + groundCheckPos, Vector3.down, rayDistance, groundLayer);
         cameraForward = Vector3.Scale(mainCamera.transform.forward, new Vector3(1, 0, 1)).normalized;
 
-        base.FixedUpdate();
+        //アニメーション関係
+        _animator.SetBool("IsGround", isGrounded);
+
+        AnimatorStateInfo stateInfo = _animator.GetCurrentAnimatorStateInfo(0);
+        //アニメーション名を参照して終わったらフグのアニメーション起動
+        if ((stateInfo.IsName("Idle")))
+        {
+            _idleTimer += Time.deltaTime;
+            if (_idleTimer >= _idleStartTime)
+            {
+                _animator.SetTrigger("Idle");
+                _idleTimer = 0.0f;
+            }
+        }
+        else
+        {
+            _idleTimer = 0.0f;
+        }
+
+            base.FixedUpdate();
     }
 
     public void ChangePlayerState(PlayerState nextState)

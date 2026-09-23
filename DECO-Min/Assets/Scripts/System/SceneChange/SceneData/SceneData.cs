@@ -9,7 +9,7 @@ public class SceneData : ScriptableObject
     [Tooltip("対応するシーンを入れる")]
     [SerializeField] private SceneAsset _sceneAsset;
 #endif
-    [Tooltip("入力不要")]
+    [HideInInspector]
     public string sceneName;
 
 

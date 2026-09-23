@@ -38,11 +38,16 @@ public class PlayerMove : PlayerState
     {
         Move();
 
+        //ジャンプ
         if (player.isGrounded && player.playerInputData.HasJumpBuffered(0.05f))
         {
             player.playerInputData.JumpPressedTime = -Mathf.Infinity;
             player.baseVelocity = new Vector3(player.baseVelocity.x, jumpForce, player.baseVelocity.z);
+
+            player._animator.SetTrigger("Jump");
         }
+        else
+            player._animator.ResetTrigger("Jump");
     }
 
     private void Move()
@@ -65,7 +70,14 @@ public class PlayerMove : PlayerState
                 Quaternion.LookRotation(velocity, Vector3.up),
                 Time.fixedDeltaTime * moveSpeed * input.magnitude
             );
+
+            player._animator.SetBool("IsRun", true);
         }
+        else
+        {
+            player._animator.SetBool("IsRun", false);
+        }
+
         player.baseVelocity = new Vector3(velocity.x, player.baseVelocity.y, velocity.z);
     }
 

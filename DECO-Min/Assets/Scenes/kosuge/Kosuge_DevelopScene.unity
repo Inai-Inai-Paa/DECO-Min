@@ -2208,6 +2208,10 @@ PrefabInstance:
       propertyPath: _loop
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 8299956626427428246, guid: b6177bbbb03f76c44bbaa22089c4cac3, type: 3}
+      propertyPath: _rotationAmount.x
+      value: 0.75
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []

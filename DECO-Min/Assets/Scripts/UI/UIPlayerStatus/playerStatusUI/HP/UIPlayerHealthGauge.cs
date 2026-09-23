@@ -2,9 +2,6 @@ using System.Collections;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-/// <summary>
-/// プレイヤー自身のHPをハートアイコンで表示するUI。
-/// </summary>
 public class UIPlayerHealthGauge : UIPlayerBase
 {
     [SerializeField] private UIHealthHeart[] _hearts;
@@ -32,15 +29,13 @@ public class UIPlayerHealthGauge : UIPlayerBase
 
         if (_loop)
         {
-            _waveCoroutine = StartCoroutine(
-                PlayWave()
-            );
+            _waveCoroutine = StartCoroutine(PlayWave());
         }
     }
 
     private void Update()
     {
-        if (!IsValidPlayerStatus())
+        if (!IsValidPlayerStatus() || _hearts == null || _hearts.Length == 0)
         {
             return;
         }
@@ -51,11 +46,6 @@ public class UIPlayerHealthGauge : UIPlayerBase
             DebugHealth();
         }
 #endif
-
-        if (_hearts == null || _hearts.Length == 0)
-        {
-            return;
-        }
 
         float healthRate = 0.0f;
 
@@ -83,9 +73,7 @@ public class UIPlayerHealthGauge : UIPlayerBase
                 2
             );
 
-            _hearts[i].SetHealth(
-                heartHalfCount * 0.5f
-            );
+            _hearts[i].SetHealth(heartHalfCount * 0.5f);
         }
 
         if (!_loop && _previousHalfHeartCount >= 0)
@@ -95,17 +83,16 @@ public class UIPlayerHealthGauge : UIPlayerBase
                 StopCoroutine(_waveCoroutine);
             }
 
-            _waveCoroutine = StartCoroutine(
-                PlayWave()
-            );
+            _waveCoroutine = StartCoroutine(PlayWave());
         }
 
         _previousHalfHeartCount = halfHeartCount;
     }
+
 #if UNITY_EDITOR
     private void DebugHealth()
     {
-        if (Mouse.current == null)
+        if (Mouse.current == null || _playerStatus.maxHealth <= 0.0f)
         {
             return;
         }
@@ -115,7 +102,7 @@ public class UIPlayerHealthGauge : UIPlayerBase
 
         if (Mouse.current.leftButton.wasPressedThisFrame)
         {
-            _playerStatus.currentHealth -= halfHeartHealth;
+            _playerStatus.currentHealth += halfHeartHealth;
         }
 
         if (Mouse.current.rightButton.wasPressedThisFrame)
@@ -143,17 +130,12 @@ public class UIPlayerHealthGauge : UIPlayerBase
             for (int i = 0; i < _hearts.Length; i++)
             {
                 _hearts[i].PlayAnimation();
-
-                yield return new WaitForSeconds(
-                    _waveDelay
-                );
+                yield return new WaitForSeconds(_waveDelay);
             }
 
             if (_loop && _loopInterval > 0.0f)
             {
-                yield return new WaitForSeconds(
-                    _loopInterval
-                );
+                yield return new WaitForSeconds(_loopInterval);
             }
         }
         while (_loop);

@@ -26,7 +26,7 @@ public class TackleEnemyCooldown : TackleEnemyState
             return;
         }
 
-        if (tackleEnemy.HasTargetForState() && tackleEnemy.IsTargetInAlertDistanceForState())
+        if (tackleEnemy.HasTargetForState() && tackleEnemy.Awareness == EnemyAwareness.Engaged)
         {
             ChangeTackleState<TackleEnemyChase>(_chaseState);
         }

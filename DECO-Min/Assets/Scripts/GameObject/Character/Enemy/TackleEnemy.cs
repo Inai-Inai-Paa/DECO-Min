@@ -60,6 +60,16 @@ public class TackleEnemy : Enemy
         }
     }
 
+    protected override float GetAlertConfirmTime()
+    {
+        return _alertTime;
+    }
+
+    protected override float GetForcedPerceptionRange()
+    {
+        return _attackStartDistance;
+    }
+
     protected override void InitializeEnemyReferences()
     {
         base.InitializeEnemyReferences();
@@ -73,6 +83,11 @@ public class TackleEnemy : Enemy
     protected override void EnterDown()
     {
         base.EnterDown();
+
+        if (BlocksCombatTransition)
+        {
+            return;
+        }
 
         EnemyState nextState = _downState != null
             ? Instantiate(_downState)
@@ -266,6 +281,11 @@ public class TackleEnemy : Enemy
             : ScriptableObject.CreateInstance<TackleEnemyPatrol>();
 
         ChangeEnemyState(nextState);
+    }
+
+    protected override void RestartCombatState()
+    {
+        ChangeEnemyState(ScriptableObject.CreateInstance<TackleEnemyPatrol>());
     }
 
     public override void BeginReturnToHome()

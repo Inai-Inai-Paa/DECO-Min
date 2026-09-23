@@ -20,7 +20,7 @@ public class TackleEnemyChase : TackleEnemyState
             return;
         }
 
-        if (!tackleEnemy.HasTargetForState() || tackleEnemy.IsTargetLostForState())
+        if (!tackleEnemy.HasTargetForState() || tackleEnemy.Awareness == EnemyAwareness.Unaware)
         {
             ChangeTackleState<TackleEnemyPatrol>(_patrolState);
             return;

@@ -12,6 +12,7 @@ public class TackleEnemyTackle : TackleEnemyState
 
     public override void Enter()
     {
+        tackleEnemy.SetCommittedAttack(true);
         tackleEnemy.StopMoveForState();
         tackleEnemy.BeginDirectMovementForState();
         _tackleMoveDistance = 0.0f;
@@ -21,6 +22,7 @@ public class TackleEnemyTackle : TackleEnemyState
 
     public override void Exit()
     {
+        tackleEnemy.SetCommittedAttack(false);
         tackleEnemy.EndDirectMovementForState();
     }
 

@@ -17,12 +17,7 @@ public class TackleEnemyPatrol : TackleEnemyState
 
     public override void Update()
     {
-        if (!tackleEnemy.HasTargetForState())
-        {
-            return;
-        }
-
-        if (tackleEnemy.IsTargetInAlertDistanceForState())
+        if (tackleEnemy.Awareness != EnemyAwareness.Unaware)
         {
             ChangeTackleState<TackleEnemyAlert>(_alertState);
             return;

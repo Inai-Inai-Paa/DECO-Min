@@ -19,6 +19,7 @@ public class TackleEnemyPatrol : TackleEnemyState
     {
         if (tackleEnemy.Awareness != EnemyAwareness.Unaware)
         {
+            tackleEnemy._animator.SetTrigger("Find");
             ChangeTackleState<TackleEnemyAlert>(_alertState);
             return;
         }

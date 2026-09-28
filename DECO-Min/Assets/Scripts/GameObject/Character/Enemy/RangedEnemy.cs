@@ -74,6 +74,7 @@ public class RangedEnemy : Enemy
         }
 
         ApplyRangedRuntimeSettings();
+        ValidateItemPrefab();
     }
 
     private void ApplyRangedRuntimeSettings()

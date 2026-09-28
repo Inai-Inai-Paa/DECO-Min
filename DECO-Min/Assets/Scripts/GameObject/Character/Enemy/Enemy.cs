@@ -131,6 +131,10 @@ public partial class Enemy : Character, IDamageable
 
     [SerializeField] private GameObject _mySealPrefab;
 
+    [Header("Item")]
+    [SerializeField]
+    private GameObject _itemPrefab;
+
     private bool _isGrounded;
     private int _currentSealHealth;
     private bool _isDown;
@@ -189,22 +193,45 @@ public partial class Enemy : Character, IDamageable
         {
             ChangeEnemyState(Instantiate(_initState));
         }
+
+        ValidateItemPrefab();
     }
 
     protected override void Update()
     {
+        if (IsCombatAIFrozen)
+        {
+            FreezeMotion();
+        }
+
         TickPerception();
         base.Update();
         UpdateMoveAreaReturn();
         TickLeashSample();
         TickWaitDespawn();
+        TickStunState();
+
+        if (IsCombatAIFrozen)
+        {
+            FreezeMotion();
+        }
     }
 
     protected override void FixedUpdate()
     {
+        if (IsCombatAIFrozen)
+        {
+            FreezeMotion();
+        }
+
         UpdateGroundCheck();
 
         base.FixedUpdate();
+
+        if (IsCombatAIFrozen)
+        {
+            FreezeMotion();
+        }
     }
 
     /// <summary>
@@ -248,6 +275,12 @@ public partial class Enemy : Character, IDamageable
     {
         if (nextState == null)
         {
+            return;
+        }
+
+        if (IsCombatAIFrozen)
+        {
+            Destroy(nextState);
             return;
         }
 
@@ -604,6 +637,11 @@ public partial class Enemy : Character, IDamageable
 
     public void MarkCombatResumed()
     {
+        if (IsCombatAIFrozen)
+        {
+            return;
+        }
+
         _lifecycle = EnemyLifecycle.Combat;
         _waitDespawnTimer = 0.0f;
         RestoreAgentSpeed();
@@ -622,7 +660,7 @@ public partial class Enemy : Character, IDamageable
 
     public void CompleteLeashReturn()
     {
-        if (_spawnArea == null || _isDead || _lifecycle == EnemyLifecycle.Dead)
+        if (_spawnArea == null || _isDead || _lifecycle == EnemyLifecycle.Dead || IsCombatAIFrozen)
         {
             return;
         }
@@ -775,6 +813,7 @@ public partial class Enemy : Character, IDamageable
         _removalReason = EnemyRemovalReason.None;
         ClearAwareness();
         ResetSealHealth();
+        ClearStunState();
     }
 
     protected bool IsPositionInMoveArea(Vector3 position)
@@ -959,7 +998,7 @@ public partial class Enemy : Character, IDamageable
 
     private void UpdateMoveAreaReturn()
     {
-        if (!_useMoveArea || _isDead)
+        if (!_useMoveArea || _isDead || IsCombatAIFrozen)
         {
             return;
         }
@@ -1148,7 +1187,7 @@ public partial class Enemy : Character, IDamageable
 
     protected virtual void ApplyIncomingDamage(int damage)
     {
-        if (_isDead || _isDespawning || damage <= 0)
+        if (_isDead || _isDespawning || IsCombatAIFrozen || damage <= 0)
         {
             return;
         }
@@ -1227,10 +1266,6 @@ public partial class Enemy : Character, IDamageable
         return true;
     }
 
-    /// <summary>
-    /// シール攻撃とフィニッシャーのヒット処理
-    /// </summary>
-    /// <param name="other"></param>
     private void OnTriggerEnter(Collider other)
     {
         if (other == null || _isDead || _isDespawning)
@@ -1243,27 +1278,30 @@ public partial class Enemy : Character, IDamageable
 
     protected virtual void HandleIncomingAttack(Collider other)
     {
-        bool isSealAttack = HasTag(other, _sealAttackTag);
-        bool isFinisher = IsFinisherAttack(other);
-
-        if (_damageModel == EnemyDamageModel.Seal && _isDown)
-        {
-            if (isFinisher || (_treatSealAttackAsFinisherWhenDown && isSealAttack))
-            {
-                Destroy(other.gameObject);
-                FinishDown();
-            }
-
-            return;
-        }
-
-        if (!isSealAttack)
+        if (_isDead || _isDespawning || _isFinishing || _isDisappearing)
         {
             return;
         }
 
-        Destroy(other.gameObject);
-        ApplyIncomingDamage(1);
+        if (_isStunned)
+        {
+            return;
+        }
+
+        if (IsPlayerAttack(other))
+        {
+            Destroy(other.gameObject);
+            EnterStun();
+            return;
+        }
+
+        if (_damageModel == EnemyDamageModel.Seal
+            && _isDown
+            && (IsFinisherAttack(other) || (_treatSealAttackAsFinisherWhenDown && HasTag(other, _sealAttackTag))))
+        {
+            Destroy(other.gameObject);
+            FinishDown();
+        }
     }
 
     private bool IsFinisherAttack(Collider targetCollider)
@@ -1316,7 +1354,7 @@ public partial class Enemy : Character, IDamageable
 
     private void TickPerception()
     {
-        if (_isDead || _isDespawning || _isDown)
+        if (_isDead || _isDespawning || _isDown || IsCombatAIFrozen)
         {
             return;
         }

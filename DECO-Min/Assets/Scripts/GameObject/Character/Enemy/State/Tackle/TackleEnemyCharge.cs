@@ -19,12 +19,14 @@ public class TackleEnemyCharge : TackleEnemyState
     {
         if (!tackleEnemy.IsTargetWithinHomeChaseDistanceForState())
         {
+            tackleEnemy._animator.SetTrigger("Return");
             ChangeTackleState<TackleEnemyReturn>(null);
             return;
         }
 
         if (!tackleEnemy.HasTargetForState() || tackleEnemy.IsTargetLostForState())
         {
+            tackleEnemy._animator.SetTrigger("Return");
             ChangeTackleState<TackleEnemyPatrol>(_patrolState);
             return;
         }
@@ -35,6 +37,7 @@ public class TackleEnemyCharge : TackleEnemyState
 
         if (_chargeTimer >= tackleEnemy.ChargeTime)
         {
+            tackleEnemy._animator.SetTrigger("Tackle");
             ChangeTackleState<TackleEnemyTackle>(_tackleState);
         }
     }

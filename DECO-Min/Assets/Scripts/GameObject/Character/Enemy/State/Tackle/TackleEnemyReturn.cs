@@ -15,6 +15,7 @@ public class TackleEnemyReturn : TackleEnemyState
 
     public override void Enter()
     {
+        tackleEnemy.OnReturnStateEntered();
         tackleEnemy.EndDirectMovementForState();
         tackleEnemy.ResumeMoveForState();
         tackleEnemy.SetHomeDestinationForState();
@@ -26,6 +27,14 @@ public class TackleEnemyReturn : TackleEnemyState
 
     public override void Update()
     {
+        if (tackleEnemy.Lifecycle == EnemyLifecycle.WaitDespawn
+            || tackleEnemy.Lifecycle == EnemyLifecycle.Inactive
+            || tackleEnemy.Lifecycle == EnemyLifecycle.Dead)
+        {
+            tackleEnemy.StopMoveForState();
+            return;
+        }
+
         if (CanResumeCombat())
         {
             if (tackleEnemy.IsTargetInAttackStartDistance())
@@ -48,8 +57,20 @@ public class TackleEnemyReturn : TackleEnemyState
 
         _returnTimer += Time.deltaTime;
 
+        if (tackleEnemy.HasLeash && tackleEnemy.IsWithinReturnCompleteDistance())
+        {
+            tackleEnemy.CompleteLeashReturn();
+            return;
+        }
+
         if (tackleEnemy.IsAtHomeForState() || tackleEnemy.IsArrivedForState())
         {
+            if (tackleEnemy.HasLeash)
+            {
+                tackleEnemy.CompleteLeashReturn();
+                return;
+            }
+
             BeginHomeWait();
             return;
         }
@@ -64,6 +85,12 @@ public class TackleEnemyReturn : TackleEnemyState
                 return;
             }
 
+            if (tackleEnemy.HasLeash)
+            {
+                tackleEnemy.SetHomeDestinationForState();
+                return;
+            }
+
             tackleEnemy.Despawn();
             return;
         }
@@ -73,9 +100,20 @@ public class TackleEnemyReturn : TackleEnemyState
 
     private bool CanResumeCombat()
     {
+        if (tackleEnemy.HasLeash)
+        {
+            if (!tackleEnemy.CanResumeFromLeashReturn())
+            {
+                return false;
+            }
+
+            tackleEnemy.MarkCombatResumed();
+            return true;
+        }
+
         return tackleEnemy.HasTargetForState()
             && tackleEnemy.IsTargetWithinHomeChaseDistanceForState()
-            && tackleEnemy.IsTargetInAlertDistanceForState();
+            && tackleEnemy.Awareness == EnemyAwareness.Engaged;
     }
 
     private void BeginHomeWait()

@@ -18,6 +18,7 @@ public class TackleEnemy : Enemy
     [Header("警戒")]
     [SerializeField]
     private float _alertTime = 1.5f;
+    private bool _wasTargetDetected = false;
 
     [Header("タックル攻撃")]
     [SerializeField]
@@ -43,6 +44,9 @@ public class TackleEnemy : Enemy
     [SerializeField]
     private float _downRecoverTime = 30.0f;
 
+    [Header("アニメーション")]
+    public Animator _animator;
+
     public float PatrolPointInterval => _patrolPointInterval;
     public float AlertTime => _alertTime;
     public float ChargeTime => _chargeTime;
@@ -60,6 +64,16 @@ public class TackleEnemy : Enemy
         }
     }
 
+    protected override float GetAlertConfirmTime()
+    {
+        return _alertTime;
+    }
+
+    protected override float GetForcedPerceptionRange()
+    {
+        return _attackStartDistance;
+    }
+
     protected override void InitializeEnemyReferences()
     {
         base.InitializeEnemyReferences();
@@ -73,6 +87,11 @@ public class TackleEnemy : Enemy
     protected override void EnterDown()
     {
         base.EnterDown();
+
+        if (BlocksCombatTransition)
+        {
+            return;
+        }
 
         EnemyState nextState = _downState != null
             ? Instantiate(_downState)
@@ -266,6 +285,11 @@ public class TackleEnemy : Enemy
             : ScriptableObject.CreateInstance<TackleEnemyPatrol>();
 
         ChangeEnemyState(nextState);
+    }
+
+    protected override void RestartCombatState()
+    {
+        ChangeEnemyState(ScriptableObject.CreateInstance<TackleEnemyPatrol>());
     }
 
     public override void BeginReturnToHome()

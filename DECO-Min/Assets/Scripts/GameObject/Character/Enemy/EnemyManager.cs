@@ -4,7 +4,7 @@ using UnityEngine;
 using UnityEngine.Events;
 
 /// <summary>
-/// 敵全体の登録、出現数、Wave進行を管理するクラス
+/// Facade for enemy registry and wave progression.
 /// </summary>
 public class EnemyManager : MonoBehaviour
 {
@@ -16,22 +16,6 @@ public class EnemyManager : MonoBehaviour
     [Serializable]
     public class WaveEvent : UnityEvent<int>
     {
-    }
-
-    [Serializable]
-    private class EnemyWave
-    {
-        [SerializeField] private string _waveName = "Wave";
-        [SerializeField, Min(0)] private int _targetDefeatCount = 0;
-        [SerializeField, Min(1)] private int _maxAliveCount = 5;
-        [SerializeField] private bool _useAllSpawners = true;
-        [SerializeField] private EnemySpawner[] _spawners;
-
-        public string WaveName => _waveName;
-        public int TargetDefeatCount => _targetDefeatCount;
-        public int MaxAliveCount => _maxAliveCount;
-        public bool UseAllSpawners => _useAllSpawners;
-        public IReadOnlyList<EnemySpawner> Spawners => _spawners;
     }
 
     public static EnemyManager Instance { get; private set; }
@@ -56,23 +40,18 @@ public class EnemyManager : MonoBehaviour
     [SerializeField] private WaveEvent _onWaveEnded = new WaveEvent();
     [SerializeField] private UnityEvent _onAllEnemiesDefeated = new UnityEvent();
 
-    private readonly List<Enemy> _aliveEnemies = new List<Enemy>();
-    private int _currentWaveIndex = -1;
-    private int _defeatedCountInWave;
-    private int _totalDefeatedCount;
-    private bool _isWaveRunning;
-    private bool _hasSpawnedInWave;
-    private float _nextWaveTimer;
+    private readonly EnemyRegistry _registry = new EnemyRegistry();
+    private readonly EnemyWaveController _waveController = new EnemyWaveController();
 
-    public IReadOnlyList<Enemy> AliveEnemies => _aliveEnemies;
-    public Transform PlayerTransform => _playerTransform;
-    public int CurrentEnemyCount => _aliveEnemies.Count;
-    public int RemainingEnemyCount => GetRemainingEnemyCount();
-    public int TotalDefeatedCount => _totalDefeatedCount;
-    public int CurrentWaveIndex => _currentWaveIndex;
-    public bool IsWaveRunning => _isWaveRunning;
-    public int MaxAliveCount => GetCurrentMaxAliveCount();
-    public bool CanSpawnEnemy => CurrentEnemyCount < MaxAliveCount;
+    public IReadOnlyList<Enemy> AliveEnemies => _registry.AliveEnemies;
+    public Transform PlayerTransform => _registry.PlayerTransform;
+    public int CurrentEnemyCount => _registry.Count;
+    public int RemainingEnemyCount => _waveController.RemainingEnemyCount;
+    public int TotalDefeatedCount => _waveController.TotalDefeatedCount;
+    public int CurrentWaveIndex => _waveController.CurrentWaveIndex;
+    public bool IsWaveRunning => _waveController.IsWaveRunning;
+    public int MaxAliveCount => _waveController.MaxAliveCount;
+    public bool CanSpawnEnemy => _waveController.CanSpawnEnemy;
     public UnityEvent OnAllEnemiesDefeated => _onAllEnemiesDefeated;
     public EnemyEvent OnEnemyDied => _onEnemyDied;
     public WaveEvent OnWaveStarted => _onWaveStarted;
@@ -88,11 +67,12 @@ public class EnemyManager : MonoBehaviour
 
         Instance = this;
         InitializeReferences();
+        InitializeControllers();
     }
 
     private void Start()
     {
-        StopAllSpawners();
+        _waveController.Stop();
 
         if (_startWaveOnStart)
         {
@@ -102,29 +82,14 @@ public class EnemyManager : MonoBehaviour
 
     private void Update()
     {
-        RemoveNullEnemies();
-
-        if (_isWaveRunning)
-        {
-            UpdateWaveClearCheck();
-            return;
-        }
-
-        if (_nextWaveTimer <= 0.0f)
-        {
-            return;
-        }
-
-        _nextWaveTimer -= Time.deltaTime;
-
-        if (_nextWaveTimer <= 0.0f)
-        {
-            StartWave(_currentWaveIndex + 1);
-        }
+        _registry.RemoveNullEnemies();
+        _waveController.Tick(Time.deltaTime);
     }
 
     private void OnDestroy()
     {
+        _waveController.Dispose();
+
         if (Instance == this)
         {
             Instance = null;
@@ -143,155 +108,58 @@ public class EnemyManager : MonoBehaviour
 
     public void RegisterEnemy(Enemy enemy)
     {
-        if (enemy == null || _aliveEnemies.Contains(enemy))
+        if (_registry.Register(enemy))
         {
-            return;
+            _waveController.NotifyEnemySpawned();
         }
-
-        _aliveEnemies.Add(enemy);
-        _hasSpawnedInWave = true;
-        enemy.SetTarget(_playerTransform);
-        enemy.Died += HandleEnemyDied;
     }
 
     public void UnregisterEnemy(Enemy enemy)
     {
-        if (enemy == null)
-        {
-            return;
-        }
-
-        enemy.Died -= HandleEnemyDied;
-        _aliveEnemies.Remove(enemy);
+        _registry.Unregister(enemy);
     }
 
     public void StartWave(int waveIndex)
     {
-        if (waveIndex < 0)
-        {
-            return;
-        }
-
-        if (_waves.Count > 0 && waveIndex >= _waves.Count)
-        {
-            _onAllEnemiesDefeated.Invoke();
-            return;
-        }
-
-        _currentWaveIndex = waveIndex;
-        _defeatedCountInWave = 0;
-        _hasSpawnedInWave = false;
-        _isWaveRunning = true;
-        _nextWaveTimer = 0.0f;
-
-        StopAllSpawners();
-        StartCurrentWaveSpawners();
-        _onWaveStarted.Invoke(_currentWaveIndex);
+        _waveController.StartWave(waveIndex);
     }
 
     public void EndCurrentWave()
     {
-        if (!_isWaveRunning)
-        {
-            return;
-        }
-
-        _isWaveRunning = false;
-        StopAllSpawners();
-        _onWaveEnded.Invoke(_currentWaveIndex);
-
-        if (_waves.Count == 0 || _currentWaveIndex + 1 >= _waves.Count)
-        {
-            _onAllEnemiesDefeated.Invoke();
-        }
-        else
-        {
-            _nextWaveTimer = _nextWaveDelay;
-        }
+        _waveController.EndCurrentWave();
     }
 
     public void ClearAllEnemies()
     {
-        _isWaveRunning = false;
-        _nextWaveTimer = 0.0f;
-        StopAllSpawners();
-
-        for (int i = _aliveEnemies.Count - 1; i >= 0; i--)
-        {
-            Enemy enemy = _aliveEnemies[i];
-            UnregisterEnemy(enemy);
-
-            if (enemy != null)
-            {
-                Destroy(enemy.gameObject);
-            }
-        }
-
-        _aliveEnemies.Clear();
+        _waveController.Stop();
+        _registry.ClearAll();
     }
 
     public void SetPlayerTransform(Transform playerTransform)
     {
+        _registry.SetPlayerTransform(playerTransform);
         _playerTransform = playerTransform;
-
-        foreach (Enemy enemy in _aliveEnemies)
-        {
-            if (enemy != null)
-            {
-                enemy.SetTarget(_playerTransform);
-            }
-        }
     }
 
     public bool ContainsSpawner(EnemySpawner spawner)
     {
-        if (spawner == null)
-        {
-            return false;
-        }
-
-        EnemyWave wave = GetCurrentWave();
-
-        if (wave != null && !wave.UseAllSpawners)
-        {
-            return ContainsSpawner(wave.Spawners, spawner);
-        }
-
-        return ContainsSpawner(_spawners, spawner);
+        return _waveController.ContainsSpawner(spawner);
     }
 
-    private void HandleEnemyDied(Enemy enemy)
+    private void InitializeControllers()
     {
-        UnregisterEnemy(enemy);
-        _defeatedCountInWave++;
-        _totalDefeatedCount++;
-        _onEnemyDied.Invoke(enemy);
-        UpdateWaveClearCheck();
-    }
+        _registry.SetPlayerTransform(_playerTransform);
+        _waveController.Initialize(
+            _waves,
+            _spawners,
+            _registry,
+            _nextWaveDelay,
+            _maxAliveCount);
 
-    private void UpdateWaveClearCheck()
-    {
-        if (!_isWaveRunning)
-        {
-            return;
-        }
-
-        EnemyWave wave = GetCurrentWave();
-
-        if (wave != null && wave.TargetDefeatCount > 0)
-        {
-            if (_defeatedCountInWave >= wave.TargetDefeatCount)
-            {
-                EndCurrentWave();
-            }
-
-            return;
-        }
-
-        if (_hasSpawnedInWave && CurrentEnemyCount <= 0)
-        {
-            EndCurrentWave();
-        }
+        _waveController.WaveStarted += waveIndex => _onWaveStarted.Invoke(waveIndex);
+        _waveController.WaveEnded += waveIndex => _onWaveEnded.Invoke(waveIndex);
+        _waveController.AllEnemiesDefeated += () => _onAllEnemiesDefeated.Invoke();
+        _waveController.EnemyDiedInWave += enemy => _onEnemyDied.Invoke(enemy);
     }
 
     private void InitializeReferences()
@@ -309,108 +177,6 @@ public class EnemyManager : MonoBehaviour
         if ((_spawners == null || _spawners.Length == 0) && _autoFindSpawners)
         {
             _spawners = FindObjectsOfType<EnemySpawner>();
-        }
-    }
-
-    private void StopAllSpawners()
-    {
-        if (_spawners == null)
-        {
-            return;
-        }
-
-        foreach (EnemySpawner spawner in _spawners)
-        {
-            if (spawner != null)
-            {
-                spawner.StopWave();
-            }
-        }
-    }
-
-    private void StartCurrentWaveSpawners()
-    {
-        EnemyWave wave = GetCurrentWave();
-
-        if (wave == null || wave.UseAllSpawners)
-        {
-            StartSpawners(_spawners);
-            return;
-        }
-
-        StartSpawners(wave.Spawners);
-    }
-
-    private void StartSpawners(IReadOnlyList<EnemySpawner> spawners)
-    {
-        if (spawners == null)
-        {
-            return;
-        }
-
-        foreach (EnemySpawner spawner in spawners)
-        {
-            if (spawner != null)
-            {
-                spawner.StartWave();
-            }
-        }
-    }
-
-    private int GetCurrentMaxAliveCount()
-    {
-        EnemyWave wave = GetCurrentWave();
-        return wave != null ? wave.MaxAliveCount : _maxAliveCount;
-    }
-
-    private int GetRemainingEnemyCount()
-    {
-        EnemyWave wave = GetCurrentWave();
-
-        if (wave == null || wave.TargetDefeatCount <= 0)
-        {
-            return CurrentEnemyCount;
-        }
-
-        return Mathf.Max(0, wave.TargetDefeatCount - _defeatedCountInWave);
-    }
-
-    private EnemyWave GetCurrentWave()
-    {
-        if (_waves == null || _currentWaveIndex < 0 || _currentWaveIndex >= _waves.Count)
-        {
-            return null;
-        }
-
-        return _waves[_currentWaveIndex];
-    }
-
-    private bool ContainsSpawner(IReadOnlyList<EnemySpawner> spawners, EnemySpawner target)
-    {
-        if (spawners == null)
-        {
-            return false;
-        }
-
-        foreach (EnemySpawner spawner in spawners)
-        {
-            if (spawner == target)
-            {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    private void RemoveNullEnemies()
-    {
-        for (int i = _aliveEnemies.Count - 1; i >= 0; i--)
-        {
-            if (_aliveEnemies[i] == null)
-            {
-                _aliveEnemies.RemoveAt(i);
-            }
         }
     }
 }

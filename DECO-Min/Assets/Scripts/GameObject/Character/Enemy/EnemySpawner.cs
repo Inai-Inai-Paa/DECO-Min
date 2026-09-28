@@ -45,6 +45,7 @@ public class EnemySpawner : MonoBehaviour
     [SerializeField] private int _maxAliveCount = 3;
 
     [Header("同時出現制限")]
+    [SerializeField] private bool _allowMultipleAlive = false;
     [SerializeField] private float _aliveCheckRadius = 12.0f;
 
     [Header("Area Spawn")]
@@ -202,9 +203,31 @@ public class EnemySpawner : MonoBehaviour
     {
         RemoveNullEnemies();
 
-        if (_spawnedEnemy != null)
+        if (!_allowMultipleAlive)
         {
-            _spawnedEnemy.BeginReturnToHome();
+            if (_spawnedEnemy != null)
+            {
+                _spawnedEnemy.BeginReturnToHome();
+            }
+
+            return;
+        }
+
+        for (int i = 0; i < _spawnedEnemies.Count; i++)
+        {
+            GameObject enemyObject = _spawnedEnemies[i];
+
+            if (enemyObject == null)
+            {
+                continue;
+            }
+
+            Enemy enemy = enemyObject.GetComponent<Enemy>();
+
+            if (enemy != null)
+            {
+                enemy.BeginReturnToHome();
+            }
         }
     }
 
@@ -225,13 +248,33 @@ public class EnemySpawner : MonoBehaviour
 
     public void NotifyEnemyRemoved(Enemy enemy)
     {
-        if (enemy == null || _spawnedEnemy != enemy)
+        if (enemy == null)
         {
             return;
         }
 
+        if (!_allowMultipleAlive)
+        {
+            if (_spawnedEnemy != enemy)
+            {
+                return;
+            }
+
+            enemy.Removed -= NotifyEnemyRemoved;
+            _spawnedEnemy = null;
+            RemoveNullEnemies();
+            StartRespawnCooldown();
+            return;
+        }
+
         enemy.Removed -= NotifyEnemyRemoved;
-        _spawnedEnemy = null;
+
+        if (_spawnedEnemy == enemy)
+        {
+            _spawnedEnemy = null;
+        }
+
+        _spawnedEnemies.Remove(enemy.gameObject);
         RemoveNullEnemies();
         StartRespawnCooldown();
     }
@@ -242,7 +285,7 @@ public class EnemySpawner : MonoBehaviour
 
         if (_isSpawning
             || _enemyPrefab == null
-            || _spawnedEnemy != null
+            || IsSingleAliveSlotFilled()
             || IsRespawnCoolingDown()
             || !HasPassedAreaEntryWait()
             || HasReachedMaxSpawnCount()
@@ -373,9 +416,14 @@ public class EnemySpawner : MonoBehaviour
         return Mathf.Min(requestedCount, _maxSpawnCount - _spawnedCount);
     }
 
+    private bool IsSingleAliveSlotFilled()
+    {
+        return !_allowMultipleAlive && _spawnedEnemy != null;
+    }
+
     private bool CanSpawnMoreAliveEnemies()
     {
-        if (_spawnedEnemy != null)
+        if (IsSingleAliveSlotFilled())
         {
             return false;
         }

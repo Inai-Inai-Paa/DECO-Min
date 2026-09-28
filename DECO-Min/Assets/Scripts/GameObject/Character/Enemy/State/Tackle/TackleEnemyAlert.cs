@@ -7,12 +7,9 @@ public class TackleEnemyAlert : TackleEnemyState
     [SerializeField] private EnemyState _patrolState;
     [SerializeField] private EnemyState _chaseState;
 
-    private float _alertTimer;
-
     public override void Enter()
     {
         tackleEnemy.StopMoveForState();
-        _alertTimer = 0.0f;
     }
 
     public override void Update()
@@ -23,25 +20,17 @@ public class TackleEnemyAlert : TackleEnemyState
             return;
         }
 
-        if (!tackleEnemy.HasTargetForState())
-        {
-            ChangeTackleState<TackleEnemyPatrol>(_patrolState);
-            return;
-        }
-
         tackleEnemy.LookAtTargetForState();
 
-        if (!tackleEnemy.IsTargetInAlertDistanceForState())
+        if (tackleEnemy.Awareness == EnemyAwareness.Engaged)
         {
-            ChangeTackleState<TackleEnemyPatrol>(_patrolState);
+            ChangeTackleState<TackleEnemyChase>(_chaseState);
             return;
         }
 
-        _alertTimer += Time.deltaTime;
-
-        if (_alertTimer >= tackleEnemy.AlertTime)
+        if (tackleEnemy.Awareness == EnemyAwareness.Unaware)
         {
-            ChangeTackleState<TackleEnemyChase>(_chaseState);
+            ChangeTackleState<TackleEnemyPatrol>(_patrolState);
         }
     }
 }

@@ -15,7 +15,7 @@ public class MissionDrower : PropertyDrawer
         
         SerializedProperty missiontype = property.FindPropertyRelative(nameof(SubMissionPreset.missionType));
 
-        lines += 4;
+        lines += 5;
         switch ((MissionTpye)missiontype.enumValueIndex)
         {
             case MissionTpye.Defeat:
@@ -35,6 +35,7 @@ public class MissionDrower : PropertyDrawer
     {
         EditorGUI.BeginProperty(position, label, property);
 
+        SerializedProperty missionText = property.FindPropertyRelative(nameof(SubMissionPreset.missionText));
         SerializedProperty missionType = property.FindPropertyRelative(nameof(SubMissionPreset.missionType));
         SerializedProperty objectCount = property.FindPropertyRelative(nameof(SubMissionPreset.objectCount));
         SerializedProperty targetObject = property.FindPropertyRelative(nameof(SubMissionPreset.targetObject));
@@ -42,6 +43,9 @@ public class MissionDrower : PropertyDrawer
         SerializedProperty rewardObject = property.FindPropertyRelative(nameof(SubMissionPreset.reward));
         SerializedProperty rewardSeal = property.FindPropertyRelative(nameof(SubMissionPreset.rewardSeal));
         Rect r = new Rect(position.x, position.y, position.width, _lineHeight);
+
+        DrawRow(ref r, "ミッションテキスト", missionText);
+
         DrawRow(ref r, "ミッション方式", missionType);
         
         switch((MissionTpye)missionType.enumValueIndex)

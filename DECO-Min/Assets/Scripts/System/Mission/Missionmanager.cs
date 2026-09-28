@@ -6,11 +6,11 @@ public class Missionmanager : MonoBehaviour
 
     public bool missionStartFlg = false;
 
-    private bool MissionClear = false; 
-    [SerializeField] public MainMissionTargetObject targetObject;
+    private bool _missionClear = false; 
+    [SerializeField] public MIssionPreset targetObject;
 
-    private KillCounter _KillCounter;
-    private CollectCounter _CollectCounter;
+    private KillCounter _killCounter;
+    private CollectCounter _collectCounter;
 
     private void Awake()
     {
@@ -27,19 +27,19 @@ public class Missionmanager : MonoBehaviour
     private void Start()
     {
         // èâä˙âª
-        MissionClear = false;
+        _missionClear = false;
 
-        _KillCounter = new KillCounter();
-        _CollectCounter = new CollectCounter();
+        _killCounter = new KillCounter();
+        _collectCounter = new CollectCounter();
     }
 
-    public void SetMission(MainMissionTargetObject missionTargetObject)
+    public void SetMission(MIssionPreset missionTargetObject)
     {
         targetObject = missionTargetObject;
     }
     public void Clear()
     {
-       MissionClear = true;
+       _missionClear = true;
     }
 
     public void Killed()
@@ -49,7 +49,7 @@ public class Missionmanager : MonoBehaviour
 
     public void AddKill(EnemyData data)
     {
-        _KillCounter.AddKillCount(data);
+        _killCounter.AddKillCount(data);
         for (int i = 0; i < targetObject.subMissions.Count; i++)
         {
             CheakSubMissionClear(i);
@@ -58,7 +58,7 @@ public class Missionmanager : MonoBehaviour
 
     public void AddCollect(CollectData data)
     {
-        _CollectCounter.AddCollectCount(data);
+        _collectCounter.AddCollectCount(data);
         for (int i = 0; i < targetObject.subMissions.Count; i++)
         {
             CheakSubMissionClear(i);
@@ -73,13 +73,13 @@ public class Missionmanager : MonoBehaviour
             switch (submission.missionType)
             {
                 case SubMissionPreset.MissionTpye.Defeat:
-                    if (submission.objectCount < _KillCounter.GetKillCount(submission.KillObject))
+                    if (submission.objectCount < _killCounter.GetKillCount(submission.KillObject))
                     {
                         submission.isClear = true;
                     }
                     break;
                 case SubMissionPreset.MissionTpye.Collect:
-                    if (submission.objectCount < _CollectCounter.GetCollectCount(submission.CollectObject))
+                    if (submission.objectCount < _collectCounter.GetCollectCount(submission.CollectObject))
                     {
                         submission.isClear = true;
                     }
@@ -91,6 +91,16 @@ public class Missionmanager : MonoBehaviour
     public void SetMissionStartFlg(bool flg)
     {
         missionStartFlg = flg;
+    }
+
+    public KillCounter GetKillCounter()
+    {
+        return _killCounter;
+    }
+    
+    public CollectCounter GetCollectCounter()
+    {
+        return _collectCounter;
     }
 
 }

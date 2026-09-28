@@ -25,7 +25,7 @@ public class MissionOrderSystem : MonoBehaviour
     {
         // ƒ~ƒbƒVƒ‡ƒ“ó’
         Missionmanager.Instance.SetMissionStartFlg(true);
-        MissionUIManager.Instance.SetMissionRoot(true);
+      //  MissionUIManager.Instance.SetMissionRoot(true);
 
         OrderPanelClose();
     }

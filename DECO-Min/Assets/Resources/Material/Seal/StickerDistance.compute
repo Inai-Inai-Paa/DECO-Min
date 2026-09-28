@@ -1,0 +1,157 @@
+#pragma kernel InitSeeds
+#pragma kernel JumpFlood
+#pragma kernel ComputeDistanceAndMax
+#pragma kernel NormalizeHeight
+
+Texture2D<float4> _Source;
+Texture2D<float2> _SeedRead;
+RWTexture2D<float2> _SeedWrite;
+RWTexture2D<float> _DistanceSq;
+Texture2D<float> _DistanceSqRead;
+RWTexture2D<float> _HeightTex;
+RWStructuredBuffer<uint> _MaxDistanceSq;
+
+int _Width;
+int _Height;
+int _JumpStep;
+float _AlphaCutoff;
+
+bool IsValidSeed(float2 seed)
+{
+    return seed.x >= 0.0 && seed.y >= 0.0;
+}
+
+float DistanceSqToSeed(int2 p, float2 seed)
+{
+    float2 delta = seed - float2(p);
+    return dot(delta, delta);
+}
+
+[numthreads(8, 8, 1)]
+void InitSeeds(uint3 id : SV_DispatchThreadID)
+{
+    if (id.x >= _Width || id.y >= _Height)
+        return;
+
+    int2 p = int2(id.xy);
+    float alpha = _Source.Load(int3(p, 0)).a;
+
+    if (alpha < _AlphaCutoff)
+        _SeedWrite[p] = float2(p);
+    else
+        _SeedWrite[p] = float2(-1.0, -1.0);
+}
+
+[numthreads(8, 8, 1)]
+void JumpFlood(uint3 id : SV_DispatchThreadID)
+{
+    if (id.x >= _Width || id.y >= _Height)
+        return;
+
+    int2 p = int2(id.xy);
+    float2 bestSeed = _SeedRead.Load(int3(p, 0));
+    float bestDistanceSq = 3.402823466e+38F;
+
+    if (IsValidSeed(bestSeed))
+        bestDistanceSq = DistanceSqToSeed(p, bestSeed);
+
+    [unroll]
+    for (int y = -1; y <= 1; ++y)
+    {
+        [unroll]
+        for (int x = -1; x <= 1; ++x)
+        {
+            int2 q = p + int2(x, y) * _JumpStep;
+
+            if (q.x < 0 || q.y < 0 || q.x >= _Width || q.y >= _Height)
+                continue;
+
+            float2 candidateSeed = _SeedRead.Load(int3(q, 0));
+
+            if (!IsValidSeed(candidateSeed))
+                continue;
+
+            float candidateDistanceSq = DistanceSqToSeed(p, candidateSeed);
+
+            if (candidateDistanceSq < bestDistanceSq)
+            {
+                bestDistanceSq = candidateDistanceSq;
+                bestSeed = candidateSeed;
+            }
+        }
+    }
+
+    _SeedWrite[p] = bestSeed;
+}
+
+[numthreads(8, 8, 1)]
+void ComputeDistanceAndMax(uint3 id : SV_DispatchThreadID)
+{
+    if (id.x >= _Width || id.y >= _Height)
+        return;
+
+    int2 p = int2(id.xy);
+    float alpha = _Source.Load(int3(p, 0)).a;
+
+    if (alpha < _AlphaCutoff)
+    {
+        _DistanceSq[p] = 0.0;
+        return;
+    }
+
+    float2 seed = _SeedRead.Load(int3(p, 0));
+    float nearestBlankDistanceSq = 3.402823466e+38F;
+
+    if (IsValidSeed(seed))
+        nearestBlankDistanceSq = DistanceSqToSeed(p, seed);
+
+    // Treat pixels just outside the texture as blank as well.
+    float leftDistance = (float)p.x + 1.0;
+    float rightDistance = (float)_Width - (float)p.x;
+    float bottomDistance = (float)p.y + 1.0;
+    float topDistance = (float)_Height - (float)p.y;
+
+    float boundaryDistance = min(
+        min(leftDistance, rightDistance),
+        min(bottomDistance, topDistance)
+    );
+
+    float boundaryDistanceSq = boundaryDistance * boundaryDistance;
+    float distanceSq = min(nearestBlankDistanceSq, boundaryDistanceSq);
+
+    // The distance is measured between pixel centers, so the value is integral
+    // for seed distances and remains safe to reduce through a uint max buffer.
+    uint distanceSqUInt = (uint)round(max(distanceSq, 0.0));
+
+    _DistanceSq[p] = (float)distanceSqUInt;
+    InterlockedMax(_MaxDistanceSq[0], distanceSqUInt);
+}
+
+[numthreads(8, 8, 1)]
+void NormalizeHeight(uint3 id : SV_DispatchThreadID)
+{
+    if (id.x >= _Width || id.y >= _Height)
+        return;
+
+    int2 p = int2(id.xy);
+    float alpha = _Source.Load(int3(p, 0)).a;
+
+    if (alpha < _AlphaCutoff)
+    {
+        _HeightTex[p] = 0.0;
+        return;
+    }
+
+    uint maxDistanceSq = _MaxDistanceSq[0];
+
+    if (maxDistanceSq == 0)
+    {
+        _HeightTex[p] = 0.0;
+        return;
+    }
+
+    float distanceSq = _DistanceSqRead.Load(int3(p, 0));
+    float height01 = sqrt(saturate(distanceSq / (float)maxDistanceSq));
+
+    _HeightTex[p] = height01;
+}

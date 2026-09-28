@@ -161,30 +161,42 @@ public partial class Enemy
             return false;
         }
 
-        if (_itemPrefab == null)
+        if (_sealPrefab == null)
         {
-            Debug.LogError($"ItemPrefab is not assigned on {name}.", this);
+            Debug.LogError($"SealPrefab is not assigned on {name}.", this);
             return false;
         }
 
-        Instantiate(_itemPrefab, transform.position, transform.rotation);
+        GameObject spawned = Instantiate(_sealPrefab, transform.position, transform.rotation);
+        DroppingSeal droppingSeal = spawned.GetComponent<DroppingSeal>();
+
+        if (droppingSeal == null)
+        {
+            droppingSeal = spawned.GetComponentInChildren<DroppingSeal>();
+        }
+
+        if (droppingSeal != null)
+        {
+            droppingSeal.SetCreateSource(SealCreateSource.Enemy);
+        }
+
         Die();
         return true;
     }
 
-    protected void ValidateItemPrefab()
+    protected void ValidateSealPrefab()
     {
-        if (_itemPrefab != null)
+        if (_sealPrefab != null)
         {
             return;
         }
 
-        Debug.LogError($"ItemPrefab is not assigned on {name}.", this);
+        Debug.LogError($"SealPrefab is not assigned on {name}.", this);
     }
 
     private void OnValidate()
     {
-        ValidateItemPrefab();
+        ValidateSealPrefab();
     }
 
     private void OnCollisionEnter(Collision collision)

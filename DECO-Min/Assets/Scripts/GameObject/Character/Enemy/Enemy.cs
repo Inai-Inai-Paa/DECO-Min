@@ -129,11 +129,11 @@ public partial class Enemy : Character, IDamageable
     [SerializeField]
     private bool _treatSealAttackAsFinisherWhenDown = true;
 
-    [SerializeField] private GameObject _mySealPrefab;
-
-    [Header("Item")]
+    [Header("Seal")]
+    [FormerlySerializedAs("_itemPrefab")]
+    [FormerlySerializedAs("_mySealPrefab")]
     [SerializeField]
-    private GameObject _itemPrefab;
+    private GameObject _sealPrefab;
 
     private bool _isGrounded;
     private int _currentSealHealth;
@@ -194,7 +194,7 @@ public partial class Enemy : Character, IDamageable
             ChangeEnemyState(Instantiate(_initState));
         }
 
-        ValidateItemPrefab();
+        ValidateSealPrefab();
     }
 
     protected override void Update()
@@ -1060,22 +1060,6 @@ public partial class Enemy : Character, IDamageable
         ResumeMove();
     }
 
-    protected virtual void FinishDown()
-    {
-        if (_mySealPrefab != null)
-        {
-            GameObject sealObject = Instantiate(_mySealPrefab, transform.position, Quaternion.identity);
-            DroppingSeal droppingSeal = sealObject.GetComponent<DroppingSeal>();
-
-            if (droppingSeal != null)
-            {
-                droppingSeal.SetCreateSource(SealCreateSource.Enemy);
-            }
-        }
-
-        Die();
-    }
-
     public void SetTarget(Transform target)
     {
         _target = target;
@@ -1283,6 +1267,21 @@ public partial class Enemy : Character, IDamageable
             return;
         }
 
+        if (_isDown)
+        {
+            if (IsFinisherAttack(other)
+                || (_damageModel == EnemyDamageModel.Seal
+                    && _treatSealAttackAsFinisherWhenDown
+                    && HasTag(other, _sealAttackTag)))
+            {
+                Destroy(other.gameObject);
+                BeginFinisher();
+                CompleteFinisher();
+            }
+
+            return;
+        }
+
         if (_isStunned)
         {
             return;
@@ -1292,15 +1291,6 @@ public partial class Enemy : Character, IDamageable
         {
             Destroy(other.gameObject);
             EnterStun();
-            return;
-        }
-
-        if (_damageModel == EnemyDamageModel.Seal
-            && _isDown
-            && (IsFinisherAttack(other) || (_treatSealAttackAsFinisherWhenDown && HasTag(other, _sealAttackTag))))
-        {
-            Destroy(other.gameObject);
-            FinishDown();
         }
     }
 

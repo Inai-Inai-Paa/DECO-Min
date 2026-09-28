@@ -8,11 +8,14 @@ public class TackleEnemyCharge : TackleEnemyState
     [SerializeField] private EnemyState _tackleState;
 
     private float _chargeTimer;
+    private bool _isAimLocked;
 
     public override void Enter()
     {
         tackleEnemy.StopMoveForState();
+        tackleEnemy.ClearLockedTackleDirection();
         _chargeTimer = 0.0f;
+        _isAimLocked = false;
     }
 
     public override void Update()
@@ -31,9 +34,18 @@ public class TackleEnemyCharge : TackleEnemyState
             return;
         }
 
-        tackleEnemy.LookAtTargetForState();
-
         _chargeTimer += Time.deltaTime;
+
+        if (!_isAimLocked && _chargeTimer >= tackleEnemy.ChargeTime - tackleEnemy.AimLockLeadTime)
+        {
+            tackleEnemy.LockTackleAim();
+            _isAimLocked = true;
+        }
+
+        if (!_isAimLocked)
+        {
+            tackleEnemy.LookAtTargetForState();
+        }
 
         if (_chargeTimer >= tackleEnemy.ChargeTime)
         {

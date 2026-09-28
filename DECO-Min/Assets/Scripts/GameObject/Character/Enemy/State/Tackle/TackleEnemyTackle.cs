@@ -17,13 +17,18 @@ public class TackleEnemyTackle : TackleEnemyState
         tackleEnemy.BeginDirectMovementForState();
         _tackleMoveDistance = 0.0f;
         _hasHitTarget = false;
-        _tackleDirection = tackleEnemy.GetDirectionToTargetForState();
+        _tackleDirection = tackleEnemy.GetLockedTackleDirection();
+        if (_tackleDirection.sqrMagnitude > 0.0001f)
+        {
+            tackleEnemy.transform.rotation = Quaternion.LookRotation(_tackleDirection);
+        }
     }
 
     public override void Exit()
     {
         tackleEnemy.SetCommittedAttack(false);
         tackleEnemy.EndDirectMovementForState();
+        tackleEnemy.ClearLockedTackleDirection();
     }
 
     public override void Update()

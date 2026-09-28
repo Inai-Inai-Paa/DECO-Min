@@ -37,7 +37,7 @@ public class TackleEnemyReturn : TackleEnemyState
 
         if (CanResumeCombat())
         {
-            if (tackleEnemy.IsTargetInAttackStartDistance())
+            if (tackleEnemy.CanStartCharge())
             {
                 ChangeTackleState<TackleEnemyCharge>(_chargeState);
             }

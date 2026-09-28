@@ -28,7 +28,7 @@ public class TackleEnemyChase : TackleEnemyState
             return;
         }
 
-        if (tackleEnemy.IsTargetInAttackStartDistance())
+        if (tackleEnemy.CanStartCharge())
         {
             tackleEnemy._animator.SetTrigger("Charge");
             ChangeTackleState<TackleEnemyCharge>(_chargeState);

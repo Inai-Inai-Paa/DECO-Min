@@ -26,6 +26,8 @@ public class TackleEnemy : Enemy
     [SerializeField]
     private float _chargeTime = 1.0f;
     [SerializeField]
+    private float _aimLockLeadTime = 0.3f;
+    [SerializeField]
     private float _tackleSpeed = 12.0f;
     [SerializeField]
     private float _tackleDistance = 6.0f;
@@ -47,9 +49,13 @@ public class TackleEnemy : Enemy
     [Header("アニメーション")]
     public Animator _animator;
 
+    private Vector3 _lockedTackleDirection;
+    private bool _hasLockedTackleDirection;
+
     public float PatrolPointInterval => _patrolPointInterval;
     public float AlertTime => _alertTime;
     public float ChargeTime => _chargeTime;
+    public float AimLockLeadTime => Mathf.Max(0.0f, _aimLockLeadTime);
     public float TackleSpeed => _tackleSpeed;
     public float TackleDistance => _tackleDistance;
     public float DownRecoverTime => _downRecoverTime;
@@ -151,6 +157,11 @@ public class TackleEnemy : Enemy
         return IsTargetWithinHomeChaseDistanceForState() && IsTargetInDistance(_attackStartDistance);
     }
 
+    public bool CanStartCharge()
+    {
+        return IsTargetInAttackStartDistance() && HasLineOfSightToTarget();
+    }
+
     public bool IsTargetWithinHomeChaseDistanceForState()
     {
         return IsTargetWithinHomeChaseDistance();
@@ -169,6 +180,50 @@ public class TackleEnemy : Enemy
     public void LookAtTargetForState()
     {
         LookAtTarget();
+    }
+
+    public void LockTackleAim()
+    {
+        Vector3 direction = transform.forward;
+        direction.y = 0.0f;
+
+        if (direction.sqrMagnitude < 0.0001f)
+        {
+            direction = GetDirectionToTarget();
+        }
+
+        if (direction.sqrMagnitude < 0.0001f)
+        {
+            direction = Vector3.forward;
+        }
+
+        _lockedTackleDirection = direction.normalized;
+        _hasLockedTackleDirection = true;
+        transform.rotation = Quaternion.LookRotation(_lockedTackleDirection);
+    }
+
+    public void ClearLockedTackleDirection()
+    {
+        _hasLockedTackleDirection = false;
+        _lockedTackleDirection = Vector3.zero;
+    }
+
+    public Vector3 GetLockedTackleDirection()
+    {
+        if (_hasLockedTackleDirection && _lockedTackleDirection.sqrMagnitude > 0.0001f)
+        {
+            return _lockedTackleDirection;
+        }
+
+        Vector3 direction = GetDirectionToTarget();
+
+        if (direction.sqrMagnitude < 0.0001f)
+        {
+            direction = transform.forward;
+            direction.y = 0.0f;
+        }
+
+        return direction.sqrMagnitude < 0.0001f ? Vector3.forward : direction.normalized;
     }
 
     public void SetTargetDestination()

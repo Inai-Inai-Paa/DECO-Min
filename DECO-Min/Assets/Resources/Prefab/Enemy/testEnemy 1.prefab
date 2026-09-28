@@ -181,7 +181,7 @@ MonoBehaviour:
   _sealAttackTag: PlayerAttack
   _finisherTag: PlayerFinisher
   _treatSealAttackAsFinisherWhenDown: 1
-  _mySealPrefab: {fileID: 1549645160757926421, guid: 20390cad68896604d861750f3073c2ab, type: 3}
+  _sealPrefab: {fileID: 1549645160757926421, guid: 20390cad68896604d861750f3073c2ab, type: 3}
   _patrolCenter: {fileID: 0}
   _patrolRadius: 8
   _patrolPointInterval: 3

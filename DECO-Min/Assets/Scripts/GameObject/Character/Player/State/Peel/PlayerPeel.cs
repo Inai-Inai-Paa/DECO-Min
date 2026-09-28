@@ -8,17 +8,17 @@ public class PlayerPeel : PlayerState
     [Tooltip("MoveState"),SerializeField] private PlayerState _moveState;
 
     [Header("Options")]
-    [Tooltip("Peels“®¬Œ÷‚µ‚½‚Æ‚«‚Ìd’¼ŠÔ"), SerializeField] private float _successDuration = 0.3f;
-    [Tooltip("Peels“®¸”s‚µ‚½‚Æ‚«‚Ìd’¼ŠÔ"), SerializeField] private float _failDuration = 0.2f;
-    [Tooltip("PeelæƒIƒuƒWƒFƒNƒg‚Ìƒ^ƒO"), SerializeField] private string _peelableTag = "Peelable";
-    [Tooltip("PeelæƒIƒuƒWƒFƒNƒg‚ÌƒŒƒCƒ„["), SerializeField] private LayerMask _peelableLayer;
-    [Tooltip("Peels“®‚Ì’T’m”ÍˆÍ"), SerializeField] private float _peelableRange = 0.5f;
+    [Tooltip("Peelï¿½sï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ‚ï¿½ï¿½Ìdï¿½ï¿½ï¿½ï¿½ï¿½ï¿½"), SerializeField] private float _successDuration = 0.3f;
+    [Tooltip("Peelï¿½sï¿½ï¿½ï¿½ï¿½ï¿½sï¿½ï¿½ï¿½ï¿½ï¿½Æ‚ï¿½ï¿½Ìdï¿½ï¿½ï¿½ï¿½ï¿½ï¿½"), SerializeField] private float _failDuration = 0.2f;
+    [Tooltip("Peelï¿½ï¿½Iï¿½uï¿½Wï¿½Fï¿½Nï¿½gï¿½Ìƒ^ï¿½O"), SerializeField] private string _peelableTag = "Peelable";
+    [Tooltip("Peelï¿½ï¿½Iï¿½uï¿½Wï¿½Fï¿½Nï¿½gï¿½Ìƒï¿½ï¿½Cï¿½ï¿½ï¿½["), SerializeField] private LayerMask _peelableLayer;
+    [Tooltip("Peelï¿½sï¿½ï¿½ï¿½Ì’Tï¿½mï¿½Íˆï¿½"), SerializeField] private float _peelableRange = 0.5f;
     public float GetPeelableRange() { return _peelableRange; }
 
-    [Tooltip("Peel¬Œ÷‚É‚Ü‚Æ‚Ü‚Á‚Ä”‚ª‚·”ÍˆÍ"), SerializeField] private float _peelableChainRange = 2.0f;
+    [Tooltip("Peelï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½É‚Ü‚Æ‚Ü‚ï¿½ï¿½Ä”ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Íˆï¿½"), SerializeField] private float _peelableChainRange = 2.0f;
     public float GetPeelableChainRange() { return _peelableChainRange; }
 
-    [Tooltip("‰ÁZ‚³‚ê‚éƒV[ƒ‹‚Ì”"), SerializeField] private int _addSealCount = 1;
+    [Tooltip("ï¿½ï¿½ï¿½Zï¿½ï¿½ï¿½ï¿½ï¿½Vï¿½[ï¿½ï¿½ï¿½Ìï¿½"), SerializeField] private int _addSealCount = 1;
 
     Collider[] _collider;
     private float _enterTime = 0.0f;
@@ -32,12 +32,12 @@ public class PlayerPeel : PlayerState
         {
             if (collider.CompareTag(_peelableTag))
             {
-                //Å‚à‹ß‚¢‘ÎÛ‚ğæ“¾‚·‚é
+                //ï¿½Å‚ï¿½ï¿½ß‚ï¿½ï¿½ÎÛ‚ï¿½ï¿½æ“¾ï¿½ï¿½ï¿½ï¿½
                 var currentDistance = _nearestPeelable != null ? Vector3.Distance(player.transform.position, _nearestPeelable.transform.position) : float.MaxValue;
                 var newDistance = Vector3.Distance(player.transform.position, collider.transform.position);
                 if (_nearestPeelable == null || newDistance < currentDistance)
                 {
-                    //‘ÎÛ‚ªDroppingSeal‚Å‚ ‚é‚±‚Æ‚ğÄ“xŠm”F‚·‚é
+                    //ï¿½ÎÛ‚ï¿½DroppingSealï¿½Å‚ï¿½ï¿½é‚±ï¿½Æ‚ï¿½ï¿½Ä“xï¿½mï¿½Fï¿½ï¿½ï¿½ï¿½
                     if (collider.gameObject.GetComponent<DroppingSeal>() != null)
                     {
                         _nearestPeelable = collider.gameObject.GetComponent<DroppingSeal>();
@@ -49,8 +49,8 @@ public class PlayerPeel : PlayerState
 
         if (_nearestPeelable != null)
         {
-            player.ResetPeelCooldown(); //”—£s“®‚É¬Œ÷‚µ‚½ê‡‚ÍCD‚ÌƒŠƒZƒbƒg
-            PeelAction(); //Å‰‚Ì1‰ñ‚Í”‚ª‚·ƒAƒNƒVƒ‡ƒ“‚ğ©“®‚Ås‚¤
+            player.ResetPeelCooldown(); //ï¿½ï¿½ï¿½ï¿½ï¿½sï¿½ï¿½ï¿½Éï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ê‡ï¿½ï¿½CDï¿½Ìƒï¿½ï¿½Zï¿½bï¿½g
+            PeelAction(); //ï¿½Åï¿½ï¿½ï¿½1ï¿½ï¿½Í”ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Aï¿½Nï¿½Vï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Åsï¿½ï¿½
         }
 
         _enterTime = Time.time;
@@ -65,7 +65,7 @@ public class PlayerPeel : PlayerState
             {
                 PeelAction();
             }
-            //ƒvƒŒƒCƒ„[ˆÚ“®“ü—Í‚ğæ“¾‚µ‚½‚ç_moveState‚É‘JˆÚ‚·‚éA¬Œ÷d’¼‚à“¯‚É–‚½‚µ‚Ä‚¢‚é‚±‚Æ‚ğŠm”F‚·‚é
+            //ï¿½vï¿½ï¿½ï¿½Cï¿½ï¿½ï¿½[ï¿½Ú“ï¿½ï¿½ï¿½ï¿½Í‚ï¿½ï¿½æ“¾ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½_moveStateï¿½É‘Jï¿½Ú‚ï¿½ï¿½ï¿½Aï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½dï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½É–ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä‚ï¿½ï¿½é‚±ï¿½Æ‚ï¿½ï¿½mï¿½Fï¿½ï¿½ï¿½ï¿½
             if (player.playerInputData.Move.sqrMagnitude > 0.0f && Time.time - _enterTime >= _successDuration)
             {
                 player.ChangePlayerState(Instantiate(_moveState));
@@ -96,7 +96,7 @@ public class PlayerPeel : PlayerState
         {
             if (_nearestPeelable.PeelSeal())
             {
-                //‹ß•Ó‚ÌƒV[ƒ‹‚ğ’Tõ‚µ‚ÄAƒvƒŒƒCƒ„[‚ª”‚ª‚µ‚½ƒV[ƒ‹‚Ì”‚¾‚¯‰ñû‚·‚é
+                //ï¿½ß•Ó‚ÌƒVï¿½[ï¿½ï¿½ï¿½ï¿½Tï¿½ï¿½ï¿½ï¿½ï¿½ÄAï¿½vï¿½ï¿½ï¿½Cï¿½ï¿½ï¿½[ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Vï¿½[ï¿½ï¿½ï¿½Ìï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
                 Collider[] nearbyColliders = Physics.OverlapSphere(_nearestPeelable.transform.position, _peelableChainRange, _peelableLayer);
                 int peelCount_new = 0;
                 int peelCount_has = 0;

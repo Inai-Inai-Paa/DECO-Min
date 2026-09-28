@@ -1,0 +1,49 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 014ba3171fb3b6b439f13d82a31ddcaa, type: 3}
+  m_Name: test
+  m_EditorClassIdentifier: Assembly-CSharp::MissionTargetObject
+  Object:
+    targetObject: {fileID: 0}
+    objectCount: 0
+    missionText: 
+  subMissions:
+  - missionType: 0
+    isClear: 0
+    objectCount: 0
+    targetObject: {fileID: 0}
+    KillObject: {fileID: 0}
+    CollectObject: {fileID: 0}
+    timeLimit: 0
+    missionText: 
+    reward: {fileID: 0}
+    rewardSeal: 0
+  - missionType: 0
+    isClear: 0
+    objectCount: 0
+    targetObject: {fileID: 0}
+    KillObject: {fileID: 0}
+    CollectObject: {fileID: 0}
+    timeLimit: 0
+    missionText: 
+    reward: {fileID: 0}
+    rewardSeal: 0
+  - missionType: 1
+    isClear: 0
+    objectCount: 0
+    targetObject: {fileID: 0}
+    KillObject: {fileID: 0}
+    CollectObject: {fileID: 0}
+    timeLimit: 0
+    missionText: 
+    reward: {fileID: 0}
+    rewardSeal: 0

@@ -46,6 +46,8 @@ public class PlayerMove : PlayerState
 
             player._animator.SetTrigger("Jump");
         }
+        else
+            player._animator.ResetTrigger("Jump");
     }
 
     private void Move()

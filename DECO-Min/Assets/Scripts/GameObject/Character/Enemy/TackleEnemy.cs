@@ -46,9 +46,6 @@ public class TackleEnemy : Enemy
     [SerializeField]
     private float _downRecoverTime = 30.0f;
 
-    [Header("アニメーション")]
-    public Animator _animator;
-
     private Vector3 _lockedTackleDirection;
     private bool _hasLockedTackleDirection;
 

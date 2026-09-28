@@ -136,6 +136,15 @@ public partial class @PlayerInput: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": true
+                },
+                {
+                    ""name"": ""Finisher"",
+                    ""type"": ""Button"",
+                    ""id"": ""4edc396a-35fd-470e-bb84-fb2dcc97e008"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
                 }
             ],
             ""bindings"": [
@@ -347,6 +356,28 @@ public partial class @PlayerInput: IInputActionCollection2, IDisposable
                     ""action"": ""Peel"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""70f9fef5-ffc3-492f-ba8d-a8803e9532dd"",
+                    ""path"": ""<Gamepad>/buttonNorth"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Finisher"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""c8eb45fc-395e-47bd-b097-a5c483e78a64"",
+                    ""path"": ""<Keyboard>/f"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Finisher"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
                 }
             ]
         }
@@ -360,6 +391,7 @@ public partial class @PlayerInput: IInputActionCollection2, IDisposable
         m_PlayerControll_Attack = m_PlayerControll.FindAction("Attack", throwIfNotFound: true);
         m_PlayerControll_Interact = m_PlayerControll.FindAction("Interact", throwIfNotFound: true);
         m_PlayerControll_Peel = m_PlayerControll.FindAction("Peel", throwIfNotFound: true);
+        m_PlayerControll_Finisher = m_PlayerControll.FindAction("Finisher", throwIfNotFound: true);
     }
 
     ~@PlayerInput()
@@ -445,6 +477,7 @@ public partial class @PlayerInput: IInputActionCollection2, IDisposable
     private readonly InputAction m_PlayerControll_Attack;
     private readonly InputAction m_PlayerControll_Interact;
     private readonly InputAction m_PlayerControll_Peel;
+    private readonly InputAction m_PlayerControll_Finisher;
     /// <summary>
     /// Provides access to input actions defined in input action map "PlayerControll".
     /// </summary>
@@ -476,6 +509,10 @@ public partial class @PlayerInput: IInputActionCollection2, IDisposable
         /// Provides access to the underlying input action "PlayerControll/Peel".
         /// </summary>
         public InputAction @Peel => m_Wrapper.m_PlayerControll_Peel;
+        /// <summary>
+        /// Provides access to the underlying input action "PlayerControll/Finisher".
+        /// </summary>
+        public InputAction @Finisher => m_Wrapper.m_PlayerControll_Finisher;
         /// <summary>
         /// Provides access to the underlying input action map instance.
         /// </summary>
@@ -517,6 +554,9 @@ public partial class @PlayerInput: IInputActionCollection2, IDisposable
             @Peel.started += instance.OnPeel;
             @Peel.performed += instance.OnPeel;
             @Peel.canceled += instance.OnPeel;
+            @Finisher.started += instance.OnFinisher;
+            @Finisher.performed += instance.OnFinisher;
+            @Finisher.canceled += instance.OnFinisher;
         }
 
         /// <summary>
@@ -543,6 +583,9 @@ public partial class @PlayerInput: IInputActionCollection2, IDisposable
             @Peel.started -= instance.OnPeel;
             @Peel.performed -= instance.OnPeel;
             @Peel.canceled -= instance.OnPeel;
+            @Finisher.started -= instance.OnFinisher;
+            @Finisher.performed -= instance.OnFinisher;
+            @Finisher.canceled -= instance.OnFinisher;
         }
 
         /// <summary>
@@ -618,5 +661,12 @@ public partial class @PlayerInput: IInputActionCollection2, IDisposable
         /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
         /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
         void OnPeel(InputAction.CallbackContext context);
+        /// <summary>
+        /// Method invoked when associated input action "Finisher" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnFinisher(InputAction.CallbackContext context);
     }
 }

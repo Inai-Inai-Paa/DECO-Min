@@ -17,7 +17,7 @@ GameObject:
   - component: {fileID: 64519741221043289}
   m_Layer: 0
   m_Name: testEnemy 1
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -32,7 +32,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: -6.88, y: 0.83, z: 30}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalScale: {x: 2, y: 2, z: 2}
   m_ConstrainProportionsScale: 1
   m_Children:
   - {fileID: 1772341517351724202}
@@ -166,6 +166,13 @@ MonoBehaviour:
   _groundCheckDistance: 0.2
   _alertDistance: 10
   _lostDistance: 15
+  _viewAngle: 120
+  _eyeHeight: 1.4
+  _visionBlockMask:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  _alertConfirmTime: 0.8
+  _sightMemoryDuration: 1.5
   _useMoveArea: 1
   _moveAreaCenter: {fileID: 0}
   _moveAreaOffset: {x: 0, y: 0, z: 0}
@@ -177,17 +184,21 @@ MonoBehaviour:
   _homeDespawnWaitTime: 2
   _attackDamage: 10
   _attackCooldown: 1.5
+  _damageModel: 0
+  _enemyData: {fileID: 0}
   _maxSealHealth: 3
   _sealAttackTag: PlayerAttack
   _finisherTag: PlayerFinisher
   _treatSealAttackAsFinisherWhenDown: 1
   _sealPrefab: {fileID: 1549645160757926421, guid: 20390cad68896604d861750f3073c2ab, type: 3}
+  _animator: {fileID: 3192916565255114823}
   _patrolCenter: {fileID: 0}
   _patrolRadius: 8
   _patrolPointInterval: 3
   _alertTime: 1.5
   _attackStartDistance: 3
   _chargeTime: 1
+  _aimLockLeadTime: 0.3
   _tackleSpeed: 12
   _tackleDistance: 6
   _tackleHitRadius: 0.7
@@ -198,7 +209,6 @@ MonoBehaviour:
   _patrolStateAfterDown: {fileID: 0}
   _returnState: {fileID: 0}
   _downRecoverTime: 30
-  _animator: {fileID: 3192916565255114823}
 --- !u!54 &64519741221043289
 Rigidbody:
   m_ObjectHideFlags: 0

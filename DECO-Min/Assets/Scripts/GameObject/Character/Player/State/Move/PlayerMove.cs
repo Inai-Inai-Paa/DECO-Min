@@ -31,6 +31,34 @@ public class PlayerMove : PlayerState
             {
                 player.ChangePlayerState(Instantiate(_peelState));
             }
+
+            // Finisher
+            if (player.playerInputData.FinisherPressed)
+            {
+                Collider[] hits = Physics.OverlapSphere(
+                player.transform.position,
+                3
+            );
+
+                foreach (Collider hit in hits)
+                {
+                    if(hit.CompareTag("Enemy"))
+                    {
+                        Enemy enemy = hit.GetComponentInParent<Enemy>();
+
+                        if (enemy != null)
+                        {
+                            if(enemy.IsStunned == true)
+                            {
+                                player._animator.SetTrigger("Finish");
+
+                                enemy.TryBeginFinisher(player.transform);
+                                enemy.CompleteFinisher();
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 

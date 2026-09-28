@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.AI;
 using UnityEngine.Rendering;
 
 public partial class Enemy
@@ -167,7 +168,19 @@ public partial class Enemy
             return false;
         }
 
-        GameObject spawned = Instantiate(_sealPrefab, transform.position, transform.rotation);
+        Vector3 spawnPosition = transform.position;
+        Quaternion spawnRotation = transform.rotation;
+        Vector3 surfaceNormal = Vector3.up;
+
+        if (TryGetGroundSurface(out Vector3 groundPoint, out Vector3 groundNormal))
+        {
+            spawnPosition = groundPoint;
+            surfaceNormal = groundNormal;
+            spawnRotation = RotationOnSurface(groundNormal);
+        }
+
+        GameObject spawned = Instantiate(_sealPrefab, spawnPosition, spawnRotation);
+        StickSealToSurface(spawned.transform, spawnPosition, surfaceNormal);
         DroppingSeal droppingSeal = spawned.GetComponent<DroppingSeal>();
 
         if (droppingSeal == null)
@@ -182,6 +195,156 @@ public partial class Enemy
 
         Die();
         return true;
+    }
+
+    private bool TryGetGroundSurface(out Vector3 groundPoint, out Vector3 groundNormal)
+    {
+        const float originHeight = 2.0f;
+        const float castDistance = 12.0f;
+
+        Vector3 origin = transform.position + Vector3.up * originHeight;
+        RaycastHit[] hits = Physics.RaycastAll(
+            origin,
+            Vector3.down,
+            originHeight + castDistance,
+            ResolveGroundMask(),
+            QueryTriggerInteraction.Ignore);
+
+        float nearestDistance = float.MaxValue;
+        bool found = false;
+        groundPoint = transform.position;
+        groundNormal = Vector3.up;
+
+        for (int i = 0; i < hits.Length; i++)
+        {
+            Collider hitCollider = hits[i].collider;
+
+            if (hitCollider == null || hitCollider.isTrigger || IsOwnCollider(hitCollider))
+            {
+                continue;
+            }
+
+            if (hits[i].distance >= nearestDistance)
+            {
+                continue;
+            }
+
+            nearestDistance = hits[i].distance;
+            groundPoint = hits[i].point;
+            groundNormal = hits[i].normal.sqrMagnitude > 0.0001f
+                ? hits[i].normal.normalized
+                : Vector3.up;
+            found = true;
+        }
+
+        if (found)
+        {
+            return true;
+        }
+
+        float searchDistance = Mathf.Max(_navMeshSearchDistance, 3.0f);
+
+        if (!NavMesh.SamplePosition(transform.position, out NavMeshHit navHit, searchDistance, NavMesh.AllAreas))
+        {
+            return false;
+        }
+
+        groundPoint = new Vector3(transform.position.x, navHit.position.y, transform.position.z);
+        groundNormal = Vector3.up;
+        return true;
+    }
+
+    private LayerMask ResolveGroundMask()
+    {
+        if (_groundLayer.value != 0)
+        {
+            return _groundLayer;
+        }
+
+        return LayerMask.GetMask("Default", "Ground");
+    }
+
+    private bool IsOwnCollider(Collider hitCollider)
+    {
+        Transform hitTransform = hitCollider.transform;
+        return hitTransform == transform || hitTransform.IsChildOf(transform);
+    }
+
+    private Quaternion RotationOnSurface(Vector3 surfaceNormal)
+    {
+        Vector3 forward = Vector3.ProjectOnPlane(transform.forward, surfaceNormal);
+
+        if (forward.sqrMagnitude < 0.0001f)
+        {
+            forward = Vector3.ProjectOnPlane(transform.right, surfaceNormal);
+        }
+
+        if (forward.sqrMagnitude < 0.0001f)
+        {
+            return Quaternion.FromToRotation(Vector3.up, surfaceNormal);
+        }
+
+        return Quaternion.LookRotation(forward.normalized, surfaceNormal);
+    }
+
+    private static void StickSealToSurface(Transform seal, Vector3 surfacePoint, Vector3 surfaceNormal)
+    {
+        if (!TryGetLowestAlongNormal(seal, surfaceNormal, out float lowest))
+        {
+            return;
+        }
+
+        const float skin = 0.01f;
+        float surfaceHeight = Vector3.Dot(surfacePoint, surfaceNormal);
+        seal.position += surfaceNormal * (surfaceHeight + skin - lowest);
+    }
+
+    private static bool TryGetLowestAlongNormal(Transform root, Vector3 surfaceNormal, out float lowest)
+    {
+        lowest = float.PositiveInfinity;
+        bool found = false;
+        MeshFilter[] filters = root.GetComponentsInChildren<MeshFilter>(true);
+
+        for (int i = 0; i < filters.Length; i++)
+        {
+            MeshFilter filter = filters[i];
+
+            if (filter == null || filter.sharedMesh == null)
+            {
+                continue;
+            }
+
+            if (!filter.TryGetComponent(out Renderer renderer) || !renderer.enabled)
+            {
+                continue;
+            }
+
+            Bounds bounds = filter.sharedMesh.bounds;
+            Vector3 center = bounds.center;
+            Vector3 extents = bounds.extents;
+
+            for (int x = -1; x <= 1; x += 2)
+            {
+                for (int y = -1; y <= 1; y += 2)
+                {
+                    for (int z = -1; z <= 1; z += 2)
+                    {
+                        Vector3 corner = center + Vector3.Scale(extents, new Vector3(x, y, z));
+                        Vector3 worldCorner = filter.transform.TransformPoint(corner);
+                        float height = Vector3.Dot(worldCorner, surfaceNormal);
+
+                        if (height < lowest)
+                        {
+                            lowest = height;
+                        }
+
+                        found = true;
+                    }
+                }
+            }
+        }
+
+        return found;
     }
 
     protected void ValidateSealPrefab()

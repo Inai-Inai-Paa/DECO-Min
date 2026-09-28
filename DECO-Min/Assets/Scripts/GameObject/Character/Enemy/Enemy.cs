@@ -140,6 +140,8 @@ public partial class Enemy : Character, IDamageable
     private bool _isDown;
     private bool _isDead;
     private bool _isDespawning;
+    private bool _isPopulationReturning;
+    private float _populationReturnTimer;
     private bool _hasNotifiedRemoved;
     private Vector3 _spawnPosition;
     private Quaternion _spawnRotation;
@@ -163,6 +165,7 @@ public partial class Enemy : Character, IDamageable
     public bool IsDown => _isDown;
     public bool IsDead => _isDead;
     public bool IsDespawning => _isDespawning;
+    public bool IsPopulationReturning => _isPopulationReturning;
     public Vector3 HomePosition => _spawnPosition;
     public Quaternion HomeRotation => _spawnRotation;
     public float ReturnImpossibleTime => _returnImpossibleTime;
@@ -199,6 +202,12 @@ public partial class Enemy : Character, IDamageable
 
     protected override void Update()
     {
+        if (_isPopulationReturning)
+        {
+            TickPopulationReturn();
+            return;
+        }
+
         if (IsCombatAIFrozen)
         {
             FreezeMotion();
@@ -273,8 +282,13 @@ public partial class Enemy : Character, IDamageable
     /// </summary>
     public void ChangeEnemyState(EnemyState nextState)
     {
-        if (nextState == null)
+        if (nextState == null || _isPopulationReturning)
         {
+            if (nextState != null)
+            {
+                Destroy(nextState);
+            }
+
             return;
         }
 
@@ -981,6 +995,91 @@ public partial class Enemy : Character, IDamageable
     public virtual void BeginReturnToHome()
     {
         ReturnToSpawn();
+    }
+
+    public void BeginPopulationReturn()
+    {
+        if (_isDead || _isDespawning || _isPopulationReturning)
+        {
+            return;
+        }
+
+        _isPopulationReturning = true;
+        _populationReturnTimer = 0.0f;
+        _lifecycle = EnemyLifecycle.Return;
+        _isCommittedAttack = false;
+        ClearAwareness();
+        SetTarget(null);
+        stateMachine?.Shutdown();
+        TickPopulationReturn();
+    }
+
+    private void TickPopulationReturn()
+    {
+        if (_isDead || _isDespawning)
+        {
+            return;
+        }
+
+        _populationReturnTimer += Time.deltaTime;
+
+        if (TryGetComponent(out Rigidbody body) && !body.isKinematic)
+        {
+            body.linearVelocity = Vector3.zero;
+            body.angularVelocity = Vector3.zero;
+        }
+
+        if (_populationReturnTimer >= Mathf.Max(0.5f, _returnImpossibleTime))
+        {
+            transform.SetPositionAndRotation(_spawnPosition, _spawnRotation);
+            Despawn();
+            return;
+        }
+
+        Vector3 offset = _spawnPosition - transform.position;
+        offset.y = 0.0f;
+
+        if (offset.sqrMagnitude <= 1.0f)
+        {
+            transform.rotation = _spawnRotation;
+            Despawn();
+            return;
+        }
+
+        if (TryMoveAlongNavMeshHome())
+        {
+            return;
+        }
+
+        float speed = _agent != null ? Mathf.Max(0.1f, _agent.speed) : 3.5f;
+        transform.position += offset.normalized * speed * Time.deltaTime;
+    }
+
+    private bool TryMoveAlongNavMeshHome()
+    {
+        if (_agent == null)
+        {
+            return false;
+        }
+
+        if (!_agent.enabled)
+        {
+            _agent.enabled = true;
+        }
+
+        if (!_agent.isOnNavMesh
+            && NavMesh.SamplePosition(transform.position, out NavMeshHit hit, _navMeshSearchDistance, NavMesh.AllAreas))
+        {
+            _agent.Warp(hit.position);
+        }
+
+        if (!_agent.isOnNavMesh)
+        {
+            return false;
+        }
+
+        SetMoveDestination(_spawnPosition);
+        return true;
     }
 
     public virtual void Despawn()

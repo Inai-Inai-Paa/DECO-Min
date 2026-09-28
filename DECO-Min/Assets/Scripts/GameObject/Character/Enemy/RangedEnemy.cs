@@ -82,14 +82,16 @@ public class RangedEnemy : Enemy
         _alertDistance = _detectionRange;
         _attackCooldown = Mathf.Max(0.0f, _attackInterval);
 
+        _moveSpeed = Mathf.Max(0.0f, _moveSpeed);
+
         if (_agent == null)
         {
             TryGetComponent(out _agent);
         }
 
-        if (_agent != null)
+        if (_agent != null && _agent.isActiveAndEnabled && _agent.isOnNavMesh)
         {
-            _agent.speed = Mathf.Max(0.0f, _moveSpeed);
+            StopMove();
         }
     }
 

@@ -9,22 +9,12 @@ public class RangedEnemyChase : RangedEnemyState
 
     public override void Enter()
     {
-        rangedEnemy.ResumeMove();
+        rangedEnemy.StopMove();
     }
 
     public override void Update()
     {
-        if (!rangedEnemy.IsTargetWithinHomeChaseDistance())
-        {
-            ChangeRangedState<RangedEnemyReturn>(null);
-            return;
-        }
-
-        if (!rangedEnemy.HasTarget() || rangedEnemy.Awareness == EnemyAwareness.Unaware)
-        {
-            ChangeRangedState<RangedEnemyIdle>(_idleState);
-            return;
-        }
+        rangedEnemy.StopMove();
 
         if (rangedEnemy.IsTargetInAttackRange() && rangedEnemy.HasLineOfSightToTarget())
         {
@@ -32,6 +22,6 @@ public class RangedEnemyChase : RangedEnemyState
             return;
         }
 
-        rangedEnemy.SetTargetDestination();
+        ChangeRangedState<RangedEnemyIdle>(_idleState);
     }
 }

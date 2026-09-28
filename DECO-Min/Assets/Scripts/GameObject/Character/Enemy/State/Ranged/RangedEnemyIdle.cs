@@ -5,7 +5,6 @@ public class RangedEnemyIdle : RangedEnemyState
 {
     [Header("TransitionState")]
     [SerializeField] private EnemyState _alertState;
-    [SerializeField] private EnemyState _chaseState;
     [SerializeField] private EnemyState _attackState;
 
     public override void Enter()
@@ -15,27 +14,18 @@ public class RangedEnemyIdle : RangedEnemyState
 
     public override void Update()
     {
-        if (!rangedEnemy.IsTargetWithinHomeChaseDistance())
+        rangedEnemy.StopMove();
+
+        if (rangedEnemy.Awareness == EnemyAwareness.Engaged
+            && rangedEnemy.IsTargetInAttackRange()
+            && rangedEnemy.HasLineOfSightToTarget())
         {
-            ChangeRangedState<RangedEnemyReturn>(null);
+            ChangeRangedState<RangedEnemyAttack>(_attackState);
             return;
         }
 
-        if (rangedEnemy.Awareness == EnemyAwareness.Engaged)
-        {
-            if (rangedEnemy.IsTargetInAttackRange() && rangedEnemy.HasLineOfSightToTarget())
-            {
-                ChangeRangedState<RangedEnemyAttack>(_attackState);
-            }
-            else
-            {
-                ChangeRangedState<RangedEnemyChase>(_chaseState);
-            }
-
-            return;
-        }
-
-        if (rangedEnemy.Awareness == EnemyAwareness.Alert)
+        if (rangedEnemy.Awareness == EnemyAwareness.Alert
+            || rangedEnemy.Awareness == EnemyAwareness.Engaged)
         {
             ChangeRangedState<RangedEnemyAlert>(_alertState);
         }

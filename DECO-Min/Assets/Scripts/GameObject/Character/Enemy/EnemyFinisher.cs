@@ -244,6 +244,7 @@ public partial class Enemy
             return;
         }
 
+        _animator.SetTrigger("Stun");
         _isStunned = true;
         _isDown = true;
         _stunTimer = 0.0f;

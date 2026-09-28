@@ -1,3 +1,6 @@
+using NUnit.Framework;
+using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using static UnityEngine.Rendering.DebugUI;
 
@@ -108,7 +111,7 @@ public partial class Player : Character
             _idleTimer = 0.0f;
         }
 
-            base.FixedUpdate();
+        base.FixedUpdate();
     }
 
     public void ChangePlayerState(PlayerState nextState)
@@ -146,12 +149,13 @@ public partial class Player : Character
     // ƒV[ƒ‹‘Œ¸ˆ—
     public void AddSeal(int amount, bool isAddTortal)
     {
-        if(isAddTortal)
+        if (isAddTortal)
             _status.TotalSealCount += amount;
         _status.CurrentSealCount += amount;
     }
 
-    public void RemoveSeal(int amount) {
+    public void RemoveSeal(int amount)
+    {
         _status.CurrentSealCount -= amount;
         if (_status.CurrentSealCount < 0)
             _status.CurrentSealCount = 0;

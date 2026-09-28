@@ -135,6 +135,9 @@ public partial class Enemy : Character, IDamageable
     [SerializeField]
     private GameObject _sealPrefab;
 
+    [Header("アニメーション")]
+    public Animator _animator;
+
     private bool _isGrounded;
     private int _currentSealHealth;
     private bool _isDown;
@@ -1267,20 +1270,20 @@ public partial class Enemy : Character, IDamageable
             return;
         }
 
-        if (_isDown)
-        {
-            if (IsFinisherAttack(other)
-                || (_damageModel == EnemyDamageModel.Seal
-                    && _treatSealAttackAsFinisherWhenDown
-                    && HasTag(other, _sealAttackTag)))
-            {
-                Destroy(other.gameObject);
-                BeginFinisher();
-                CompleteFinisher();
-            }
+        //if (_isDown)
+        //{
+        //    if (IsFinisherAttack(other)
+        //        || (_damageModel == EnemyDamageModel.Seal
+        //            && _treatSealAttackAsFinisherWhenDown
+        //            && HasTag(other, _sealAttackTag)))
+        //    {
+        //        Destroy(other.gameObject);
+        //        BeginFinisher();
+        //        CompleteFinisher();
+        //    }
 
-            return;
-        }
+        //    return;
+        //}
 
         if (_isStunned)
         {

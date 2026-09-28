@@ -56,6 +56,7 @@ public partial class Player : Character
         };
         _playerInput.PlayerControll.Attack.started += _ =>
         {
+            Debug.Log("attack");
             playerInputData.AttackPressed = true;
         };
         _playerInput.PlayerControll.Attack.canceled += _ =>

@@ -8,6 +8,8 @@ public class TackleEnemyTackle : TackleEnemyState
 
     private Vector3 _tackleDirection;
     private float _tackleMoveDistance;
+    private float _travelLimit;
+    private float _elapsed;
     private bool _hasHitTarget;
 
     public override void Enter()
@@ -15,9 +17,13 @@ public class TackleEnemyTackle : TackleEnemyState
         tackleEnemy.SetCommittedAttack(true);
         tackleEnemy.StopMoveForState();
         tackleEnemy.BeginDirectMovementForState();
+        tackleEnemy.IgnorePlayerBodyCollision();
         _tackleMoveDistance = 0.0f;
+        _elapsed = 0.0f;
         _hasHitTarget = false;
+        _travelLimit = tackleEnemy.GetTackleTravelDistance();
         _tackleDirection = tackleEnemy.GetLockedTackleDirection();
+
         if (_tackleDirection.sqrMagnitude > 0.0001f)
         {
             tackleEnemy.transform.rotation = Quaternion.LookRotation(_tackleDirection);
@@ -29,18 +35,26 @@ public class TackleEnemyTackle : TackleEnemyState
         tackleEnemy.SetCommittedAttack(false);
         tackleEnemy.EndDirectMovementForState();
         tackleEnemy.ClearLockedTackleDirection();
+        tackleEnemy.ReleasePlayerBodyCollision();
     }
 
     public override void Update()
     {
-        if (!tackleEnemy.IsTargetWithinHomeChaseDistanceForState())
+        if (_tackleDirection.sqrMagnitude > 0.0001f)
         {
-            ChangeTackleState<TackleEnemyReturn>(null);
+            tackleEnemy.transform.rotation = Quaternion.LookRotation(_tackleDirection);
+        }
+
+        _elapsed += Time.deltaTime;
+        float remaining = _travelLimit - _tackleMoveDistance;
+
+        if (_elapsed >= tackleEnemy.TackleDuration || remaining <= 0.001f)
+        {
+            ChangeTackleState<TackleEnemyCooldown>(_cooldownState);
             return;
         }
 
-        float moveDistance = tackleEnemy.TackleSpeed * Time.deltaTime;
-        Vector3 moveValue = _tackleDirection * moveDistance;
+        float moveDistance = Mathf.Min(tackleEnemy.TackleSpeed * Time.deltaTime, remaining);
 
         if (tackleEnemy.IsTackleBlocked(_tackleDirection, moveDistance))
         {
@@ -48,19 +62,12 @@ public class TackleEnemyTackle : TackleEnemyState
             return;
         }
 
-        tackleEnemy.MoveDirectForState(moveValue);
+        tackleEnemy.MoveDirectForState(_tackleDirection * moveDistance);
         _tackleMoveDistance += moveDistance;
 
-        if (!_hasHitTarget && tackleEnemy.TryTackleHit())
+        if (!_hasHitTarget && tackleEnemy.TryTacklePlayer(_tackleDirection))
         {
             _hasHitTarget = true;
-            ChangeTackleState<TackleEnemyCooldown>(_cooldownState);
-            return;
-        }
-
-        if (_tackleMoveDistance >= tackleEnemy.TackleDistance)
-        {
-            ChangeTackleState<TackleEnemyCooldown>(_cooldownState);
         }
     }
 }

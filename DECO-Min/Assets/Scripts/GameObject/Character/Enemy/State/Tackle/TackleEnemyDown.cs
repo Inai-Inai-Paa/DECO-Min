@@ -7,6 +7,8 @@ public class TackleEnemyDown : TackleEnemyState
 
     public override void Enter()
     {
+        tackleEnemy.EndDirectMovementForState();
+        tackleEnemy.ReleasePlayerBodyCollision();
         tackleEnemy.StopMoveForState();
         _downTimer = 0.0f;
     }

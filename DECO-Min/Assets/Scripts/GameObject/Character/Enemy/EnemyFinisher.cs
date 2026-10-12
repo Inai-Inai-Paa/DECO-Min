@@ -43,7 +43,7 @@ public partial class Enemy
     public bool IsStunned => _isStunned;
     public bool IsFinishing => _isFinishing;
     public bool CanBeFinished =>
-        _isStunned && !_isFinishing && !_isDisappearing && !_isDead && !_isDespawning;
+        _isDown && !_isFinishing && !_isDisappearing && !_isDead && !_isDespawning;
     public bool IsCombatAIFrozen => _isStunned || _isFinishing || _isDisappearing;
 
     public static float GetPlayerBodyLength(Transform player)

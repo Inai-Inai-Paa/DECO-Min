@@ -4,33 +4,44 @@ using UnityEngine;
 public class TackleEnemyAlert : TackleEnemyState
 {
     [Header("TransitionState")]
-    [SerializeField] private EnemyState _patrolState;
-    [SerializeField] private EnemyState _chaseState;
+    [SerializeField] private EnemyState _chargeState;
+
+    private float _aimTimer;
 
     public override void Enter()
     {
         tackleEnemy.StopMoveForState();
+        tackleEnemy.ClearLockedTackleDirection();
+        tackleEnemy.RememberVisibleAimPoint();
+        _aimTimer = 0.0f;
     }
 
     public override void Update()
     {
-        if (!tackleEnemy.IsTargetWithinHomeChaseDistanceForState())
+        tackleEnemy.RememberVisibleAimPoint();
+
+        if (tackleEnemy.HasTargetForState() && tackleEnemy.HasLineOfSightToTarget())
         {
-            ChangeTackleState<TackleEnemyReturn>(null);
+            tackleEnemy.LookAtTargetForState();
+        }
+        else if (tackleEnemy.HasAimPoint)
+        {
+            tackleEnemy.LookAtHorizontalPoint(tackleEnemy.AimPoint);
+        }
+
+        _aimTimer += Time.deltaTime;
+
+        if (_aimTimer < tackleEnemy.AimFollowTime)
+        {
             return;
         }
 
-        tackleEnemy.LookAtTargetForState();
+        tackleEnemy.LockTackleAim();
 
-        if (tackleEnemy.Awareness == EnemyAwareness.Engaged)
+        if (tackleEnemy._animator != null)
         {
-            ChangeTackleState<TackleEnemyChase>(_chaseState);
-            return;
+            tackleEnemy._animator.SetTrigger("Charge");
         }
-
-        if (tackleEnemy.Awareness == EnemyAwareness.Unaware)
-        {
-            ChangeTackleState<TackleEnemyPatrol>(_patrolState);
-        }
+        ChangeTackleState<TackleEnemyCharge>(_chargeState);
     }
 }

@@ -42,21 +42,21 @@ public class PlayerMove : PlayerState
 
                 foreach (Collider hit in hits)
                 {
-                    if(hit.CompareTag("Enemy"))
+                    Enemy enemy = hit.GetComponentInParent<Enemy>();
+
+                    if (enemy == null || !enemy.CanBeFinished)
                     {
-                        Enemy enemy = hit.GetComponentInParent<Enemy>();
-
-                        if (enemy != null)
-                        {
-                            if(enemy.IsStunned == true)
-                            {
-                                player._animator.SetTrigger("Finish");
-
-                                enemy.TryBeginFinisher(player.transform);
-                                enemy.CompleteFinisher();
-                            }
-                        }
+                        continue;
                     }
+
+                    if (!enemy.TryBeginFinisher(player.transform))
+                    {
+                        continue;
+                    }
+
+                    player._animator.SetTrigger("Finish");
+                    enemy.CompleteFinisher();
+                    break;
                 }
             }
         }

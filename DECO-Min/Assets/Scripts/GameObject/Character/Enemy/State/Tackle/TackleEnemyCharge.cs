@@ -4,53 +4,30 @@ using UnityEngine;
 public class TackleEnemyCharge : TackleEnemyState
 {
     [Header("TransitionState")]
-    [SerializeField] private EnemyState _patrolState;
     [SerializeField] private EnemyState _tackleState;
 
-    private float _chargeTimer;
-    private bool _isAimLocked;
+    private float _windupTimer;
 
     public override void Enter()
     {
         tackleEnemy.StopMoveForState();
-        tackleEnemy.ClearLockedTackleDirection();
-        _chargeTimer = 0.0f;
-        _isAimLocked = false;
+        tackleEnemy.LockTackleAim();
+        _windupTimer = 0.0f;
     }
 
     public override void Update()
     {
-        if (!tackleEnemy.IsTargetWithinHomeChaseDistanceForState())
+        _windupTimer += Time.deltaTime;
+
+        if (_windupTimer < tackleEnemy.WindupTime)
         {
-            tackleEnemy._animator.SetTrigger("Return");
-            ChangeTackleState<TackleEnemyReturn>(null);
             return;
         }
 
-        if (!tackleEnemy.HasTargetForState() || tackleEnemy.IsTargetLostForState())
-        {
-            tackleEnemy._animator.SetTrigger("Return");
-            ChangeTackleState<TackleEnemyPatrol>(_patrolState);
-            return;
-        }
-
-        _chargeTimer += Time.deltaTime;
-
-        if (!_isAimLocked && _chargeTimer >= tackleEnemy.ChargeTime - tackleEnemy.AimLockLeadTime)
-        {
-            tackleEnemy.LockTackleAim();
-            _isAimLocked = true;
-        }
-
-        if (!_isAimLocked)
-        {
-            tackleEnemy.LookAtTargetForState();
-        }
-
-        if (_chargeTimer >= tackleEnemy.ChargeTime)
+        if (tackleEnemy._animator != null)
         {
             tackleEnemy._animator.SetTrigger("Tackle");
-            ChangeTackleState<TackleEnemyTackle>(_tackleState);
         }
+        ChangeTackleState<TackleEnemyTackle>(_tackleState);
     }
 }

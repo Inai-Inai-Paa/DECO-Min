@@ -5,34 +5,41 @@ public class TackleEnemyCooldown : TackleEnemyState
 {
     [Header("TransitionState")]
     [SerializeField] private EnemyState _patrolState;
-    [SerializeField] private EnemyState _chaseState;
+    [SerializeField] private EnemyState _moveAreaReturnState;
+
+    private float _waitTimer;
 
     public override void Enter()
     {
         tackleEnemy.StopMoveForState();
-        tackleEnemy.ResetAttackCooldownForState();
+        _waitTimer = 0.0f;
     }
 
     public override void Update()
     {
-        if (!tackleEnemy.IsTargetWithinHomeChaseDistanceForState())
-        {
-            ChangeTackleState<TackleEnemyReturn>(null);
-            return;
-        }
+        _waitTimer += Time.deltaTime;
 
-        if (!tackleEnemy.UpdateAttackCooldownForState())
+        if (_waitTimer < tackleEnemy.PostTackleWait)
         {
             return;
         }
 
-        if (tackleEnemy.HasTargetForState() && tackleEnemy.Awareness == EnemyAwareness.Engaged)
+        if (!tackleEnemy.IsSelfInsideMoveArea())
         {
-            ChangeTackleState<TackleEnemyChase>(_chaseState);
+            if (tackleEnemy._animator != null)
+            {
+                tackleEnemy._animator.SetTrigger("Return");
+            }
+            ChangeTackleState<TackleEnemyMoveAreaReturn>(_moveAreaReturnState);
+            return;
         }
-        else
+
+        if (tackleEnemy.IsTargetStillVisibleForTackle())
         {
-            ChangeTackleState<TackleEnemyPatrol>(_patrolState);
+            ChangeTackleState<TackleEnemyAlert>(null);
+            return;
         }
+
+        ChangeTackleState<TackleEnemyPatrol>(_patrolState);
     }
 }

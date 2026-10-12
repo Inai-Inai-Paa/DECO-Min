@@ -264,12 +264,6 @@ public partial class Enemy
         return LayerMask.GetMask("Default", "Ground");
     }
 
-    private bool IsOwnCollider(Collider hitCollider)
-    {
-        Transform hitTransform = hitCollider.transform;
-        return hitTransform == transform || hitTransform.IsChildOf(transform);
-    }
-
     private Quaternion RotationOnSurface(Vector3 surfaceNormal)
     {
         Vector3 forward = Vector3.ProjectOnPlane(transform.forward, surfaceNormal);

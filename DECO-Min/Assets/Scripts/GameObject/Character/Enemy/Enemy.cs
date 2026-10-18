@@ -814,6 +814,12 @@ public partial class Enemy : Character, IDamageable
             return;
         }
 
+        if (IsStationary)
+        {
+            _agent.enabled = false;
+            return;
+        }
+
         _agent.enabled = true;
         _agent.Warp(_spawnPosition);
         _agent.ResetPath();
@@ -960,6 +966,7 @@ public partial class Enemy : Character, IDamageable
 
     public bool TryCorrectToNearbyNavMeshPosition()
     {
+        if (IsStationary) return false;
         if (NavMesh.SamplePosition(transform.position, out NavMeshHit hit, _navMeshSearchDistance, NavMesh.AllAreas))
         {
             if (_agent != null && _agent.enabled)
@@ -1016,6 +1023,8 @@ public partial class Enemy : Character, IDamageable
 
         _isUsingDirectMovement = false;
 
+        if (IsStationary) return;
+
         if (_agent == null || _agent.enabled)
         {
             return;
@@ -1040,7 +1049,7 @@ public partial class Enemy : Character, IDamageable
     {
         EndDirectMovement();
 
-        if (_agent != null && NavMesh.SamplePosition(_spawnPosition, out NavMeshHit hit, _navMeshSearchDistance, NavMesh.AllAreas))
+        if (!IsStationary && _agent != null && NavMesh.SamplePosition(_spawnPosition, out NavMeshHit hit, _navMeshSearchDistance, NavMesh.AllAreas))
         {
             if (_agent.enabled)
             {
@@ -1647,8 +1656,11 @@ public partial class Enemy : Character, IDamageable
         return _separationProbe != null && collider == _separationProbe;
     }
 
+    public virtual bool IsStationary => false;
+
     public void PushHorizontal(Vector3 offset)
     {
+        if (IsStationary) return;
         offset.y = 0.0f;
 
         if (offset.sqrMagnitude <= 0.0000001f)
@@ -1780,7 +1792,7 @@ public partial class Enemy : Character, IDamageable
                 continue;
             }
 
-            if (GetInstanceID() < other.GetInstanceID())
+            if (IsStationary || (!other.IsStationary && GetInstanceID() < other.GetInstanceID()))
             {
                 continue;
             }
@@ -1796,7 +1808,7 @@ public partial class Enemy : Character, IDamageable
             }
 
             Vector3 direction = distance <= 0.0001f ? Vector3.right : offset / distance;
-            float push = (needed - distance) * 0.5f;
+            float push = (needed - distance) * (other.IsStationary ? 1.0f : 0.5f);
             PushHorizontal(direction * push);
             other.PushHorizontal(-direction * push);
         }

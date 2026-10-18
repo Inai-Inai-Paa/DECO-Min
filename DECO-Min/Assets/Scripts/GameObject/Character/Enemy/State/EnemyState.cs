@@ -16,4 +16,14 @@ public abstract class EnemyState : State
         this.enemy = enemy;
         this.stateMachine = stateMachine;
     }
+
+    protected void ChangeTo<T>(EnemyState stateTemplate)
+        where T : EnemyState
+    {
+        EnemyState nextState = stateTemplate != null
+            ? Instantiate(stateTemplate)
+            : CreateInstance<T>();
+
+        enemy.ChangeEnemyState(nextState);
+    }
 }

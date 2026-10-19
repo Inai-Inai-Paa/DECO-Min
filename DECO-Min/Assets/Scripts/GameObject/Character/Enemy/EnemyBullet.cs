@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 public enum EnemyBulletFlight
@@ -27,9 +28,46 @@ public class EnemyBullet : MonoBehaviour
     private float _aliveTimer;
     private bool _hasHit;
     private bool _useGravity;
+    private bool _timedArea;
+    private Vector3 _launchPosition;
+    private Vector3 _launchVelocity;
+    private Vector3 _impactPoint;
+    private float _flightTime;
+    private float _areaRadius;
+    private int _areaDamage;
+
+    public static Vector3 CalculateTimedVelocity(Vector3 start, Vector3 end, float duration, float gravity)
+    {
+        if (duration <= 0 || float.IsNaN(duration) || float.IsInfinity(duration))
+            throw new ArgumentOutOfRangeException(nameof(duration));
+        return (end - start) / duration + Vector3.up * (Mathf.Abs(gravity) * duration * 0.5f);
+    }
+
+    public Vector3 GetTimedLaunchVelocity(Vector3 start, Vector3 end, float duration)
+    {
+        return CalculateTimedVelocity(start, end, duration, _gravity);
+    }
+
+    public bool LaunchTimedArea(Vector3 targetPoint, Enemy owner, float duration, float radius, int damage)
+    {
+        if (duration <= 0 || float.IsNaN(duration) || float.IsInfinity(duration)) return false;
+        _owner = owner;
+        _timedArea = true;
+        _aliveTimer = 0;
+        _hasHit = false;
+        _launchPosition = transform.position;
+        _impactPoint = targetPoint;
+        _flightTime = duration;
+        _areaRadius = Mathf.Max(0.01f, radius);
+        _areaDamage = Mathf.Max(0, damage);
+        _launchVelocity = GetTimedLaunchVelocity(_launchPosition, targetPoint, duration);
+        transform.rotation = Quaternion.LookRotation(_launchVelocity.normalized);
+        return true;
+    }
 
     public bool LaunchAt(Vector3 targetPoint, Enemy owner)
     {
+        _timedArea = false;
         _owner = owner;
         _aliveTimer = 0.0f;
         _hasHit = false;
@@ -100,6 +138,12 @@ public class EnemyBullet : MonoBehaviour
             return;
         }
 
+        if (_timedArea)
+        {
+            AdvanceTimedFlight(Time.deltaTime);
+            return;
+        }
+
         _aliveTimer += Time.deltaTime;
 
         if (_aliveTimer >= _bulletLifeTime)
@@ -154,6 +198,17 @@ public class EnemyBullet : MonoBehaviour
                 continue;
             }
 
+            if (_timedArea)
+            {
+                if (hit.collider.GetComponentInParent<Enemy>() != null) continue;
+                if (IsObstacle(hit.collider) || hit.collider.GetComponentInParent<Player>() != null)
+                {
+                    Explode(hit.point);
+                    return false;
+                }
+                continue;
+            }
+
             if (TryApplyDamage(hit.collider))
             {
                 _hasHit = true;
@@ -179,6 +234,14 @@ public class EnemyBullet : MonoBehaviour
             return;
         }
 
+        if (_timedArea)
+        {
+            if (other.GetComponentInParent<Enemy>() == null
+                && ((!other.isTrigger && IsObstacle(other)) || other.GetComponentInParent<Player>() != null))
+                Explode(transform.position);
+            return;
+        }
+
         if (TryApplyDamage(other))
         {
             _hasHit = true;
@@ -195,6 +258,44 @@ public class EnemyBullet : MonoBehaviour
     private bool IsObstacle(Collider other)
     {
         return (_obstacleMask.value & (1 << other.gameObject.layer)) != 0;
+    }
+
+    private void AdvanceTimedFlight(float deltaTime)
+    {
+        if (_hasHit) return;
+        _aliveTimer = Mathf.Min(_flightTime, _aliveTimer + Mathf.Max(0, deltaTime));
+        Vector3 position = _launchPosition + _launchVelocity * _aliveTimer
+            + Vector3.down * (0.5f * Mathf.Abs(_gravity) * _aliveTimer * _aliveTimer);
+        if (!TryMove(position - transform.position)) return;
+        Vector3 tangent = _launchVelocity + Vector3.down * (Mathf.Abs(_gravity) * _aliveTimer);
+        if (tangent.sqrMagnitude > 0.0001f) transform.rotation = Quaternion.LookRotation(tangent);
+        if (_aliveTimer >= _flightTime) Explode(_impactPoint);
+    }
+
+    private void Explode(Vector3 position)
+    {
+        if (_hasHit) return;
+        _hasHit = true;
+        transform.position = position;
+        ApplyAreaDamage(position);
+        Destroy(gameObject);
+    }
+
+    private void ApplyAreaDamage(Vector3 position)
+    {
+        var damaged = new HashSet<object>();
+        foreach (Collider hit in Physics.OverlapSphere(position, _areaRadius, ~0, QueryTriggerInteraction.Collide))
+        {
+            if (IsOwnedBySource(hit) || hit.GetComponentInParent<Enemy>() != null) continue;
+            Player player = hit.GetComponentInParent<Player>();
+            if (player != null)
+            {
+                if (damaged.Add(player)) player.TryDamage(_areaDamage);
+                continue;
+            }
+            IDamageable damageable = hit.GetComponentInParent<IDamageable>();
+            if (damageable != null && damaged.Add(damageable)) damageable.TakeDamage(_areaDamage);
+        }
     }
 
     private bool IsOwnedBySource(Collider other)

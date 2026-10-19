@@ -21,15 +21,15 @@ public class MissionUIManager : MonoBehaviour
 
     public void Start()
     {
-        
         SetMissionRoot(false);
     }
 
     public void DrawMissionUI()
     {
-       _uILine.Initialize(Missionmanager.Instance.targetObject.Object.missionText);
-       _uILine.UpdateText();
+    
     }
+
+   
 
     public void SetMissionRoot(bool flag)
     {

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AI;
 using UnityEngine.Serialization;
@@ -93,6 +94,10 @@ public partial class Enemy : Character, IDamageable
     [SerializeField]
     private float _navMeshSearchDistance = 3.0f;
 
+    [Header("Enemy Separation")]
+    [SerializeField]
+    private float _enemySeparationRadius = 0.3f;
+
     [Header("Home")]
     [SerializeField]
     private float _maxChaseDistanceFromHome = 18.0f;
@@ -129,13 +134,22 @@ public partial class Enemy : Character, IDamageable
     [SerializeField]
     private bool _treatSealAttackAsFinisherWhenDown = true;
 
-    [SerializeField] private GameObject _mySealPrefab;
+    [Header("Seal")]
+    [FormerlySerializedAs("_itemPrefab")]
+    [FormerlySerializedAs("_mySealPrefab")]
+    [SerializeField]
+    private GameObject _sealPrefab;
+
+    [Header("アニメーション")]
+    public Animator _animator;
 
     private bool _isGrounded;
     private int _currentSealHealth;
     private bool _isDown;
     private bool _isDead;
     private bool _isDespawning;
+    private bool _isPopulationReturning;
+    private float _populationReturnTimer;
     private bool _hasNotifiedRemoved;
     private Vector3 _spawnPosition;
     private Quaternion _spawnRotation;
@@ -154,11 +168,21 @@ public partial class Enemy : Character, IDamageable
     private float _leashSampleTimer;
     private float _storedAgentSpeed;
     private bool _insideLeash = true;
+    private SphereCollider _separationProbe;
+    private bool _releasePlayerCollisionWhenClear;
+    private readonly List<IgnoredBodyCollider> _ignoredPlayerColliders = new List<IgnoredBodyCollider>();
+
+    private struct IgnoredBodyCollider
+    {
+        public Collider Collider;
+        public LayerMask ExcludeLayers;
+    }
 
     public bool IsGrounded => _isGrounded;
     public bool IsDown => _isDown;
     public bool IsDead => _isDead;
     public bool IsDespawning => _isDespawning;
+    public bool IsPopulationReturning => _isPopulationReturning;
     public Vector3 HomePosition => _spawnPosition;
     public Quaternion HomeRotation => _spawnRotation;
     public float ReturnImpossibleTime => _returnImpossibleTime;
@@ -182,6 +206,7 @@ public partial class Enemy : Character, IDamageable
         base.Start();
 
         InitializeEnemyReferences();
+        SetupEnemyColliders();
         SetSpawnPose(transform.position, transform.rotation);
         ResetRuntimeStatus();
 
@@ -189,22 +214,51 @@ public partial class Enemy : Character, IDamageable
         {
             ChangeEnemyState(Instantiate(_initState));
         }
+
+        ValidateSealPrefab();
     }
 
     protected override void Update()
     {
+        if (_isPopulationReturning)
+        {
+            TickPopulationReturn();
+            return;
+        }
+
+        if (IsCombatAIFrozen)
+        {
+            FreezeMotion();
+        }
+
         TickPerception();
         base.Update();
         UpdateMoveAreaReturn();
         TickLeashSample();
         TickWaitDespawn();
+        TickStunState();
+
+        if (IsCombatAIFrozen)
+        {
+            FreezeMotion();
+        }
     }
 
     protected override void FixedUpdate()
     {
+        if (IsCombatAIFrozen)
+        {
+            FreezeMotion();
+        }
+
         UpdateGroundCheck();
 
         base.FixedUpdate();
+
+        if (IsCombatAIFrozen)
+        {
+            FreezeMotion();
+        }
     }
 
     /// <summary>
@@ -246,8 +300,19 @@ public partial class Enemy : Character, IDamageable
     /// </summary>
     public void ChangeEnemyState(EnemyState nextState)
     {
-        if (nextState == null)
+        if (nextState == null || _isPopulationReturning)
         {
+            if (nextState != null)
+            {
+                Destroy(nextState);
+            }
+
+            return;
+        }
+
+        if (IsCombatAIFrozen)
+        {
+            Destroy(nextState);
             return;
         }
 
@@ -604,6 +669,11 @@ public partial class Enemy : Character, IDamageable
 
     public void MarkCombatResumed()
     {
+        if (IsCombatAIFrozen)
+        {
+            return;
+        }
+
         _lifecycle = EnemyLifecycle.Combat;
         _waitDespawnTimer = 0.0f;
         RestoreAgentSpeed();
@@ -622,7 +692,7 @@ public partial class Enemy : Character, IDamageable
 
     public void CompleteLeashReturn()
     {
-        if (_spawnArea == null || _isDead || _lifecycle == EnemyLifecycle.Dead)
+        if (_spawnArea == null || _isDead || _lifecycle == EnemyLifecycle.Dead || IsCombatAIFrozen)
         {
             return;
         }
@@ -744,6 +814,12 @@ public partial class Enemy : Character, IDamageable
             return;
         }
 
+        if (IsStationary)
+        {
+            _agent.enabled = false;
+            return;
+        }
+
         _agent.enabled = true;
         _agent.Warp(_spawnPosition);
         _agent.ResetPath();
@@ -775,6 +851,7 @@ public partial class Enemy : Character, IDamageable
         _removalReason = EnemyRemovalReason.None;
         ClearAwareness();
         ResetSealHealth();
+        ClearStunState();
     }
 
     protected bool IsPositionInMoveArea(Vector3 position)
@@ -796,6 +873,60 @@ public partial class Enemy : Character, IDamageable
     public bool IsTargetInMoveArea()
     {
         return _target == null || IsPositionInMoveArea(_target.position);
+    }
+
+    public bool IsSelfInsideMoveArea()
+    {
+        return IsPositionInMoveArea(transform.position);
+    }
+
+    public bool HasMoveArea => _useMoveArea;
+
+    public void ClearAwarenessForState()
+    {
+        ClearAwareness();
+    }
+
+    public bool TryGetRandomMoveAreaPoint(out Vector3 point)
+    {
+        point = transform.position;
+
+        if (!_useMoveArea)
+        {
+            return false;
+        }
+
+        Vector3 center = GetMoveAreaCenter();
+        Vector3 halfSize = _moveAreaSize * 0.5f;
+
+        for (int attempt = 0; attempt < 8; attempt++)
+        {
+            Vector3 desired = center + new Vector3(
+                UnityEngine.Random.Range(-halfSize.x, halfSize.x),
+                0.0f,
+                UnityEngine.Random.Range(-halfSize.z, halfSize.z));
+            desired.y = center.y;
+
+            if (TrySampleMoveAreaPoint(desired, out point))
+            {
+                return true;
+            }
+        }
+
+        return TrySampleMoveAreaPoint(center, out point);
+    }
+
+    private bool TrySampleMoveAreaPoint(Vector3 desired, out Vector3 point)
+    {
+        if (NavMesh.SamplePosition(desired, out NavMeshHit hit, _navMeshSearchDistance, NavMesh.AllAreas)
+            && IsPositionInMoveArea(hit.position))
+        {
+            point = hit.position;
+            return true;
+        }
+
+        point = transform.position;
+        return false;
     }
 
     public bool IsTargetWithinHomeChaseDistance()
@@ -835,6 +966,7 @@ public partial class Enemy : Character, IDamageable
 
     public bool TryCorrectToNearbyNavMeshPosition()
     {
+        if (IsStationary) return false;
         if (NavMesh.SamplePosition(transform.position, out NavMeshHit hit, _navMeshSearchDistance, NavMesh.AllAreas))
         {
             if (_agent != null && _agent.enabled)
@@ -891,6 +1023,8 @@ public partial class Enemy : Character, IDamageable
 
         _isUsingDirectMovement = false;
 
+        if (IsStationary) return;
+
         if (_agent == null || _agent.enabled)
         {
             return;
@@ -915,7 +1049,7 @@ public partial class Enemy : Character, IDamageable
     {
         EndDirectMovement();
 
-        if (_agent != null && NavMesh.SamplePosition(_spawnPosition, out NavMeshHit hit, _navMeshSearchDistance, NavMesh.AllAreas))
+        if (!IsStationary && _agent != null && NavMesh.SamplePosition(_spawnPosition, out NavMeshHit hit, _navMeshSearchDistance, NavMesh.AllAreas))
         {
             if (_agent.enabled)
             {
@@ -944,6 +1078,91 @@ public partial class Enemy : Character, IDamageable
         ReturnToSpawn();
     }
 
+    public void BeginPopulationReturn()
+    {
+        if (_isDead || _isDespawning || _isPopulationReturning)
+        {
+            return;
+        }
+
+        _isPopulationReturning = true;
+        _populationReturnTimer = 0.0f;
+        _lifecycle = EnemyLifecycle.Return;
+        _isCommittedAttack = false;
+        ClearAwareness();
+        SetTarget(null);
+        stateMachine?.Shutdown();
+        TickPopulationReturn();
+    }
+
+    private void TickPopulationReturn()
+    {
+        if (_isDead || _isDespawning)
+        {
+            return;
+        }
+
+        _populationReturnTimer += Time.deltaTime;
+
+        if (TryGetComponent(out Rigidbody body) && !body.isKinematic)
+        {
+            body.linearVelocity = Vector3.zero;
+            body.angularVelocity = Vector3.zero;
+        }
+
+        if (_populationReturnTimer >= Mathf.Max(0.5f, _returnImpossibleTime))
+        {
+            transform.SetPositionAndRotation(_spawnPosition, _spawnRotation);
+            Despawn();
+            return;
+        }
+
+        Vector3 offset = _spawnPosition - transform.position;
+        offset.y = 0.0f;
+
+        if (offset.sqrMagnitude <= 1.0f)
+        {
+            transform.rotation = _spawnRotation;
+            Despawn();
+            return;
+        }
+
+        if (TryMoveAlongNavMeshHome())
+        {
+            return;
+        }
+
+        float speed = _agent != null ? Mathf.Max(0.1f, _agent.speed) : 3.5f;
+        transform.position += offset.normalized * speed * Time.deltaTime;
+    }
+
+    private bool TryMoveAlongNavMeshHome()
+    {
+        if (_agent == null)
+        {
+            return false;
+        }
+
+        if (!_agent.enabled)
+        {
+            _agent.enabled = true;
+        }
+
+        if (!_agent.isOnNavMesh
+            && NavMesh.SamplePosition(transform.position, out NavMeshHit hit, _navMeshSearchDistance, NavMesh.AllAreas))
+        {
+            _agent.Warp(hit.position);
+        }
+
+        if (!_agent.isOnNavMesh)
+        {
+            return false;
+        }
+
+        SetMoveDestination(_spawnPosition);
+        return true;
+    }
+
     public virtual void Despawn()
     {
         if (_isDead || _isDespawning)
@@ -957,9 +1176,11 @@ public partial class Enemy : Character, IDamageable
         Destroy(gameObject);
     }
 
+    protected virtual bool UsesWarpMoveAreaReturn => true;
+
     private void UpdateMoveAreaReturn()
     {
-        if (!_useMoveArea || _isDead)
+        if (!UsesWarpMoveAreaReturn || !_useMoveArea || _isDead || IsCombatAIFrozen)
         {
             return;
         }
@@ -1019,22 +1240,6 @@ public partial class Enemy : Character, IDamageable
         _isDown = false;
         ResetSealHealth();
         ResumeMove();
-    }
-
-    protected virtual void FinishDown()
-    {
-        if (_mySealPrefab != null)
-        {
-            GameObject sealObject = Instantiate(_mySealPrefab, transform.position, Quaternion.identity);
-            DroppingSeal droppingSeal = sealObject.GetComponent<DroppingSeal>();
-
-            if (droppingSeal != null)
-            {
-                droppingSeal.SetCreateSource(SealCreateSource.Enemy);
-            }
-        }
-
-        Die();
     }
 
     public void SetTarget(Transform target)
@@ -1148,7 +1353,7 @@ public partial class Enemy : Character, IDamageable
 
     protected virtual void ApplyIncomingDamage(int damage)
     {
-        if (_isDead || _isDespawning || damage <= 0)
+        if (_isDead || _isDespawning || IsCombatAIFrozen || damage <= 0)
         {
             return;
         }
@@ -1206,9 +1411,7 @@ public partial class Enemy : Character, IDamageable
 
         if (player != null)
         {
-            player.TryDamage(_attackDamage);
-
-            return true;
+            return player.TryDamage(_attackDamage);
         }
 
         IDamageable damageable = targetCollider.GetComponent<IDamageable>();
@@ -1227,10 +1430,6 @@ public partial class Enemy : Character, IDamageable
         return true;
     }
 
-    /// <summary>
-    /// シール攻撃とフィニッシャーのヒット処理
-    /// </summary>
-    /// <param name="other"></param>
     private void OnTriggerEnter(Collider other)
     {
         if (other == null || _isDead || _isDespawning)
@@ -1243,27 +1442,24 @@ public partial class Enemy : Character, IDamageable
 
     protected virtual void HandleIncomingAttack(Collider other)
     {
-        bool isSealAttack = HasTag(other, _sealAttackTag);
-        bool isFinisher = IsFinisherAttack(other);
-
-        if (_damageModel == EnemyDamageModel.Seal && _isDown)
+        if (_isDead || _isDespawning || _isFinishing || _isDisappearing || _isStunned)
         {
-            if (isFinisher || (_treatSealAttackAsFinisherWhenDown && isSealAttack))
-            {
-                Destroy(other.gameObject);
-                FinishDown();
-            }
-
             return;
         }
 
-        if (!isSealAttack)
+        if (!IsPlayerAttack(other))
         {
             return;
         }
 
         Destroy(other.gameObject);
-        ApplyIncomingDamage(1);
+
+        if (_isDown)
+        {
+            return;
+        }
+
+        TakeSealHit();
     }
 
     private bool IsFinisherAttack(Collider targetCollider)
@@ -1316,7 +1512,7 @@ public partial class Enemy : Character, IDamageable
 
     private void TickPerception()
     {
-        if (_isDead || _isDespawning || _isDown)
+        if (_isDead || _isDespawning || _isDown || IsCombatAIFrozen)
         {
             return;
         }
@@ -1453,7 +1649,256 @@ public partial class Enemy : Character, IDamageable
             || _target.IsChildOf(hitTransform);
     }
 
-    private void OnDrawGizmosSelected()
+    public float SeparationRadius => Mathf.Max(0.05f, _enemySeparationRadius);
+
+    public bool IsSeparationProbe(Collider collider)
+    {
+        return _separationProbe != null && collider == _separationProbe;
+    }
+
+    public virtual bool IsStationary => false;
+
+    public void PushHorizontal(Vector3 offset)
+    {
+        if (IsStationary) return;
+        offset.y = 0.0f;
+
+        if (offset.sqrMagnitude <= 0.0000001f)
+        {
+            return;
+        }
+
+        if (_isUsingDirectMovement || _agent == null || !_agent.enabled || !_agent.isOnNavMesh)
+        {
+            transform.position += offset;
+            return;
+        }
+
+        _agent.Move(offset);
+    }
+
+    public void IgnorePlayerBodyCollision()
+    {
+        _releasePlayerCollisionWhenClear = false;
+        ApplyPlayerCollisionExclude();
+    }
+
+    public void ReleasePlayerBodyCollision()
+    {
+        if (_ignoredPlayerColliders.Count == 0)
+        {
+            return;
+        }
+
+        _releasePlayerCollisionWhenClear = true;
+    }
+
+    private void LateUpdate()
+    {
+        SeparateFromNearbyEnemies();
+
+        if (_releasePlayerCollisionWhenClear && !IsPlayerOverlappingBody())
+        {
+            _releasePlayerCollisionWhenClear = false;
+            RestorePlayerBodyCollision();
+        }
+    }
+
+    private void SetupEnemyColliders()
+    {
+        int enemyLayer = LayerMask.NameToLayer("Enemy");
+
+        if (enemyLayer < 0)
+        {
+            return;
+        }
+
+        int enemyBit = 1 << enemyLayer;
+        Collider[] colliders = GetComponentsInChildren<Collider>(true);
+
+        for (int i = 0; i < colliders.Length; i++)
+        {
+            Collider body = colliders[i];
+
+            if (body == null || body.gameObject.name == "EnemySeparation")
+            {
+                continue;
+            }
+
+            body.gameObject.layer = enemyLayer;
+            LayerMask exclude = body.excludeLayers;
+            exclude.value |= enemyBit;
+            body.excludeLayers = exclude;
+        }
+
+        Transform existing = transform.Find("EnemySeparation");
+        GameObject probeObject = existing != null ? existing.gameObject : new GameObject("EnemySeparation");
+
+        if (existing == null)
+        {
+            probeObject.transform.SetParent(transform, false);
+        }
+
+        probeObject.layer = enemyLayer;
+        _separationProbe = probeObject.GetComponent<SphereCollider>();
+
+        if (_separationProbe == null)
+        {
+            _separationProbe = probeObject.AddComponent<SphereCollider>();
+        }
+
+        _separationProbe.isTrigger = true;
+        _separationProbe.radius = SeparationRadius;
+        _separationProbe.center = Vector3.zero;
+        LayerMask include = default;
+        include.value = enemyBit;
+        _separationProbe.includeLayers = include;
+    }
+
+    private void SeparateFromNearbyEnemies()
+    {
+        if (_isDead || _isDespawning || _separationProbe == null)
+        {
+            return;
+        }
+
+        int enemyLayer = LayerMask.NameToLayer("Enemy");
+
+        if (enemyLayer < 0)
+        {
+            return;
+        }
+
+        float radius = SeparationRadius;
+        Collider[] hits = Physics.OverlapSphere(
+            _separationProbe.transform.position + _separationProbe.center,
+            radius,
+            1 << enemyLayer,
+            QueryTriggerInteraction.Collide);
+
+        for (int i = 0; i < hits.Length; i++)
+        {
+            Collider hit = hits[i];
+
+            if (hit == null || hit == _separationProbe)
+            {
+                continue;
+            }
+
+            Enemy other = hit.GetComponentInParent<Enemy>();
+
+            if (other == null || other == this || other.IsDead || other.IsDespawning || !other.IsSeparationProbe(hit))
+            {
+                continue;
+            }
+
+            if (IsStationary || (!other.IsStationary && GetInstanceID() < other.GetInstanceID()))
+            {
+                continue;
+            }
+
+            Vector3 offset = transform.position - other.transform.position;
+            offset.y = 0.0f;
+            float distance = offset.magnitude;
+            float needed = radius + other.SeparationRadius;
+
+            if (distance >= needed)
+            {
+                continue;
+            }
+
+            Vector3 direction = distance <= 0.0001f ? Vector3.right : offset / distance;
+            float push = (needed - distance) * (other.IsStationary ? 1.0f : 0.5f);
+            PushHorizontal(direction * push);
+            other.PushHorizontal(-direction * push);
+        }
+    }
+
+    private void ApplyPlayerCollisionExclude()
+    {
+        if (_ignoredPlayerColliders.Count > 0)
+        {
+            return;
+        }
+
+        int playerLayer = LayerMask.NameToLayer("Player");
+
+        if (playerLayer < 0)
+        {
+            return;
+        }
+
+        int playerBit = 1 << playerLayer;
+        Collider[] colliders = GetComponentsInChildren<Collider>(true);
+
+        for (int i = 0; i < colliders.Length; i++)
+        {
+            Collider body = colliders[i];
+
+            if (body == null || body == _separationProbe)
+            {
+                continue;
+            }
+
+            _ignoredPlayerColliders.Add(new IgnoredBodyCollider
+            {
+                Collider = body,
+                ExcludeLayers = body.excludeLayers
+            });
+
+            LayerMask exclude = body.excludeLayers;
+            exclude.value |= playerBit;
+            body.excludeLayers = exclude;
+        }
+    }
+
+    private void RestorePlayerBodyCollision()
+    {
+        for (int i = 0; i < _ignoredPlayerColliders.Count; i++)
+        {
+            IgnoredBodyCollider state = _ignoredPlayerColliders[i];
+
+            if (state.Collider != null)
+            {
+                state.Collider.excludeLayers = state.ExcludeLayers;
+            }
+        }
+
+        _ignoredPlayerColliders.Clear();
+    }
+
+    private bool IsPlayerOverlappingBody()
+    {
+        int playerLayer = LayerMask.NameToLayer("Player");
+
+        if (playerLayer < 0)
+        {
+            return false;
+        }
+
+        Collider[] hits = Physics.OverlapSphere(
+            transform.position + Vector3.up * 0.4f,
+            0.75f,
+            1 << playerLayer,
+            QueryTriggerInteraction.Ignore);
+
+        for (int i = 0; i < hits.Length; i++)
+        {
+            if (hits[i] != null && !IsOwnCollider(hits[i]))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    protected virtual void OnDrawGizmosSelected()
+    {
+        DrawVisionFanGizmo(Color.cyan);
+    }
+
+    protected void DrawVisionFanGizmo(Color color)
     {
         Vector3 eye = transform.position + Vector3.up * _eyeHeight;
         Vector3 forward = transform.forward;
@@ -1472,9 +1917,20 @@ public partial class Enemy : Character, IDamageable
         Quaternion left = Quaternion.AngleAxis(-_viewAngle * 0.5f, Vector3.up);
         Quaternion right = Quaternion.AngleAxis(_viewAngle * 0.5f, Vector3.up);
 
-        Gizmos.color = Color.cyan;
+        Gizmos.color = color;
         Gizmos.DrawLine(eye, eye + left * forward * range);
         Gizmos.DrawLine(eye, eye + right * forward * range);
         Gizmos.DrawLine(eye, eye + forward * range);
+    }
+
+    protected void DrawMoveAreaGizmo(Color color)
+    {
+        if (!_useMoveArea)
+        {
+            return;
+        }
+
+        Gizmos.color = color;
+        Gizmos.DrawWireCube(GetMoveAreaCenter(), _moveAreaSize);
     }
 }

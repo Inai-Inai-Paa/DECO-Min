@@ -5,7 +5,7 @@ public class SubMission : ScriptableObject
 {
     [Header("ƒ~ƒbƒVƒ‡ƒ“İ’è")]
     [SerializeField] public SubMissionPreset missionPreset;
-    [SerializeField] public string MissionText;
+    [SerializeField] public string missionText;
 
     [Tooltip("ŠÔ§ŒÀ(•b)")]
     [SerializeField] public float timeLimit = 60;

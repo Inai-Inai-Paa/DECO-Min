@@ -26,7 +26,6 @@ public class RangedEnemy : Enemy
     [SerializeField] private Transform _turretPivot;
     [SerializeField, Min(0.5f)] private float _preparationTime = 1.5f;
     [SerializeField, Min(0)] private float _aimLockTime = 0.5f;
-    [SerializeField, Min(0.01f)] private float _flightTime = 3f;
     [SerializeField, Min(0.01f)] private float _blastRadius = 2f;
     [SerializeField, Min(0)] private float _rotationAngleMultiplier = 2f;
     [SerializeField, Min(1)] private float _maximumRotationSpeed = 360f;
@@ -97,7 +96,6 @@ public class RangedEnemy : Enemy
     {
         _preparationTime = Mathf.Max(0.5f, _preparationTime);
         _aimLockTime = Mathf.Clamp(_aimLockTime, 0, _preparationTime);
-        _flightTime = Mathf.Max(0.01f, _flightTime);
         _blastRadius = Mathf.Max(0.01f, _blastRadius);
         if (_attackRange > _detectionRange)
         {
@@ -303,15 +301,14 @@ public class RangedEnemy : Enemy
     {
         if (_turretPivot == null || _bulletPrefab == null) return false;
         Transform muzzle = _firePoint != null ? _firePoint : _turretPivot;
-        Vector3 velocity = _bulletPrefab.GetTimedLaunchVelocity(muzzle.position, point, _flightTime);
-        if (velocity.sqrMagnitude < 0.0001f) return false;
+        if (!_bulletPrefab.TryGetAreaLaunchVelocity(muzzle.position, point, out Vector3 velocity)) return false;
         // Compensate for a muzzle that has its own local rotation under the upper body.
         Quaternion desired = Quaternion.LookRotation(velocity) * Quaternion.Inverse(muzzle.rotation) * _turretPivot.rotation;
         float angle = Quaternion.Angle(_turretPivot.rotation, desired);
         float speed = Mathf.Min(_maximumRotationSpeed, Mathf.Max(0, _rotationSpeed) + angle * _rotationAngleMultiplier);
         _turretPivot.rotation = Quaternion.RotateTowards(_turretPivot.rotation, desired, speed * Mathf.Max(0, deltaTime));
         // Recompute after rotating: the muzzle may be offset from the pivot.
-        velocity = _bulletPrefab.GetTimedLaunchVelocity(muzzle.position, point, _flightTime);
+        if (!_bulletPrefab.TryGetAreaLaunchVelocity(muzzle.position, point, out velocity)) return false;
         return Vector3.Angle(muzzle.forward, velocity) <= 0.1f;
     }
 
@@ -338,7 +335,7 @@ public class RangedEnemy : Enemy
             firePoint.position,
             Quaternion.LookRotation(launchDirection.normalized));
 
-        if (!bullet.LaunchTimedArea(aimPoint, this, _flightTime, _blastRadius, _attackDamage))
+        if (!bullet.LaunchArea(aimPoint, this, _blastRadius, _attackDamage))
         {
             Destroy(bullet.gameObject);
             return false;

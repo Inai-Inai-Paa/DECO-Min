@@ -105,7 +105,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::EnemyBullet
   _flight: 0
   _bulletSpeed: 12
-  _gravity: 12
+  _gravity: 8
   _bulletDamage: 10
   _bulletLifeTime: 5
   _obstacleMask:

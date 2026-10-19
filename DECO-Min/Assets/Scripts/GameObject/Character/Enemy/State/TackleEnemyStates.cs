@@ -425,13 +425,15 @@ public class TackleEnemyReturn : TackleEnemyState
                 return;
             }
 
+            tackleEnemy.ResetToHomeForState();
+
             if (tackleEnemy.HasLeash)
             {
-                tackleEnemy.SetHomeDestinationForState();
+                tackleEnemy.CompleteLeashReturn();
                 return;
             }
 
-            tackleEnemy.Despawn();
+            ChangeTo<TackleEnemyPatrol>(_patrolState);
             return;
         }
 

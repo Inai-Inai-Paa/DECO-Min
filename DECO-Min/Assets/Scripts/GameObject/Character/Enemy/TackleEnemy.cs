@@ -73,8 +73,14 @@ public class TackleEnemy : Enemy
     public Vector3 AimPoint => _aimPoint;
     public bool HasAimPoint => _hasAimPoint;
 
+    private void Awake()
+    {
+        ConfigureBodyForAgentMovement();
+    }
+
     protected override void Start()
     {
+        ConfigureBodyForAgentMovement();
         base.Start();
 
         if (stateMachine.GetState<EnemyState>() == null)
@@ -95,14 +101,39 @@ public class TackleEnemy : Enemy
         return 0.0f;
     }
 
-    protected override void InitializeEnemyReferences()
+    private void ConfigureBodyForAgentMovement()
     {
-        base.InitializeEnemyReferences();
-
-        if (_patrolCenter == null)
+        if (TryGetComponent(out Rigidbody body))
         {
-            _patrolCenter = transform;
+            body.useGravity = false;
+
+            if (!body.isKinematic)
+            {
+                body.linearVelocity = Vector3.zero;
+                body.angularVelocity = Vector3.zero;
+            }
+
+            body.isKinematic = true;
+            body.constraints = RigidbodyConstraints.FreezeRotation;
         }
+
+        if (!TryGetComponent(out BoxCollider box) || !TryGetComponent(out NavMeshAgent agent))
+        {
+            return;
+        }
+
+        float scaleY = Mathf.Abs(transform.lossyScale.y);
+        scaleY = scaleY < 0.001f ? 1.0f : scaleY;
+        float bottom = scaleY * (box.center.y - box.size.y * 0.5f);
+
+        if (bottom >= -agent.baseOffset + 0.01f)
+        {
+            return;
+        }
+
+        Vector3 center = box.center;
+        center.y = box.size.y * 0.5f - agent.baseOffset / scaleY;
+        box.center = center;
     }
 
     protected override void EnterDown()
@@ -199,18 +230,32 @@ public class TackleEnemy : Enemy
 
     public bool IsTargetVisibleForTackle()
     {
-        return HasTarget()
-            && IsTargetInFieldOfView()
-            && HasLineOfSightToTarget()
-            && IsTargetInDistance(_alertDistance);
+        if (!HasTarget() || !HasLineOfSightToTarget() || !IsTargetWithinHomeChaseDistanceForState())
+        {
+            return false;
+        }
+
+        if (HasMoveArea && IsTargetInMoveArea())
+        {
+            return true;
+        }
+
+        return IsTargetInFieldOfView() && IsTargetInDistance(_alertDistance);
     }
 
     public bool IsTargetStillVisibleForTackle()
     {
-        return HasTarget()
-            && IsTargetInFieldOfView()
-            && HasLineOfSightToTarget()
-            && !IsTargetLost();
+        if (!HasTarget() || !HasLineOfSightToTarget() || IsTargetLost())
+        {
+            return false;
+        }
+
+        if (HasMoveArea && IsTargetInMoveArea())
+        {
+            return true;
+        }
+
+        return IsTargetInFieldOfView();
     }
 
     public void RememberVisibleAimPoint()
@@ -383,12 +428,32 @@ public class TackleEnemy : Enemy
         flatDirection.Normalize();
         const float skin = 0.2f;
         Vector3 origin = transform.position + Vector3.up * 0.4f - flatDirection * skin;
-        return Physics.Raycast(
+        RaycastHit[] hits = Physics.RaycastAll(
             origin,
             flatDirection,
             Mathf.Max(0.05f, distance) + skin,
             ObstacleMask,
             QueryTriggerInteraction.Ignore);
+
+        for (int i = 0; i < hits.Length; i++)
+        {
+            Collider hitCollider = hits[i].collider;
+
+            if (hitCollider == null || hitCollider.transform == transform || hitCollider.transform.IsChildOf(transform))
+            {
+                continue;
+            }
+
+            return true;
+        }
+
+        return false;
+    }
+
+    public void ResetToHomeForState()
+    {
+        ReturnToSpawn();
+        ClearAwarenessForState();
     }
 
     public void ApplyPatrolSpeed()
@@ -503,14 +568,9 @@ public class TackleEnemy : Enemy
             return false;
         }
 
-        if (_patrolCenter == null)
-        {
-            destination = transform.position;
-            return false;
-        }
-
+        Vector3 origin = _patrolCenter != null ? _patrolCenter.position : HomePosition;
         Vector2 randomCircle = UnityEngine.Random.insideUnitCircle * _patrolRadius;
-        Vector3 randomPoint = _patrolCenter.position + new Vector3(randomCircle.x, 0.0f, randomCircle.y);
+        Vector3 randomPoint = origin + new Vector3(randomCircle.x, 0.0f, randomCircle.y);
 
         if (NavMesh.SamplePosition(randomPoint, out NavMeshHit hit, _patrolRadius, NavMesh.AllAreas))
         {

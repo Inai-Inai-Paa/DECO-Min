@@ -553,7 +553,6 @@ MonoBehaviour:
   _turretPivot: {fileID: 1385281078012359429}
   _preparationTime: 1.5
   _aimLockTime: 0.5
-  _flightTime: 3
   _blastRadius: 2
   _rotationAngleMultiplier: 2
   _maximumRotationSpeed: 360

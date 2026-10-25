@@ -1,33 +1,67 @@
-
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.RenderGraphModule;
-using UnityEngine.Rendering.RenderGraphModule.Util;
 using UnityEngine.Rendering.Universal;
 
 public class VolumetricLightFeature : ScriptableRendererFeature
 {
+    public enum DebugMode
+    {
+        Off = 0,
+        LightOnly = 1,
+        ShadowVisibility = 2,
+        ShadowKeyword = 3,
+        SurfaceShadow = 4,
+        WorldPosition = 5
+    }
+
     [System.Serializable]
     public class Settings
     {
+        [Header("Shader")]
         public Shader shader;
 
-        [Range(8, 128)]
-        public int sampleCount = 64;
+        [Header("Ray Marching")]
+        [Range(16, 256)]
+        public int sampleCount = 96;
 
         [Min(0.1f)]
-        public float maxDistance = 30f;
+        public float maxDistance = 100f;
 
-        [Range(0f, 2f)]
-        public float density = 0.12f;
+        [Header("Scattering")]
+        [Range(0.001f, 0.2f)]
+        public float density = 0.025f;
 
-        [Range(0f, 10f)]
-        public float intensity = 2f;
+        [Range(0f, 20f)]
+        public float intensity = 3f;
+
+        [Range(0f, 0.95f)]
+        public float anisotropy = 0.9f;
 
         [Range(0f, 1f)]
-        public float scattering = 0.5f;
+        public float viewAngleCompensation = 0.1f;
 
         public Color lightTint = Color.white;
+
+        [Header("Shadow")]
+        [Range(0f, 1f)]
+        public float shadowThreshold = 0.775f;
+
+        [Range(0.001f, 1f)]
+        public float shadowSoftness = 0.8f;
+
+        [Header("Appearance")]
+        [Range(0f, 1f)]
+        public float maxLightContribution = 1f;
+
+        [Range(0f, 1f)]
+        public float noiseStrength = 0f;
+
+        [Range(0.01f, 10f)]
+        public float noiseScale = 0.01f;
+
+        [Header("Debug")]
+        public DebugMode debugMode = DebugMode.Off;
 
         public RenderPassEvent injectionPoint =
             RenderPassEvent.BeforeRenderingPostProcessing;
@@ -49,12 +83,18 @@ public class VolumetricLightFeature : ScriptableRendererFeature
 
         if (settings.shader == null)
         {
-            settings.shader =
-                Shader.Find("Hidden/Custom/VolumetricLight");
+            settings.shader = Shader.Find(
+                "Hidden/Custom/VolumetricLight"
+            );
         }
 
         if (settings.shader == null)
         {
+            Debug.LogError(
+                "VolumetricLight shader not found."
+            );
+
+            pass = null;
             return;
         }
 
@@ -66,7 +106,10 @@ public class VolumetricLightFeature : ScriptableRendererFeature
         );
 
         pass.renderPassEvent = settings.injectionPoint;
-        pass.ConfigureInput(ScriptableRenderPassInput.Depth);
+
+        pass.ConfigureInput(
+            ScriptableRenderPassInput.Depth
+        );
     }
 
     public override void AddRenderPasses(
@@ -79,7 +122,11 @@ public class VolumetricLightFeature : ScriptableRendererFeature
             return;
         }
 
-        if (renderingData.cameraData.cameraType != CameraType.Game)
+        CameraType cameraType =
+            renderingData.cameraData.cameraType;
+
+        if (cameraType != CameraType.Game &&
+            cameraType != CameraType.SceneView)
         {
             return;
         }
@@ -90,12 +137,22 @@ public class VolumetricLightFeature : ScriptableRendererFeature
     protected override void Dispose(bool disposing)
     {
         CoreUtils.Destroy(material);
+
         material = null;
         pass = null;
     }
 
     private class VolumetricLightPass : ScriptableRenderPass
     {
+        private class PassData
+        {
+            public TextureHandle source;
+            public Material material;
+        }
+
+        private readonly Material material;
+        private readonly Settings settings;
+
         private static readonly int SampleCountID =
             Shader.PropertyToID("_SampleCount");
 
@@ -108,14 +165,32 @@ public class VolumetricLightFeature : ScriptableRendererFeature
         private static readonly int IntensityID =
             Shader.PropertyToID("_Intensity");
 
-        private static readonly int ScatteringID =
-            Shader.PropertyToID("_Scattering");
+        private static readonly int AnisotropyID =
+            Shader.PropertyToID("_Anisotropy");
+
+        private static readonly int ViewAngleCompensationID =
+            Shader.PropertyToID("_ViewAngleCompensation");
 
         private static readonly int LightTintID =
             Shader.PropertyToID("_LightTint");
 
-        private readonly Material material;
-        private readonly Settings settings;
+        private static readonly int ShadowThresholdID =
+            Shader.PropertyToID("_ShadowThreshold");
+
+        private static readonly int ShadowSoftnessID =
+            Shader.PropertyToID("_ShadowSoftness");
+
+        private static readonly int MaxLightContributionID =
+            Shader.PropertyToID("_MaxLightContribution");
+
+        private static readonly int NoiseStrengthID =
+            Shader.PropertyToID("_NoiseStrength");
+
+        private static readonly int NoiseScaleID =
+            Shader.PropertyToID("_NoiseScale");
+
+        private static readonly int DebugModeID =
+            Shader.PropertyToID("_DebugMode");
 
         public VolumetricLightPass(
             Material material,
@@ -152,9 +227,13 @@ public class VolumetricLightFeature : ScriptableRendererFeature
                 return;
             }
 
-            TextureHandle source = resources.activeColorTexture;
+            TextureHandle source =
+                resources.activeColorTexture;
 
-            if (!source.IsValid())
+            TextureHandle shadow =
+                resources.mainShadowsTexture;
+
+            if (!source.IsValid() || !shadow.IsValid())
             {
                 return;
             }
@@ -165,11 +244,11 @@ public class VolumetricLightFeature : ScriptableRendererFeature
             descriptor.depthBufferBits = 0;
             descriptor.msaaSamples = 1;
 
-            TextureHandle temporary =
+            TextureHandle destination =
                 UniversalRenderer.CreateRenderGraphTexture(
                     renderGraph,
                     descriptor,
-                    "_VolumetricLightTemporary",
+                    "_VolumetricLightResult",
                     false
                 );
 
@@ -194,8 +273,13 @@ public class VolumetricLightFeature : ScriptableRendererFeature
             );
 
             material.SetFloat(
-                ScatteringID,
-                settings.scattering
+                AnisotropyID,
+                settings.anisotropy
+            );
+
+            material.SetFloat(
+                ViewAngleCompensationID,
+                settings.viewAngleCompensation
             );
 
             material.SetColor(
@@ -203,31 +287,76 @@ public class VolumetricLightFeature : ScriptableRendererFeature
                 settings.lightTint
             );
 
-            var volumetricParameters =
-                new RenderGraphUtils.BlitMaterialParameters(
-                    source,
-                    temporary,
-                    material,
-                    0
-                );
-
-            renderGraph.AddBlitPass(
-                volumetricParameters,
-                "Volumetric Light"
+            material.SetFloat(
+                ShadowThresholdID,
+                settings.shadowThreshold
             );
 
-            var copyParameters =
-                new RenderGraphUtils.BlitMaterialParameters(
-                    temporary,
+            material.SetFloat(
+                ShadowSoftnessID,
+                settings.shadowSoftness
+            );
+
+            material.SetFloat(
+                MaxLightContributionID,
+                settings.maxLightContribution
+            );
+
+            material.SetFloat(
+                NoiseStrengthID,
+                settings.noiseStrength
+            );
+
+            material.SetFloat(
+                NoiseScaleID,
+                settings.noiseScale
+            );
+
+            material.SetInt(
+                DebugModeID,
+                (int)settings.debugMode
+            );
+
+            using (var builder =
+                renderGraph.AddRasterRenderPass<PassData>(
+                    "Volumetric Light",
+                    out PassData passData
+                ))
+            {
+                passData.source = source;
+                passData.material = material;
+
+                builder.UseTexture(
                     source,
-                    material,
-                    1
+                    AccessFlags.Read
                 );
 
-            renderGraph.AddBlitPass(
-                copyParameters,
-                "Volumetric Light Composite"
-            );
+                builder.UseTexture(
+                    shadow,
+                    AccessFlags.Read
+                );
+
+                builder.SetRenderAttachment(
+                    destination,
+                    0,
+                    AccessFlags.Write
+                );
+
+                builder.SetRenderFunc(
+                    (PassData data, RasterGraphContext context) =>
+                    {
+                        Blitter.BlitTexture(
+                            context.cmd,
+                            data.source,
+                            new Vector4(1f, 1f, 0f, 0f),
+                            data.material,
+                            0
+                        );
+                    }
+                );
+            }
+
+            resources.cameraColor = destination;
         }
     }
 }

@@ -10,11 +10,6 @@ public class Missionmanager : MonoBehaviour
     private bool _missionClear = false; 
     [SerializeField] public MIssionPreset targetObject;
 
-
-    // test
-    [SerializeField] private InputAction inputAction;
-    [SerializeField] private EnemyData data;
-
     private KillCounter _killCounter;
     private CollectCounter _collectCounter;
 
@@ -44,15 +39,6 @@ public class Missionmanager : MonoBehaviour
         _collectCounter = new CollectCounter();
     }
 
-    private void Update()
-    {
-        if (Keyboard.current.spaceKey.wasPressedThisFrame)
-        {
-            AddKill(data);
-            CheakSubMissionClear(0);
-            MissionUIManager.Instance.UpdateUILine();
-        }
-    }
 
     public void SetMission(MIssionPreset missionTargetObject)
     {
@@ -68,6 +54,7 @@ public class Missionmanager : MonoBehaviour
         Clear();
     }
 
+    /// <summary> キルカウント＋ </summary>
     public void AddKill(EnemyData data)
     {
         _killCounter.AddKillCount(data);
@@ -76,7 +63,7 @@ public class Missionmanager : MonoBehaviour
             CheakSubMissionClear(i);
         }
     }
-
+    /// <summary> 収集カウント＋ </summary>
     public void AddCollect(CollectData data)
     {
         _collectCounter.AddCollectCount(data);
@@ -86,6 +73,7 @@ public class Missionmanager : MonoBehaviour
         }
     }
 
+    /// <summary> 引数IDのミッションのクリアチェック </summary>
     private void CheakSubMissionClear(int i)
     {
         var submission = targetObject.subMissions[i];
@@ -131,6 +119,7 @@ public class Missionmanager : MonoBehaviour
         return targetObject.subMissions[id];
     }
 
+    /// <summary> 現在のカウント状況取得 </summary>
     public int GetCurrentCount(int id)
     {
         var submission = targetObject.subMissions[id];

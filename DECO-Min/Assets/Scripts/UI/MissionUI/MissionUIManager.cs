@@ -39,6 +39,7 @@ public class MissionUIManager : MonoBehaviour
         _uiText.UpdateText();
     }
 
+    /// <summary> ミッションUIの更新(ミッションの変更更新もこれで) </summary>
     public void UpdateUILine()
     {
         // UIの中身の更新
@@ -66,9 +67,6 @@ public class MissionUIManager : MonoBehaviour
                 Debug.Log("now id >" + _currentMissionIndex);
                 break;
             }
-
-           
-
         }
         // 全ミッションクリア済
         if (_currentMissionIndex < 0)
@@ -79,8 +77,7 @@ public class MissionUIManager : MonoBehaviour
         }
     } 
 
-   
-
+    /// <summary> ミッションUIの表示/非表示 </summary>
     public void SetMissionRoot(bool flag)
     {
         _missionUIRoot.SetActive(flag);

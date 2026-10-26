@@ -10,7 +10,9 @@ public class MissionUIManager : MonoBehaviour
     [SerializeField] private MissionUILine _uiLine;
     [SerializeField] private MissionUILine _uiText;
 
-    int _currentMissionIndex = 0;
+    private int _currentMissionIndex = 0;
+
+    private bool _uiChangeFlag = false;
 
     private void Awake()
     {
@@ -42,8 +44,12 @@ public class MissionUIManager : MonoBehaviour
     /// <summary> ミッションUIの更新(ミッションの変更更新もこれで) </summary>
     public void UpdateUILine()
     {
-        // UIの中身の更新
-        DrawMissionUI();
+        // UI変更を任意のタイミングで
+        if (_uiChangeFlag)
+        {
+            // UIの中身の更新
+            DrawMissionUI();
+        }
 
         var missionpreset = Missionmanager.Instance.GetMissionPreset(_currentMissionIndex);
 
@@ -75,12 +81,18 @@ public class MissionUIManager : MonoBehaviour
 
             Debug.Log("befalse");
         }
+        _uiChangeFlag = false;
     } 
 
     /// <summary> ミッションUIの表示/非表示 </summary>
     public void SetMissionRoot(bool flag)
     {
         _missionUIRoot.SetActive(flag);
+    }
+    /// <summary> ミッションUI変更フラグ </summary>
+    public void SetUIChangeFlag(bool flg)
+    {
+        _uiChangeFlag = flg;
     }
 
 }

@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 public class Missionmanager : MonoBehaviour
 {
@@ -12,6 +13,9 @@ public class Missionmanager : MonoBehaviour
     private KillCounter _killCounter;
     private CollectCounter _collectCounter;
 
+    // テスト用
+    [SerializeField] EnemyData enemyData;
+
     private void Awake()
     {
         // シングルトン
@@ -23,6 +27,16 @@ public class Missionmanager : MonoBehaviour
         }
 
     }
+
+
+    //private void Update()
+    //{
+    //    // テスト用
+    //    if (Keyboard.current.spaceKey.wasPressedThisFrame)
+    //    {
+    //        AddKill(enemyData);
+    //    }
+    //}
 
     private void Start()
     {
@@ -61,6 +75,7 @@ public class Missionmanager : MonoBehaviour
         {
             CheakSubMissionClear(i);
         }
+        MissionUIManager.Instance.UpdateUILine();
     }
     /// <summary> 収集カウント＋ </summary>
     public void AddCollect(CollectData data)
@@ -70,6 +85,7 @@ public class Missionmanager : MonoBehaviour
         {
             CheakSubMissionClear(i);
         }
+        MissionUIManager.Instance.UpdateUILine();
     }
 
     /// <summary> 引数IDのミッションのクリアチェック </summary>
@@ -82,15 +98,17 @@ public class Missionmanager : MonoBehaviour
             switch (submission.missionType)
             {
                 case MissionPreset.MissionTpye.Defeat:
-                    if (submission.objectCount < _killCounter.GetKillCount(submission.killObject))
+                    if (submission.objectCount <= _killCounter.GetKillCount(submission.killObject))
                     {
                         submission.isClear = true;
+                        MissionClearLineUIManager.Instance.MissionClearAnnounce();
                     }
                     break;
                 case MissionPreset.MissionTpye.Collect:
-                    if (submission.objectCount < _collectCounter.GetCollectCount(submission.collectObject))
+                    if (submission.objectCount <= _collectCounter.GetCollectCount(submission.collectObject))
                     {
                         submission.isClear = true;
+                        MissionClearLineUIManager.Instance.MissionClearAnnounce();
                     }
                     break;
             }

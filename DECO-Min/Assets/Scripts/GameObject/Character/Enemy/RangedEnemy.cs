@@ -12,15 +12,37 @@ public class RangedEnemy : Enemy
 
     [Header("Ranged Combat")]
     [SerializeField]
-    private float _attackInterval = 2.0f;
+    private float _attackInterval = 4.5f;
     [SerializeField]
     private float _moveSpeed = 3.5f;
     [SerializeField]
-    private float _rotationSpeed = 10.0f;
+    private float _rotationSpeed = 90.0f;
     [SerializeField]
     private Transform _firePoint = null;
     [SerializeField]
     private EnemyBullet _bulletPrefab = null;
+
+    [Header("Mortar Preparation")]
+    [SerializeField] private Transform _turretPivot;
+    [SerializeField, Min(0.5f)] private float _preparationTime = 1.5f;
+    [SerializeField, Min(0)] private float _aimLockTime = 0.5f;
+    [SerializeField, Min(0.01f)] private float _blastRadius = 2f;
+    [SerializeField, Min(0)] private float _rotationAngleMultiplier = 2f;
+    [SerializeField, Min(1)] private float _maximumRotationSpeed = 360f;
+    [SerializeField] private LayerMask _landingSurfaceMask = ~0;
+
+    private readonly MortarAim _aim = new MortarAim();
+    private float _preparationElapsed;
+    private float _nextAttackTime;
+    private bool _preparing;
+    private bool _aimAligned;
+
+    public override bool IsStationary => true;
+    protected override bool UsesWarpMoveAreaReturn => false;
+    public bool IsPreparing => _preparing;
+    public bool IsAimLocked => _preparing && _aim.IsLocked;
+    public bool CanBeginPreparation => Time.time >= _nextAttackTime;
+    public Vector3 LockedImpactPoint => _aim.Point;
 
     [Header("ダウン")]
     [SerializeField]
@@ -42,6 +64,15 @@ public class RangedEnemy : Enemy
     {
         ApplyRangedRuntimeSettings();
         base.Start();
+        ApplyRangedRuntimeSettings();
+
+        if (TryGetComponent<Rigidbody>(out var body))
+        {
+            body.constraints = RigidbodyConstraints.FreezeAll;
+            body.useGravity = false;
+            // Rotating upper-body colliders must not recalculate the base's center of mass.
+            body.centerOfMass = Vector3.zero;
+        }
 
         if (stateMachine.GetState<EnemyState>() == null)
         {
@@ -63,6 +94,9 @@ public class RangedEnemy : Enemy
 
     private void OnValidate()
     {
+        _preparationTime = Mathf.Max(0.5f, _preparationTime);
+        _aimLockTime = Mathf.Clamp(_aimLockTime, 0, _preparationTime);
+        _blastRadius = Mathf.Max(0.01f, _blastRadius);
         if (_attackRange > _detectionRange)
         {
             _attackRange = _detectionRange;
@@ -74,7 +108,7 @@ public class RangedEnemy : Enemy
         }
 
         ApplyRangedRuntimeSettings();
-        ValidateItemPrefab();
+        ValidateSealPrefab();
     }
 
     private void ApplyRangedRuntimeSettings()
@@ -82,14 +116,22 @@ public class RangedEnemy : Enemy
         _alertDistance = _detectionRange;
         _attackCooldown = Mathf.Max(0.0f, _attackInterval);
 
+        _moveSpeed = Mathf.Max(0.0f, _moveSpeed);
+
         if (_agent == null)
         {
             TryGetComponent(out _agent);
         }
 
-        if (_agent != null)
+        if (_agent != null && _agent.isActiveAndEnabled && _agent.isOnNavMesh)
         {
-            _agent.speed = Mathf.Max(0.0f, _moveSpeed);
+            StopMove();
+        }
+        if (_agent != null && Application.isPlaying)
+        {
+            _agent.updatePosition = false;
+            _agent.updateRotation = false;
+            _agent.enabled = false;
         }
     }
 
@@ -187,33 +229,100 @@ public class RangedEnemy : Enemy
 
     public void SetTargetDestination()
     {
-        if (_target == null)
-        {
-            return;
-        }
-
-        SetMoveDestination(_target.position);
+        StopMove();
     }
 
     public void LookAtTargetForCombat()
     {
-        LookAtTarget(_rotationSpeed);
+        if (_target != null && !_preparing && !IsCombatAIFrozen)
+            RotateTurret(GetLandingPoint(), Time.deltaTime);
+    }
+
+    private Vector3 GetLandingPoint()
+    {
+        Vector3 point = _target.position;
+        RaycastHit[] hits = Physics.RaycastAll(GetTargetAimPoint() + Vector3.up * 0.1f,
+            Vector3.down, 100f, _landingSurfaceMask, QueryTriggerInteraction.Ignore);
+        System.Array.Sort(hits, (a, b) => a.distance.CompareTo(b.distance));
+        foreach (RaycastHit hit in hits)
+        {
+            if (hit.transform == _target || hit.transform.IsChildOf(_target)) continue;
+            if (hit.collider.GetComponentInParent<Character>() != null) continue;
+            return hit.point;
+        }
+        return point;
+    }
+
+    public bool BeginPreparation()
+    {
+        if (!CanBeginPreparation || _target == null || _bulletPrefab == null || _turretPivot == null
+            || IsDead || IsDown || IsDespawning || IsCombatAIFrozen || BlocksCombatTransition)
+            return false;
+        _aim.Begin(GetLandingPoint(), _blastRadius, _aimLockTime);
+        _preparationElapsed = 0;
+        _preparing = true;
+        _aimAligned = false;
+        return true;
+    }
+
+    public void CancelPreparation()
+    {
+        _preparing = false;
+        _aimAligned = false;
+        SetCommittedAttack(false);
+    }
+
+    public void TickPreparation(float deltaTime)
+    {
+        if (!_preparing) return;
+        if (IsDead || IsDown || IsDespawning || IsCombatAIFrozen || BlocksCombatTransition)
+        {
+            CancelPreparation();
+            return;
+        }
+        _preparationElapsed += Mathf.Max(0, deltaTime);
+        if (!_aim.IsLocked)
+        {
+            if (_target == null || !HasLineOfSightToTarget())
+            {
+                CancelPreparation();
+                return;
+            }
+            _aim.Sample(GetLandingPoint(), _preparationElapsed);
+            if (_aim.IsLocked) SetCommittedAttack(true);
+        }
+        _aimAligned = RotateTurret(_aim.Point, deltaTime);
+        if (_preparationElapsed < _preparationTime) return;
+        TryFireBullet();
+        CancelPreparation();
+    }
+
+    private bool RotateTurret(Vector3 point, float deltaTime)
+    {
+        if (_turretPivot == null || _bulletPrefab == null) return false;
+        Transform muzzle = _firePoint != null ? _firePoint : _turretPivot;
+        if (!_bulletPrefab.TryGetAreaLaunchVelocity(muzzle.position, point, out Vector3 velocity)) return false;
+        // Compensate for a muzzle that has its own local rotation under the upper body.
+        Quaternion desired = Quaternion.LookRotation(velocity) * Quaternion.Inverse(muzzle.rotation) * _turretPivot.rotation;
+        float angle = Quaternion.Angle(_turretPivot.rotation, desired);
+        float speed = Mathf.Min(_maximumRotationSpeed, Mathf.Max(0, _rotationSpeed) + angle * _rotationAngleMultiplier);
+        _turretPivot.rotation = Quaternion.RotateTowards(_turretPivot.rotation, desired, speed * Mathf.Max(0, deltaTime));
+        // Recompute after rotating: the muzzle may be offset from the pivot.
+        if (!_bulletPrefab.TryGetAreaLaunchVelocity(muzzle.position, point, out velocity)) return false;
+        return Vector3.Angle(muzzle.forward, velocity) <= 0.1f;
     }
 
     public bool TryFireBullet()
     {
-        if (IsDead || IsDespawning || IsDown || _bulletPrefab == null || _target == null)
-        {
-            return false;
-        }
-
-        if (!HasLineOfSightToTarget())
+        if (IsDead || IsDespawning || IsDown || IsCombatAIFrozen || BlocksCombatTransition
+            || _bulletPrefab == null || !_preparing || !_aim.IsLocked || !_aimAligned
+            || _preparationElapsed < _preparationTime || !CanBeginPreparation)
         {
             return false;
         }
 
         Transform firePoint = _firePoint != null ? _firePoint : transform;
-        Vector3 aimPoint = GetTargetAimPoint();
+        Vector3 aimPoint = _aim.Point;
         Vector3 launchDirection = aimPoint - firePoint.position;
 
         if (launchDirection.sqrMagnitude <= 0.0001f)
@@ -226,21 +335,62 @@ public class RangedEnemy : Enemy
             firePoint.position,
             Quaternion.LookRotation(launchDirection.normalized));
 
-        if (!bullet.LaunchAt(aimPoint, this))
+        if (!bullet.LaunchArea(aimPoint, this, _blastRadius, _attackDamage))
         {
             Destroy(bullet.gameObject);
             return false;
         }
 
+        _nextAttackTime = Time.time + Mathf.Max(0, _attackInterval);
         return true;
     }
 
-    private void OnDrawGizmosSelected()
+    protected override void OnDrawGizmosSelected()
     {
         Gizmos.color = Color.yellow;
         Gizmos.DrawWireSphere(transform.position, _detectionRange);
 
         Gizmos.color = Color.red;
         Gizmos.DrawWireSphere(transform.position, _attackRange);
+        if (_preparing)
+        {
+            Gizmos.color = Color.yellow;
+            Gizmos.DrawWireSphere(_aim.AreaCenter, _blastRadius);
+            Gizmos.color = Color.red;
+            Gizmos.DrawWireSphere(_aim.Point, _blastRadius);
+        }
+    }
+}
+
+/// <summary>One preparation's fixed search area and last valid target position.</summary>
+public sealed class MortarAim
+{
+    public Vector3 Point { get; private set; }
+    public Vector3 AreaCenter { get; private set; }
+    public bool IsLocked { get; private set; }
+    private float _radius;
+    private float _lockTime;
+
+    public void Begin(Vector3 point, float radius, float lockTime)
+    {
+        Point = AreaCenter = point;
+        _radius = Mathf.Max(0, radius);
+        _lockTime = Mathf.Max(0, lockTime);
+        IsLocked = false;
+    }
+
+    public void Sample(Vector3 point, float elapsed)
+    {
+        if (IsLocked) return;
+        Vector3 offset = point - AreaCenter;
+        offset.y = 0;
+        if (offset.sqrMagnitude > _radius * _radius)
+        {
+            IsLocked = true;
+            return;
+        }
+
+        Point = point;
+        IsLocked = elapsed >= _lockTime;
     }
 }

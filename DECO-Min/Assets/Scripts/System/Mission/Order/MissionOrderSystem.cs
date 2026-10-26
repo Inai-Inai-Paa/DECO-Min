@@ -39,6 +39,13 @@ public class MissionOrderSystem : MonoBehaviour
         {
             OrderMission();
         }
+
+        if (Keyboard.current != null &&
+            Keyboard.current.backspaceKey.wasPressedThisFrame)
+        {
+            OrderPanelClose();
+        }
+
     }
 
     public void OrderMission()

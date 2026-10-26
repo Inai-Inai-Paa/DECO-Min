@@ -29,14 +29,14 @@ public class Missionmanager : MonoBehaviour
     }
 
 
-    //private void Update()
-    //{
-    //    // テスト用
-    //    if (Keyboard.current.spaceKey.wasPressedThisFrame)
-    //    {
-    //        AddKill(enemyData);
-    //    }
-    //}
+    private void Update()
+    {
+        // テスト用
+        if (Keyboard.current.spaceKey.wasPressedThisFrame)
+        {
+            AddKill(enemyData);
+        }
+    }
 
     private void Start()
     {

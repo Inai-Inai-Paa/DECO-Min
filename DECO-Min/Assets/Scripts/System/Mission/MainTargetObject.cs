@@ -5,6 +5,6 @@ using UnityEngine;
 public class MIssionPreset : ScriptableObject
 {
     [Header("ƒ~ƒbƒVƒ‡ƒ“İ’è")]
-    [SerializeField] public List<SubMissionPreset> subMissions;
+    [SerializeField] public List<MissionPreset> missions;
   
 }

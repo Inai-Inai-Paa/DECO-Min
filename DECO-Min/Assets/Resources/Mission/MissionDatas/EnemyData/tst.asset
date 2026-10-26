@@ -13,6 +13,6 @@ MonoBehaviour:
   m_Name: tst
   m_EditorClassIdentifier: Assembly-CSharp::EnemyData
   Enemys:
-  - {fileID: 8977820578631847257, guid: b2fd5a9e2c3c2da4ebce09ef48ead45e, type: 3}
+  - {fileID: 6836781410797690473, guid: 2b6e8d1a4c9f4e7b8a0d3c5f6e1b2a94, type: 3}
   - {fileID: 592719139610791313, guid: 31bc92c983f9917489a79bab2f166aa9, type: 3}
   GroupName: aaa

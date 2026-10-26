@@ -58,10 +58,10 @@ public class MissionUIManager : MonoBehaviour
     public void DrawMissionUI()
     {
         _currentMissionIndex = -1;
-        for (int i = 0; i < Missionmanager.Instance.targetObject.subMissions.Count; i++)
+        for (int i = 0; i < Missionmanager.Instance.targetObject.missions.Count; i++)
         {
             // 現在のミッションかチェック
-            if (!Missionmanager.Instance.targetObject.subMissions[i].isClear)
+            if (!Missionmanager.Instance.targetObject.missions[i].isClear)
             {
                 _currentMissionIndex = i;
                 Debug.Log("now id >" + _currentMissionIndex);

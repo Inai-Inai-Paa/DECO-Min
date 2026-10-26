@@ -28,7 +28,7 @@ public class Missionmanager : MonoBehaviour
     private void Start()
     {
 
-        foreach (var mission in targetObject.subMissions)
+        foreach (var mission in targetObject.missions)
         {
             mission.isClear = false;
         }
@@ -58,7 +58,7 @@ public class Missionmanager : MonoBehaviour
     public void AddKill(EnemyData data)
     {
         _killCounter.AddKillCount(data);
-        for (int i = 0; i < targetObject.subMissions.Count; i++)
+        for (int i = 0; i < targetObject.missions.Count; i++)
         {
             CheakSubMissionClear(i);
         }
@@ -67,7 +67,7 @@ public class Missionmanager : MonoBehaviour
     public void AddCollect(CollectData data)
     {
         _collectCounter.AddCollectCount(data);
-        for (int i = 0; i < targetObject.subMissions.Count; i++)
+        for (int i = 0; i < targetObject.missions.Count; i++)
         {
             CheakSubMissionClear(i);
         }
@@ -76,20 +76,20 @@ public class Missionmanager : MonoBehaviour
     /// <summary> 引数IDのミッションのクリアチェック </summary>
     private void CheakSubMissionClear(int i)
     {
-        var submission = targetObject.subMissions[i];
+        var submission = targetObject.missions[i];
 
         if (!submission.isClear)
         {
             switch (submission.missionType)
             {
-                case SubMissionPreset.MissionTpye.Defeat:
-                    if (submission.objectCount < _killCounter.GetKillCount(submission.KillObject))
+                case MissionPreset.MissionTpye.Defeat:
+                    if (submission.objectCount < _killCounter.GetKillCount(submission.killObject))
                     {
                         submission.isClear = true;
                     }
                     break;
-                case SubMissionPreset.MissionTpye.Collect:
-                    if (submission.objectCount < _collectCounter.GetCollectCount(submission.CollectObject))
+                case MissionPreset.MissionTpye.Collect:
+                    if (submission.objectCount < _collectCounter.GetCollectCount(submission.collectObject))
                     {
                         submission.isClear = true;
                     }
@@ -114,22 +114,22 @@ public class Missionmanager : MonoBehaviour
     }
 
     /// <summary> 設定されているミッション情報 </summary>
-    public SubMissionPreset GetMissionPreset(int id)
+    public MissionPreset GetMissionPreset(int id)
     {
-        return targetObject.subMissions[id];
+        return targetObject.missions[id];
     }
 
     /// <summary> 現在のカウント状況取得 </summary>
     public int GetCurrentCount(int id)
     {
-        var submission = targetObject.subMissions[id];
+        var submission = targetObject.missions[id];
         switch(submission.missionType)
         {
-            case SubMissionPreset.MissionTpye.Defeat:
+            case MissionPreset.MissionTpye.Defeat:
                 Debug.Log(" counter ");
-                return _killCounter.GetKillCount(submission.KillObject); 
-            case SubMissionPreset.MissionTpye.Collect:
-                return _collectCounter.GetCollectCount(submission.CollectObject); 
+                return _killCounter.GetKillCount(submission.killObject); 
+            case MissionPreset.MissionTpye.Collect:
+                return _collectCounter.GetCollectCount(submission.collectObject); 
             default:
                 return 0;
         }

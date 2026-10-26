@@ -1469,17 +1469,6 @@ MonoBehaviour:
     enterSmoothnessRecoveryDuration: 3
     rotationLimitMin: {x: -5, y: -15, z: 0}
     rotationLimitMax: {x: 45, y: 15, z: 0}
---- !u!114 &1014483909 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 2928597691968798505, guid: a0bd2c74743f4b49942622ea8522bb33, type: 3}
-  m_PrefabInstance: {fileID: 7539620619018899484}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: cc082d07e9fa4b339d2c442597dfa94b, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: '::'
 --- !u!1 &1094603922
 GameObject:
   m_ObjectHideFlags: 0
@@ -2001,7 +1990,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9b31dbb7e46afb44fa9b38bf607887a7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BossActiveArea
-  Boss: {fileID: 1014483909}
+  Boss: {fileID: 0}
 --- !u!65 &1544392833
 BoxCollider:
   m_ObjectHideFlags: 0

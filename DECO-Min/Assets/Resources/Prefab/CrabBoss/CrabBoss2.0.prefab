@@ -716,6 +716,7 @@ GameObject:
   m_Component:
   - component: {fileID: 7635384225971760557}
   - component: {fileID: 4797908870244763315}
+  - component: {fileID: 2928597691968798505}
   m_Layer: 0
   m_Name: CrabBoss2.0
   m_TagString: Untagged
@@ -766,3 +767,16 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 80
   m_CollisionDetection: 0
+--- !u!114 &2928597691968798505
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8266925555249842243}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cc082d07e9fa4b339d2c442597dfa94b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CrabBoss2_0
+  characterStatus: {fileID: 11400000, guid: c084f21206cf7ba40bd35082a75196f6, type: 2}

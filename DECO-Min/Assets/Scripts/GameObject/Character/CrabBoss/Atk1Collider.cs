@@ -17,7 +17,7 @@ public class Atk1Collider : MonoBehaviour
     {
         if (other.CompareTag("Player"))
         {
-            Debug.Log("Player hit by Atk1Collider!");
+            Debug.Log("攻撃1の当たり判定がプレイヤーに命中しました。");
         }
 	}
 }

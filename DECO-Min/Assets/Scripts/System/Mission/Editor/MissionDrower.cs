@@ -38,7 +38,8 @@ public class MissionDrower : PropertyDrawer
         SerializedProperty missionText = property.FindPropertyRelative(nameof(SubMissionPreset.missionText));
         SerializedProperty missionType = property.FindPropertyRelative(nameof(SubMissionPreset.missionType));
         SerializedProperty objectCount = property.FindPropertyRelative(nameof(SubMissionPreset.objectCount));
-        SerializedProperty targetObject = property.FindPropertyRelative(nameof(SubMissionPreset.targetObject));
+        SerializedProperty killTarget = property.FindPropertyRelative(nameof(SubMissionPreset.KillObject));
+        SerializedProperty Collecttarget = property.FindPropertyRelative(nameof(SubMissionPreset.CollectObject));
         SerializedProperty timeLimit = property.FindPropertyRelative(nameof(SubMissionPreset.timeLimit));
         SerializedProperty rewardObject = property.FindPropertyRelative(nameof(SubMissionPreset.reward));
         SerializedProperty rewardSeal = property.FindPropertyRelative(nameof(SubMissionPreset.rewardSeal));
@@ -51,16 +52,15 @@ public class MissionDrower : PropertyDrawer
         switch((MissionTpye)missionType.enumValueIndex)
         {
             case MissionTpye.Defeat:
-                DrawRow(ref r, "対象", targetObject);
+                DrawRow(ref r, "対象", killTarget);
                 DrawRow(ref r, "必要数", objectCount);
                 break;
             case MissionTpye.Collect:
 
-                DrawRow(ref r, "対象", targetObject);
+                DrawRow(ref r, "対象", Collecttarget);
                 DrawRow(ref r, "必要数", objectCount);
                 break;
             case MissionTpye.Place:
-                DrawRow(ref r, "対象エリア", targetObject);
                 break;
 
         }

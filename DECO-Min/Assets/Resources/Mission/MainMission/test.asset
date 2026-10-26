@@ -12,38 +12,44 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 014ba3171fb3b6b439f13d82a31ddcaa, type: 3}
   m_Name: test
   m_EditorClassIdentifier: Assembly-CSharp::MissionTargetObject
-  Object:
-    targetObject: {fileID: 0}
-    objectCount: 0
-    missionText: 
   subMissions:
   - missionType: 0
-    isClear: 0
-    objectCount: 0
-    targetObject: {fileID: 0}
-    KillObject: {fileID: 0}
+    isClear: 1
+    objectCount: 15
+    targetObject: {fileID: 8977820578631847257, guid: b2fd5a9e2c3c2da4ebce09ef48ead45e, type: 3}
+    KillObject: {fileID: 11400000, guid: 805e27808fcb0d442bf4245eb575d58a, type: 2}
     CollectObject: {fileID: 0}
     timeLimit: 0
-    missionText: 
+    missionText: tset1
     reward: {fileID: 0}
     rewardSeal: 0
   - missionType: 0
     isClear: 0
-    objectCount: 0
+    objectCount: 10
     targetObject: {fileID: 0}
-    KillObject: {fileID: 0}
+    KillObject: {fileID: 11400000, guid: da2941afa42ba794ab0db41332b3386e, type: 2}
     CollectObject: {fileID: 0}
     timeLimit: 0
-    missionText: 
+    missionText: test2
     reward: {fileID: 0}
     rewardSeal: 0
   - missionType: 1
     isClear: 0
-    objectCount: 0
+    objectCount: 500
     targetObject: {fileID: 0}
     KillObject: {fileID: 0}
-    CollectObject: {fileID: 0}
+    CollectObject: {fileID: 11400000, guid: 89ca7a417e8f6064faf2830f5a5e4bfd, type: 2}
     timeLimit: 0
-    missionText: 
+    missionText: test3
+    reward: {fileID: 0}
+    rewardSeal: 0
+  - missionType: 1
+    isClear: 0
+    objectCount: 500
+    targetObject: {fileID: 0}
+    KillObject: {fileID: 0}
+    CollectObject: {fileID: 11400000, guid: 89ca7a417e8f6064faf2830f5a5e4bfd, type: 2}
+    timeLimit: 0
+    missionText: test4
     reward: {fileID: 0}
     rewardSeal: 0

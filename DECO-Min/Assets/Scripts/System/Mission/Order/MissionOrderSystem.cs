@@ -7,6 +7,8 @@ public class MissionOrderSystem : MonoBehaviour
 
     [SerializeField] private GameObject _orderPanel;
 
+    private inp_test inputAction;
+
    private bool _isActive = false;
 
     private void Awake()
@@ -27,8 +29,10 @@ public class MissionOrderSystem : MonoBehaviour
 
     private void Update()
     {
+
         //パネルが表示されてなければリターン
         if (!_isActive) return;
+
 
         if (Keyboard.current != null &&
             Keyboard.current.enterKey.wasPressedThisFrame)
@@ -41,7 +45,8 @@ public class MissionOrderSystem : MonoBehaviour
     {
         // ミッション受注
         Missionmanager.Instance.SetMissionStartFlg(true);
-      //  MissionUIManager.Instance.SetMissionRoot(true);
+        MissionUIManager.Instance.SetMissionRoot(true);
+        MissionUIManager.Instance.UpdateUILine();
 
         OrderPanelClose();
     }

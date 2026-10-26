@@ -20,6 +20,7 @@ public class SubMissionPreset
     public EnemyData KillObject;
     public CollectData CollectObject;
     public int timeLimit;
+    
     public string missionText;
 
     public GameObject reward;

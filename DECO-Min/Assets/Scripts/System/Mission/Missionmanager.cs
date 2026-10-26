@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 public class Missionmanager : MonoBehaviour
 {
@@ -8,6 +9,11 @@ public class Missionmanager : MonoBehaviour
 
     private bool _missionClear = false; 
     [SerializeField] public MIssionPreset targetObject;
+
+
+    // test
+    [SerializeField] private InputAction inputAction;
+    [SerializeField] private EnemyData data;
 
     private KillCounter _killCounter;
     private CollectCounter _collectCounter;
@@ -26,11 +32,26 @@ public class Missionmanager : MonoBehaviour
 
     private void Start()
     {
+
+        foreach (var mission in targetObject.subMissions)
+        {
+            mission.isClear = false;
+        }
         // èâä˙âª
         _missionClear = false;
 
         _killCounter = new KillCounter();
         _collectCounter = new CollectCounter();
+    }
+
+    private void Update()
+    {
+        if (Keyboard.current.spaceKey.wasPressedThisFrame)
+        {
+            AddKill(data);
+            CheakSubMissionClear(0);
+            MissionUIManager.Instance.UpdateUILine();
+        }
     }
 
     public void SetMission(MIssionPreset missionTargetObject)
@@ -68,6 +89,7 @@ public class Missionmanager : MonoBehaviour
     private void CheakSubMissionClear(int i)
     {
         var submission = targetObject.subMissions[i];
+
         if (!submission.isClear)
         {
             switch (submission.missionType)
@@ -103,4 +125,24 @@ public class Missionmanager : MonoBehaviour
         return _collectCounter;
     }
 
+    /// <summary> ê›íËÇ≥ÇÍÇƒÇ¢ÇÈÉ~ÉbÉVÉáÉìèÓïÒ </summary>
+    public SubMissionPreset GetMissionPreset(int id)
+    {
+        return targetObject.subMissions[id];
+    }
+
+    public int GetCurrentCount(int id)
+    {
+        var submission = targetObject.subMissions[id];
+        switch(submission.missionType)
+        {
+            case SubMissionPreset.MissionTpye.Defeat:
+                Debug.Log(" counter ");
+                return _killCounter.GetKillCount(submission.KillObject); 
+            case SubMissionPreset.MissionTpye.Collect:
+                return _collectCounter.GetCollectCount(submission.CollectObject); 
+            default:
+                return 0;
+        }
+    }
 }

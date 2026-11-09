@@ -8,16 +8,12 @@ using UnityEngine;
 [CreateAssetMenu(menuName = "Skill")]
 public class PlayerSkill : ScriptableObject
 {
-    [SerializeField] private bool _canUseBlock = true; //ふさぐ
-    [SerializeField] private bool _canUseJump = true; //ジャンプ
-    [SerializeField] private bool _canUsePeal = true; //剥がす
-    [SerializeField] private bool _canUsePaste = true; //貼る
-    [SerializeField] private bool _canUseBreak = true; //壊す
+    [SerializeField] public bool _canUseWall = true; //ふさぐ
+    [SerializeField] public bool _canUseJump = true; //ジャンプ
+    [SerializeField] public bool _canUseBalloon = true; //剥がす
 
-    public bool CanUseBlock =>_canUseBlock;
+    public bool CanUseWall =>_canUseWall;
     public bool CanUseJump =>_canUseJump;
-    public bool CanUsePeal =>_canUsePeal;
-    public bool CanUsePaste =>_canUsePaste;
-    public bool CanUseBreak =>_canUseBreak; 
+    public bool CanUseBalloon => _canUseBalloon;
 }
 

@@ -26,7 +26,7 @@ public class GimmickBridgeActiveState : GimmickState
         }
 
         //プレイヤーがブロックできるかの確認をする
-        if (_bridgeGimmick.Player.Skill.CanUseBlock &&
+        if (_bridgeGimmick.Player.Skill.CanUseWall &&
             _bridgeGimmick.Player.playerInputData.InteractPressed && _coolTime == 0)
         {
             //橋を表示

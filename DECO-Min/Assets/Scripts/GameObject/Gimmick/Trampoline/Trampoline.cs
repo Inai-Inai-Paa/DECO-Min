@@ -65,7 +65,7 @@ public class Trampoline : Gimmick
 
         if(_onStartPoint)
         {
-            if (_player != null && _player.playerInputData.InteractPressed)
+            if (_player != null && _player.playerInputData.InteractPressed && _player.Skill.CanUseJump == true)
             {
                 PlaySplineAnimate();
                 _interactUI.gameObject.SetActive(false);
@@ -113,6 +113,8 @@ public class Trampoline : Gimmick
 
     public void ChangeUIActive(bool isActive, bool isStartPoint = false)
     {
+        if (_player.Skill.CanUseJump == false) return;
+
         if(_interactUI != null)
         {
             _interactUI.gameObject.SetActive(isActive);

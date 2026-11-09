@@ -15,6 +15,16 @@ public class DroppingSeal : MonoBehaviour
     [Tooltip("連鎖剥離の範囲"), SerializeField] private float _chainPeelRange = 1.0f;
     [Tooltip("Peel先オブジェクトのレイヤー"), SerializeField] private LayerMask _peelableLayer;
 
+    public enum SealType
+    {
+        Normal,
+        Jump,
+        Balloon,
+        Wall
+    }
+
+    [SerializeField] public SealType _type = SealType.Normal;
+
     private int _currentGauge = 0;
     private float _currentDisplayTime = 0.0f;
 

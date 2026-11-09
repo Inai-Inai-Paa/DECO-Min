@@ -108,6 +108,23 @@ public class PlayerPeel : PlayerState
                         var result = seal.ChainPeel();
                         peelCount_new += result.newCount;
                         peelCount_has += result.hasCount;
+
+                        switch(seal._type)
+                        {
+                            case DroppingSeal.SealType.Normal:
+                                break;
+                            case DroppingSeal.SealType.Jump:
+                                player.Skill._canUseJump = true;
+                                break;
+                            case DroppingSeal.SealType.Balloon:
+                                player.Skill._canUseBalloon = true;
+                                break;
+                            case DroppingSeal.SealType.Wall:
+                                player.Skill._canUseWall = true;
+                                break;
+                            default:
+                                break;
+                        }
                     }
                 }
 

@@ -12,7 +12,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 845d9c63da92c85449d6aae20a754eb1, type: 3}
   m_Name: PlayerSkill
   m_EditorClassIdentifier: Assembly-CSharp::PlayerSkill
-  maxHealth: 100
-  currentHealth: 100
-  MoveSpeedMultiplier: 1
-  AttackPowerMultiplier: 1
+  _canUseWall: 0
+  _canUseJump: 0
+  _canUseBalloon: 0

@@ -24,22 +24,39 @@ public class Character : MonoBehaviour
 
     protected virtual void Update()
     {
-        baseVelocity = rb.linearVelocity;
+        bool driveBody = rb != null && !rb.isKinematic;
+
+        if (driveBody)
+        {
+            baseVelocity = rb.linearVelocity;
+        }
+
         additionalVelocity = Vector3.zero;
-
         stateMachine.Update();
-
         velocity = baseVelocity + additionalVelocity;
-        rb.linearVelocity = velocity;
+
+        if (driveBody)
+        {
+            rb.linearVelocity = velocity;
+        }
     }
+
     protected virtual void FixedUpdate()
     {
-        baseVelocity = rb.linearVelocity;
+        bool driveBody = rb != null && !rb.isKinematic;
+
+        if (driveBody)
+        {
+            baseVelocity = rb.linearVelocity;
+        }
+
         additionalVelocity = Vector3.zero;
-
         stateMachine.FixedUpdate();
-
         velocity = baseVelocity + additionalVelocity;
-        rb.linearVelocity = velocity;
+
+        if (driveBody)
+        {
+            rb.linearVelocity = velocity;
+        }
     }
 }

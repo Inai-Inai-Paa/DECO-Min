@@ -139,8 +139,8 @@ Material:
     - _MainRotAngle: 0
     - _MainScrollX: 0
     - _MainScrollY: 0
-    - _MaskMin: 0.23
-    - _MaskPow: 2.67
+    - _MaskMin: 0.21
+    - _MaskPow: 3.82
     - _MaskRotAngle: 0
     - _MaskScrollX: 0
     - _MaskScrollY: 0

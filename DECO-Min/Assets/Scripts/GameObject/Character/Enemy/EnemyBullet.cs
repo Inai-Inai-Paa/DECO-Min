@@ -36,31 +36,29 @@ public class EnemyBullet : MonoBehaviour
     private float _areaRadius;
     private int _areaDamage;
 
-    public static Vector3 CalculateTimedVelocity(Vector3 start, Vector3 end, float duration, float gravity)
+    public bool TryGetAreaLaunchVelocity(Vector3 start, Vector3 end, out Vector3 velocity)
     {
-        if (duration <= 0 || float.IsNaN(duration) || float.IsInfinity(duration))
-            throw new ArgumentOutOfRangeException(nameof(duration));
-        return (end - start) / duration + Vector3.up * (Mathf.Abs(gravity) * duration * 0.5f);
+        return TryGetArcVelocity(start, end, _bulletSpeed, _gravity, out velocity);
     }
 
-    public Vector3 GetTimedLaunchVelocity(Vector3 start, Vector3 end, float duration)
+    public bool LaunchArea(Vector3 targetPoint, Enemy owner, float radius, int damage)
     {
-        return CalculateTimedVelocity(start, end, duration, _gravity);
-    }
-
-    public bool LaunchTimedArea(Vector3 targetPoint, Enemy owner, float duration, float radius, int damage)
-    {
-        if (duration <= 0 || float.IsNaN(duration) || float.IsInfinity(duration)) return false;
+        if (!TryGetAreaLaunchVelocity(transform.position, targetPoint, out Vector3 velocity)) return false;
+        Vector3 horizontalDelta = targetPoint - transform.position;
+        horizontalDelta.y = 0;
+        Vector3 horizontalVelocity = velocity;
+        horizontalVelocity.y = 0;
         _owner = owner;
         _timedArea = true;
         _aliveTimer = 0;
         _hasHit = false;
         _launchPosition = transform.position;
         _impactPoint = targetPoint;
-        _flightTime = duration;
+        // Arrival time follows from the fixed launch speed and the low ballistic arc.
+        _flightTime = horizontalDelta.magnitude / horizontalVelocity.magnitude;
         _areaRadius = Mathf.Max(0.01f, radius);
         _areaDamage = Mathf.Max(0, damage);
-        _launchVelocity = GetTimedLaunchVelocity(_launchPosition, targetPoint, duration);
+        _launchVelocity = velocity;
         transform.rotation = Quaternion.LookRotation(_launchVelocity.normalized);
         return true;
     }

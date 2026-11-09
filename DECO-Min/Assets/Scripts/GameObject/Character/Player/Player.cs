@@ -96,16 +96,22 @@ public partial class Player : Character
         cameraForward = Vector3.Scale(mainCamera.transform.forward, new Vector3(1, 0, 1)).normalized;
 
         //?A?j???[?V??????W
-        _animator.SetBool("IsGround", isGrounded);
-
-        AnimatorStateInfo stateInfo = _animator.GetCurrentAnimatorStateInfo(0);
-        //?A?j???[?V?????????Q?????I???????t?O??A?j???[?V?????N??
-        if ((stateInfo.IsName("Idle")))
+        if (_animator != null)
         {
-            _idleTimer += Time.deltaTime;
-            if (_idleTimer >= _idleStartTime)
+            _animator.SetBool("IsGround", isGrounded);
+
+            AnimatorStateInfo stateInfo = _animator.GetCurrentAnimatorStateInfo(0);
+            if ((stateInfo.IsName("Idle")))
             {
-                _animator.SetTrigger("Idle");
+                _idleTimer += Time.deltaTime;
+                if (_idleTimer >= _idleStartTime)
+                {
+                    _animator.SetTrigger("Idle");
+                    _idleTimer = 0.0f;
+                }
+            }
+            else
+            {
                 _idleTimer = 0.0f;
             }
         }

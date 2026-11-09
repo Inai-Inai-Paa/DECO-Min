@@ -1,9 +1,9 @@
 using Unity.VisualScripting;
 using UnityEditor;
 using UnityEngine;
-using static SubMissionPreset;
+using static MissionPreset;
 
-[CustomPropertyDrawer(typeof(SubMissionPreset))]
+[CustomPropertyDrawer(typeof(MissionPreset))]
 public class MissionDrower : PropertyDrawer
 {
     private const float _lineHeight = 20f;
@@ -13,7 +13,7 @@ public class MissionDrower : PropertyDrawer
     {
         int lines = 0;
         
-        SerializedProperty missiontype = property.FindPropertyRelative(nameof(SubMissionPreset.missionType));
+        SerializedProperty missiontype = property.FindPropertyRelative(nameof(MissionPreset.missionType));
 
         lines += 5;
         switch ((MissionTpye)missiontype.enumValueIndex)
@@ -35,13 +35,14 @@ public class MissionDrower : PropertyDrawer
     {
         EditorGUI.BeginProperty(position, label, property);
 
-        SerializedProperty missionText = property.FindPropertyRelative(nameof(SubMissionPreset.missionText));
-        SerializedProperty missionType = property.FindPropertyRelative(nameof(SubMissionPreset.missionType));
-        SerializedProperty objectCount = property.FindPropertyRelative(nameof(SubMissionPreset.objectCount));
-        SerializedProperty targetObject = property.FindPropertyRelative(nameof(SubMissionPreset.targetObject));
-        SerializedProperty timeLimit = property.FindPropertyRelative(nameof(SubMissionPreset.timeLimit));
-        SerializedProperty rewardObject = property.FindPropertyRelative(nameof(SubMissionPreset.reward));
-        SerializedProperty rewardSeal = property.FindPropertyRelative(nameof(SubMissionPreset.rewardSeal));
+        SerializedProperty missionText = property.FindPropertyRelative(nameof(MissionPreset.missionText));
+        SerializedProperty missionType = property.FindPropertyRelative(nameof(MissionPreset.missionType));
+        SerializedProperty objectCount = property.FindPropertyRelative(nameof(MissionPreset.objectCount));
+        SerializedProperty killTarget = property.FindPropertyRelative(nameof(MissionPreset.killObject));
+        SerializedProperty Collecttarget = property.FindPropertyRelative(nameof(MissionPreset.collectObject));
+        SerializedProperty timeLimit = property.FindPropertyRelative(nameof(MissionPreset.timeLimit));
+        SerializedProperty rewardObject = property.FindPropertyRelative(nameof(MissionPreset.reward));
+        SerializedProperty rewardSeal = property.FindPropertyRelative(nameof(MissionPreset.rewardSeal));
         Rect r = new Rect(position.x, position.y, position.width, _lineHeight);
 
         DrawRow(ref r, "ミッションテキスト", missionText);
@@ -51,16 +52,15 @@ public class MissionDrower : PropertyDrawer
         switch((MissionTpye)missionType.enumValueIndex)
         {
             case MissionTpye.Defeat:
-                DrawRow(ref r, "対象", targetObject);
+                DrawRow(ref r, "対象", killTarget);
                 DrawRow(ref r, "必要数", objectCount);
                 break;
             case MissionTpye.Collect:
 
-                DrawRow(ref r, "対象", targetObject);
+                DrawRow(ref r, "対象", Collecttarget);
                 DrawRow(ref r, "必要数", objectCount);
                 break;
             case MissionTpye.Place:
-                DrawRow(ref r, "対象エリア", targetObject);
                 break;
 
         }

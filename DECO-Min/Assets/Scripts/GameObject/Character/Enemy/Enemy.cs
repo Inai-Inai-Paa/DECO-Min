@@ -1266,6 +1266,7 @@ public partial class Enemy : Character, IDamageable
 
     protected virtual void OnDestroy()
     {
+        ReleaseVisionDebugView();
         NotifyRemoved();
         EnemyManager.Instance?.UnregisterEnemy(this);
     }
@@ -1695,6 +1696,7 @@ public partial class Enemy : Character, IDamageable
 
     private void LateUpdate()
     {
+        UpdateVisionDebugView();
         SeparateFromNearbyEnemies();
 
         if (_releasePlayerCollisionWhenClear && !IsPlayerOverlappingBody())

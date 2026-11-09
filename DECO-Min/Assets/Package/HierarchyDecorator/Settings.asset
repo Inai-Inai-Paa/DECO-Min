@@ -469,6 +469,19 @@ MonoBehaviour:
         isBuiltIn: 1
         script: {fileID: 0}
         hasToggle: 1
+      - displayName: DebugShadowmap
+        name: Unity.Rendering.Toon.DebugShadowmap, Unity.Toonshader, Version=0.0.0.0,
+          Culture=neutral, PublicKeyToken=null
+        content:
+          m_Text: 
+          m_Image: {fileID: 0}
+          m_Tooltip: 
+          m_TextWithWhitespace: 
+        shown: 0
+        excluded: 0
+        isBuiltIn: 1
+        script: {fileID: 0}
+        hasToggle: 1
       - displayName: DebugUIHandlerBitField
         name: UnityEngine.Rendering.UI.DebugUIHandlerBitField, Unity.RenderPipelines.Core.Runtime,
           Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
@@ -1197,6 +1210,19 @@ MonoBehaviour:
         isBuiltIn: 1
         script: {fileID: 0}
         hasToggle: 1
+      - displayName: ModelToonEvAdjustment
+        name: Unity.Rendering.Toon.ModelToonEvAdjustment, Unity.Toonshader, Version=0.0.0.0,
+          Culture=neutral, PublicKeyToken=null
+        content:
+          m_Text: 
+          m_Image: {fileID: 0}
+          m_Tooltip: 
+          m_TextWithWhitespace: 
+        shown: 0
+        excluded: 0
+        isBuiltIn: 1
+        script: {fileID: 0}
+        hasToggle: 1
       - displayName: MultiplayerRolesData
         name: UnityEngine.MultiplayerRolesData, UnityEngine.MultiplayerModule, Version=0.0.0.0,
           Culture=neutral, PublicKeyToken=null
@@ -1548,6 +1574,19 @@ MonoBehaviour:
         isBuiltIn: 1
         script: {fileID: 0}
         hasToggle: 1
+      - displayName: SceneToonEvAdjustment
+        name: Unity.Rendering.Toon.SceneToonEvAdjustment, Unity.Toonshader, Version=0.0.0.0,
+          Culture=neutral, PublicKeyToken=null
+        content:
+          m_Text: 
+          m_Image: {fileID: 0}
+          m_Tooltip: 
+          m_TextWithWhitespace: 
+        shown: 0
+        excluded: 0
+        isBuiltIn: 1
+        script: {fileID: 0}
+        hasToggle: 1
       - displayName: SceneVariables
         name: Unity.VisualScripting.SceneVariables, Unity.VisualScripting.Core, Version=0.0.0.0,
           Culture=neutral, PublicKeyToken=null
@@ -1577,6 +1616,19 @@ MonoBehaviour:
       - displayName: SignalReceiver
         name: UnityEngine.Timeline.SignalReceiver, Unity.Timeline, Version=1.0.0.0,
           Culture=neutral, PublicKeyToken=null
+        content:
+          m_Text: 
+          m_Image: {fileID: 0}
+          m_Tooltip: 
+          m_TextWithWhitespace: 
+        shown: 0
+        excluded: 0
+        isBuiltIn: 1
+        script: {fileID: 0}
+        hasToggle: 1
+      - displayName: SimpleExposedPropertyTable
+        name: Unity.FilmInternalUtilities.SimpleExposedPropertyTable, Unity.FilmInternalUtilities,
+          Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
         content:
           m_Text: 
           m_Image: {fileID: 0}
@@ -1720,6 +1772,32 @@ MonoBehaviour:
       - displayName: TMP_ScrollbarEventHandler
         name: TMPro.TMP_ScrollbarEventHandler, Unity.TextMeshPro, Version=0.0.0.0,
           Culture=neutral, PublicKeyToken=null
+        content:
+          m_Text: 
+          m_Image: {fileID: 0}
+          m_Tooltip: 
+          m_TextWithWhitespace: 
+        shown: 0
+        excluded: 0
+        isBuiltIn: 1
+        script: {fileID: 0}
+        hasToggle: 1
+      - displayName: ToonCameraViewController
+        name: Unity.Rendering.Toon.ToonCameraViewController, Unity.Toonshader, Version=0.0.0.0,
+          Culture=neutral, PublicKeyToken=null
+        content:
+          m_Text: 
+          m_Image: {fileID: 0}
+          m_Tooltip: 
+          m_TextWithWhitespace: 
+        shown: 0
+        excluded: 0
+        isBuiltIn: 1
+        script: {fileID: 0}
+        hasToggle: 1
+      - displayName: ToonDirectionalLightController
+        name: Unity.Rendering.Toon.ToonDirectionalLightController, Unity.Toonshader,
+          Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
         content:
           m_Text: 
           m_Image: {fileID: 0}
@@ -4528,4 +4606,4 @@ MonoBehaviour:
         script: {fileID: 11500000, guid: 055bcfef84f39df47b239720510b1847, type: 3}
         hasToggle: 1
     unityVersion: 6000.3.14f1
-    unityCount: 321
+    unityCount: 327

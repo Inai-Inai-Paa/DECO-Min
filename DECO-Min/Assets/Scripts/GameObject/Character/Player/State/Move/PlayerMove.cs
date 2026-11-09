@@ -54,7 +54,7 @@ public class PlayerMove : PlayerState
                         continue;
                     }
 
-                    player._animator.SetTrigger("Finish");
+                    if (player._animator != null) player._animator.SetTrigger("Finish");
                     enemy.CompleteFinisher();
                     break;
                 }
@@ -72,10 +72,10 @@ public class PlayerMove : PlayerState
             player.playerInputData.JumpPressedTime = -Mathf.Infinity;
             player.baseVelocity = new Vector3(player.baseVelocity.x, jumpForce, player.baseVelocity.z);
 
-            player._animator.SetTrigger("Jump");
+            if (player._animator != null) player._animator.SetTrigger("Jump");
         }
         else
-            player._animator.ResetTrigger("Jump");
+            if (player._animator != null) player._animator.ResetTrigger("Jump");
     }
 
     private void Move()
@@ -99,11 +99,11 @@ public class PlayerMove : PlayerState
                 Time.fixedDeltaTime * moveSpeed * input.magnitude
             );
 
-            player._animator.SetBool("IsRun", true);
+            if (player._animator != null) player._animator.SetBool("IsRun", true);
         }
         else
         {
-            player._animator.SetBool("IsRun", false);
+            if (player._animator != null) player._animator.SetBool("IsRun", false);
         }
 
         player.baseVelocity = new Vector3(velocity.x, player.baseVelocity.y, velocity.z);

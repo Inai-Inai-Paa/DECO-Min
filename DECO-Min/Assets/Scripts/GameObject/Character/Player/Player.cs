@@ -10,6 +10,7 @@ public partial class Player : Character
 
     private PlayerStatus _status;
     public PlayerStatus Status => _status;
+    [SerializeField] private PlayerSkill _skillPrefab;
     [SerializeField] private PlayerSkill _skill;
     public PlayerSkill Skill => _skill;
 
@@ -52,6 +53,7 @@ public partial class Player : Character
     {
         //?v???C???[?X?e?[?^?X???L?????N?^?[?X?e?[?^?X??????
         _status = Instantiate((PlayerStatus)characterStatus);
+        _skill = Instantiate(_skillPrefab);
         _status.TotalSealCount = 100;
         _status.CurrentSealCount = 100;
     }

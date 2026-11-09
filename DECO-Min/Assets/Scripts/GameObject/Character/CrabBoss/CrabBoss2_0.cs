@@ -151,8 +151,6 @@ public class CrabBoss2_0 : Character
         LeftTelegraph,
         LeftThrust,
         LeftRecovery,
-        ShortJumpRise,
-        ShortJumpTravel,
         FinalJumpRise,
         FinalJumpTravel,
         LandingRecovery
@@ -186,9 +184,6 @@ public class CrabBoss2_0 : Character
     [SerializeField, HideInInspector, Min(0f)] private float leftPullBackDistance = 2f;
     [SerializeField, HideInInspector, Min(0f)] private float leftAttackRadius = 1.5f;
 
-    [SerializeField, HideInInspector, Min(0)] private int shortJumpCount = 2;
-    [SerializeField, HideInInspector, Min(0f)] private float shortJumpHeight = 2f;
-    [SerializeField, HideInInspector, Min(0f)] private float shortJumpDuration = 0.75f;
     [SerializeField, HideInInspector, Min(0f)] private float finalJumpWindUpDuration = 0.5f;
     [SerializeField, HideInInspector, Min(0f)] private float finalJumpHeight = 6f;
     [SerializeField, HideInInspector, Min(0f)] private float finalJumpTravelDuration = 3f;
@@ -204,7 +199,6 @@ public class CrabBoss2_0 : Character
     private bool isActive;
     private CrabBoss2State currentState = CrabBoss2State.Inactive;
     private float phaseTimer;
-    private int completedShortJumps;
     private Vector3 phaseStartPosition;
     private Vector3 lockedTargetPosition;
     private Vector3 leftHandDefaultLocalPosition;
@@ -282,7 +276,6 @@ public class CrabBoss2_0 : Character
         isActive = active;
         if (!isActive)
         {
-            completedShortJumps = 0;
             RestoreHandTransforms();
             SetPhase(Phase.Inactive);
         }
@@ -378,12 +371,6 @@ public class CrabBoss2_0 : Character
             case Phase.LeftRecovery:
                 UpdateLeftRecovery();
                 break;
-            case Phase.ShortJumpRise:
-                UpdateShortJumpRise();
-                break;
-            case Phase.ShortJumpTravel:
-                UpdateShortJumpTravel();
-                break;
             case Phase.FinalJumpRise:
                 UpdateFinalJumpRise();
                 break;
@@ -414,7 +401,7 @@ public class CrabBoss2_0 : Character
 
         CrabBoss2Attack attack = CrabBoss2AttackSelector.Select(HasLeftHand(), HasRightHand(), Random.Range(0, 2));
         SetPhase(attack == CrabBoss2Attack.RightSlam ? Phase.RightWindUp :
-            attack == CrabBoss2Attack.LeftRocket ? Phase.LeftPullBack : Phase.ShortJumpRise);
+            attack == CrabBoss2Attack.LeftRocket ? Phase.LeftPullBack : Phase.FinalJumpRise);
     }
 
     private void UpdateRightWindUp()
@@ -536,30 +523,6 @@ public class CrabBoss2_0 : Character
         }
     }
 
-    private void UpdateShortJumpRise()
-    {
-        TurnTowardPlayer();
-        if (phaseTimer >= finalJumpWindUpDuration)
-        {
-            phaseStartPosition = transform.position;
-            lockedTargetPosition = GetPlayerPosition();
-            SetPhase(Phase.ShortJumpTravel);
-        }
-    }
-
-    private void UpdateShortJumpTravel()
-    {
-        float progress = Progress(shortJumpDuration);
-        Vector3 ground = Vector3.Lerp(phaseStartPosition, lockedTargetPosition, progress);
-        transform.position = ground + Vector3.up * (Mathf.Sin(progress * Mathf.PI) * shortJumpHeight);
-        if (phaseTimer >= shortJumpDuration)
-        {
-            transform.position = lockedTargetPosition;
-            completedShortJumps++;
-            SetPhase(completedShortJumps < shortJumpCount ? Phase.ShortJumpRise : Phase.FinalJumpRise);
-        }
-    }
-
     private void UpdateFinalJumpRise()
     {
         TurnTowardPlayer();
@@ -601,13 +564,6 @@ public class CrabBoss2_0 : Character
         {
             lockedTargetPosition = GetPlayerPosition();
         }
-        if (nextPhase == Phase.ShortJumpRise)
-        {
-            if (completedShortJumps >= shortJumpCount)
-            {
-                completedShortJumps = 0;
-            }
-        }
         if (nextPhase == Phase.Rest)
         {
             RestoreHandTransforms();
@@ -630,8 +586,6 @@ public class CrabBoss2_0 : Character
             case Phase.LeftTelegraph:
             case Phase.LeftThrust:
                 return CrabBoss2State.Attack2;
-            case Phase.ShortJumpRise:
-            case Phase.ShortJumpTravel:
             case Phase.FinalJumpRise:
             case Phase.FinalJumpTravel:
                 return CrabBoss2State.Attack3;
@@ -687,7 +641,7 @@ public class CrabBoss2_0 : Character
         GameObject prefab = Resources.Load<GameObject>("Prefab/CrabBoss/Atk1Collider");
         if (prefab == null)
         {
-            Debug.LogWarning("CrabBoss2.0 could not find Prefab/CrabBoss/Atk1Collider.", this);
+            Debug.LogWarning("CrabBoss2.0：Prefab/CrabBoss/Atk1Collider が見つかりません。", this);
             return;
         }
 
@@ -705,7 +659,7 @@ public class CrabBoss2_0 : Character
         float distance = DistanceToSegment(playerTransform.position, leftThrustStartWorldPosition, lockedTargetPosition);
         if (distance <= leftAttackRadius)
         {
-            Debug.Log("CrabBoss2.0 left rocket hit player.", this);
+            Debug.Log("CrabBoss2.0：左腕ロケットパンチがプレイヤーに命中しました。", this);
         }
     }
 
@@ -723,7 +677,7 @@ public class CrabBoss2_0 : Character
         }
 
         float damage = Mathf.Lerp(landingMaxDamage, landingMinDamage, distance / Mathf.Max(0.01f, landingDamageRadius));
-        Debug.Log("CrabBoss2.0 landing damage: " + damage, this);
+        Debug.Log("CrabBoss2.0：ジャンプ着地攻撃のダメージ: " + damage, this);
     }
 
     private float Progress(float duration)

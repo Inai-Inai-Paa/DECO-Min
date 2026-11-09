@@ -85,6 +85,9 @@ public class Trampoline : Gimmick
         if(spAnim == null)
         {
             spAnim = _player.gameObject.AddComponent<SplineAnimate>();
+            spAnim.Loop = SplineAnimate.LoopMode.Once;
+            spAnim.Alignment = SplineAnimate.AlignmentMode.None;
+
         }
 
         if(spAnim.Container != null)

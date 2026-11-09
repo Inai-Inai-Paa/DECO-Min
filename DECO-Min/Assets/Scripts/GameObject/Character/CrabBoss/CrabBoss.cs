@@ -130,7 +130,7 @@ public class CrabBoss : Character
 		if (IsActive)
 		{
 			SetBossState(CrabState.Rest);
-			Debug.Log("Idle Ended, Rest Start");
+			Debug.Log("待機状態を終了し、休憩状態を開始しました。");
 		}
 
 	}
@@ -143,7 +143,7 @@ public class CrabBoss : Character
 			IsLeft = Random.value > 0.5f;
 			CrabState nextAttack = GetRandomAttackState();
 			SetBossState(nextAttack);
-			Debug.Log("Rest Ended, " + nextAttack + " Start");
+			Debug.Log("休憩状態を終了し、" + nextAttack + " を開始しました。");
 		}
 	}
 
@@ -186,7 +186,7 @@ public class CrabBoss : Character
 
 		IsAtk1Active = true;
 		StateTimer = 0;
-		Debug.Log("Attack1 Active");
+		Debug.Log("攻撃1を開始しました。");
 		StateCountInState = 1;
 	}
 	void SlamAtk1()
@@ -280,7 +280,7 @@ public class CrabBoss : Character
 
 		StateTimer = 0f;
 		StateCountInState = 1;
-		Debug.Log("Attack2 Locked Player Position: " + atk2LockedPlayerPosition);
+		Debug.Log("攻撃2：プレイヤー位置をロックしました。" + atk2LockedPlayerPosition);
 	}
 
 	void PrepareAtk2()
@@ -293,7 +293,7 @@ public class CrabBoss : Character
 
 		StateTimer = 0f;
 		StateCountInState = 2;
-		Debug.Log("Attack2 Thrust Start");
+		Debug.Log("攻撃2：突進を開始しました。");
 	}
 
 	void ThrustAtk2()
@@ -307,7 +307,7 @@ public class CrabBoss : Character
 
 		StateTimer = 0f;
 		StateCountInState = 3;
-		Debug.Log("Attack2 Recovery Window Start");
+		Debug.Log("攻撃2：硬直時間を開始しました。");
 	}
 
 	void WaitAtk2Recovery()
@@ -412,7 +412,7 @@ public class CrabBoss : Character
 		if (leftDistance > Atk2AttackRadius && rightDistance > Atk2AttackRadius) return;
 
 		atk2LoggedHit = true;
-		Debug.Log("Player hit by Attack2 path!");
+		Debug.Log("攻撃2の攻撃範囲がプレイヤーに命中しました。");
 	}
 
 	//-----------------------------------------------------------
@@ -438,7 +438,7 @@ public class CrabBoss : Character
 		atk3LockedTarget = false;
 		StateTimer = 0f;
 		StateCountInState = 1;
-		Debug.Log("Attack3 Jump Start");
+		Debug.Log("攻撃3：ジャンプを開始しました。");
 	}
 
 	void HoverAtk3()
@@ -450,7 +450,7 @@ public class CrabBoss : Character
 			Vector3 playerPosition = GetPlayerPosition();
 			atk3LockedLandingPosition = new Vector3(playerPosition.x, atk3StartPosition.y, playerPosition.z);
 			atk3LockedTarget = true;
-			Debug.Log("Attack3 Locked Player Position: " + atk3LockedLandingPosition);
+			Debug.Log("攻撃3：着地位置をロックしました。" + atk3LockedLandingPosition);
 		}
 
 		if (StateTimer < Atk3LandTime) return;
@@ -464,7 +464,7 @@ public class CrabBoss : Character
 		MoveBossTo(atk3LockedLandingPosition);
 		LogAtk3LandingDamage();
 		SetBossState(CrabState.Rest);
-		Debug.Log("Attack3 Landed");
+		Debug.Log("攻撃3：着地しました。");
 	}
 
 	void MoveBossTo(Vector3 position)
@@ -484,7 +484,7 @@ public class CrabBoss : Character
 
 		if (damage <= 0f) return;
 
-		Debug.Log("Player hit by Attack3 landing! Distance: " + distance + ", Damage: " + damage);
+		Debug.Log("攻撃3の着地攻撃がプレイヤーに命中しました。距離: " + distance + "、ダメージ: " + damage);
 	}
 
 	void Stunned() { }

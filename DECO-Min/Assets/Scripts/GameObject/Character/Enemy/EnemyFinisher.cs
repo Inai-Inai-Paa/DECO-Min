@@ -485,8 +485,12 @@ public partial class Enemy
             _hasStoredConstraints = true;
         }
 
-        _frozenBody.linearVelocity = Vector3.zero;
-        _frozenBody.angularVelocity = Vector3.zero;
+        if (!_frozenBody.isKinematic)
+        {
+            _frozenBody.linearVelocity = Vector3.zero;
+            _frozenBody.angularVelocity = Vector3.zero;
+        }
+
         _frozenBody.constraints = RigidbodyConstraints.FreezeAll;
     }
 

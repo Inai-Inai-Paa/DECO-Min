@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.UI;
 
 public class MissionOrderSystem : MonoBehaviour
 {
@@ -13,7 +14,7 @@ public class MissionOrderSystem : MonoBehaviour
 
     [SerializeField] private GameObject selectIcon;
 
-    [SerializeField] private GameObject[] buttonObj; 
+    [SerializeField] private Button[] buttonObj; 
  
     private inp_test inputAction;
 
@@ -41,6 +42,7 @@ public class MissionOrderSystem : MonoBehaviour
         {
             texts[i].text = mIssion.missions[i].missionText;
         }
+    
     }
 
     private void Update()
@@ -49,7 +51,7 @@ public class MissionOrderSystem : MonoBehaviour
         //パネルが表示されてなければリターン
         if (!_isActive) return;
 
-
+       
         if (Keyboard.current != null &&
             Keyboard.current.enterKey.wasPressedThisFrame)
         {
@@ -69,20 +71,24 @@ public class MissionOrderSystem : MonoBehaviour
         if (Keyboard.current != null &&
             Keyboard.current.backspaceKey.wasPressedThisFrame)
         {
-           // OrderPanelClose();
+            Debug.Log(_select);
+            Debug.Log(buttonObj[0]);
+            Debug.Log(buttonObj[1]);
+            // OrderPanelClose();
         }
 
         if (Keyboard.current.sKey.wasPressedThisFrame)
         {
             _select++;
             _select %= 2;
+            SelectButton();
         }
         if (Keyboard.current.wKey.wasPressedThisFrame)
         {
             _select--;
             _select *= -1;
+            SelectButton();
         }
-        selectIcon.transform.position = buttonObj[_select].transform.position;
     }
 
     public void OrderMission()
@@ -107,5 +113,13 @@ public class MissionOrderSystem : MonoBehaviour
         // パネルを開くアニメーションはここで
         _orderPanel.SetActive(true);
         _isActive = true;
+        _select = 0;
+        SelectButton();
+    }
+
+    private void SelectButton()
+    {
+        selectIcon.transform.position = buttonObj[_select].transform.position;
+        buttonObj[_select].Select();
     }
 }

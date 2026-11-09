@@ -1585,6 +1585,18 @@ PrefabInstance:
       propertyPath: m_Name
       value: MissionOrderPanel
       objectReference: {fileID: 0}
+    - target: {fileID: 9050147552804185035, guid: 349d6932e45d70549a7c087d920313d1, type: 3}
+      propertyPath: m_Transition
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 9050147552804185035, guid: 349d6932e45d70549a7c087d920313d1, type: 3}
+      propertyPath: m_SpriteState.m_DisabledSprite
+      value: 
+      objectReference: {fileID: 21300000, guid: 33427ded878701a4cb8c6de125409ddb, type: 3}
+    - target: {fileID: 9050147552804185035, guid: 349d6932e45d70549a7c087d920313d1, type: 3}
+      propertyPath: m_SpriteState.m_HighlightedSprite
+      value: 
+      objectReference: {fileID: 21300000, guid: 808a9e95089dbbe4d8aa161d3919e3c6, type: 3}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []

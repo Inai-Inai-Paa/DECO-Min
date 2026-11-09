@@ -8,7 +8,7 @@ public class Missionmanager : MonoBehaviour
     public bool missionStartFlg = false;
 
     private bool _missionClear = false; 
-    [SerializeField] public MIssionPreset targetObject;
+    [SerializeField] public MIssionPresets targetObject;
 
     private KillCounter _killCounter;
     private CollectCounter _collectCounter;
@@ -53,7 +53,7 @@ public class Missionmanager : MonoBehaviour
     }
 
 
-    public void SetMission(MIssionPreset missionTargetObject)
+    public void SetMission(MIssionPresets missionTargetObject)
     {
         targetObject = missionTargetObject;
     }

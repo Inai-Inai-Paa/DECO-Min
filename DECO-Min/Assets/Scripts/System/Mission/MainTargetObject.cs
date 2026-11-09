@@ -1,13 +1,10 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-[CreateAssetMenu(menuName = "Mission/MainMissionTargetObject")]
-public class MainMissionTargetObject : ScriptableObject
+[CreateAssetMenu(menuName = "Mission/MIssionPreset")]
+public class MIssionPresets : ScriptableObject
 {
-    [Header("メインミッション設定")]
-    [SerializeField] public MainMissionPreset Object;
-
-    [Header("中ミッション設定")]
-    [SerializeField] public List<SubMissionPreset> subMissions;
+    [Header("ミッション設定")]
+    [SerializeField] public List<MissionPreset> missions;
   
 }

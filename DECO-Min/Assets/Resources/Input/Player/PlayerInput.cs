@@ -136,6 +136,15 @@ public partial class @PlayerInput: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": true
+                },
+                {
+                    ""name"": ""Finisher"",
+                    ""type"": ""Button"",
+                    ""id"": ""4edc396a-35fd-470e-bb84-fb2dcc97e008"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
                 }
             ],
             ""bindings"": [
@@ -273,8 +282,30 @@ public partial class @PlayerInput: IInputActionCollection2, IDisposable
                 },
                 {
                     ""name"": """",
+                    ""id"": ""6933384c-42b3-42aa-b0c4-266efbf073d5"",
+                    ""path"": ""<Gamepad>/buttonSouth"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Jump"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
                     ""id"": ""fb69bec0-12b9-476f-99fc-5051093d24a0"",
                     ""path"": ""<Mouse>/leftButton"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Attack"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""6580a9f2-03b5-4864-8c96-60b6796cad77"",
+                    ""path"": ""<Gamepad>/rightTrigger"",
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": """",
@@ -295,12 +326,56 @@ public partial class @PlayerInput: IInputActionCollection2, IDisposable
                 },
                 {
                     ""name"": """",
+                    ""id"": ""7d85da71-bd9d-46cc-8065-539a1eb610f2"",
+                    ""path"": ""<Gamepad>/buttonWest"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Interact"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
                     ""id"": ""5836096e-fb00-4bbd-9a2d-055e07a6b582"",
                     ""path"": ""<Mouse>/scroll/down"",
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": """",
                     ""action"": ""Peel"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""20b81013-5dde-4afa-b0fa-d2f72fcec6dd"",
+                    ""path"": ""<Gamepad>/leftTrigger"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Peel"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""70f9fef5-ffc3-492f-ba8d-a8803e9532dd"",
+                    ""path"": ""<Gamepad>/buttonNorth"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Finisher"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""c8eb45fc-395e-47bd-b097-a5c483e78a64"",
+                    ""path"": ""<Keyboard>/f"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Finisher"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 }
@@ -316,6 +391,7 @@ public partial class @PlayerInput: IInputActionCollection2, IDisposable
         m_PlayerControll_Attack = m_PlayerControll.FindAction("Attack", throwIfNotFound: true);
         m_PlayerControll_Interact = m_PlayerControll.FindAction("Interact", throwIfNotFound: true);
         m_PlayerControll_Peel = m_PlayerControll.FindAction("Peel", throwIfNotFound: true);
+        m_PlayerControll_Finisher = m_PlayerControll.FindAction("Finisher", throwIfNotFound: true);
     }
 
     ~@PlayerInput()
@@ -401,6 +477,7 @@ public partial class @PlayerInput: IInputActionCollection2, IDisposable
     private readonly InputAction m_PlayerControll_Attack;
     private readonly InputAction m_PlayerControll_Interact;
     private readonly InputAction m_PlayerControll_Peel;
+    private readonly InputAction m_PlayerControll_Finisher;
     /// <summary>
     /// Provides access to input actions defined in input action map "PlayerControll".
     /// </summary>
@@ -432,6 +509,10 @@ public partial class @PlayerInput: IInputActionCollection2, IDisposable
         /// Provides access to the underlying input action "PlayerControll/Peel".
         /// </summary>
         public InputAction @Peel => m_Wrapper.m_PlayerControll_Peel;
+        /// <summary>
+        /// Provides access to the underlying input action "PlayerControll/Finisher".
+        /// </summary>
+        public InputAction @Finisher => m_Wrapper.m_PlayerControll_Finisher;
         /// <summary>
         /// Provides access to the underlying input action map instance.
         /// </summary>
@@ -473,6 +554,9 @@ public partial class @PlayerInput: IInputActionCollection2, IDisposable
             @Peel.started += instance.OnPeel;
             @Peel.performed += instance.OnPeel;
             @Peel.canceled += instance.OnPeel;
+            @Finisher.started += instance.OnFinisher;
+            @Finisher.performed += instance.OnFinisher;
+            @Finisher.canceled += instance.OnFinisher;
         }
 
         /// <summary>
@@ -499,6 +583,9 @@ public partial class @PlayerInput: IInputActionCollection2, IDisposable
             @Peel.started -= instance.OnPeel;
             @Peel.performed -= instance.OnPeel;
             @Peel.canceled -= instance.OnPeel;
+            @Finisher.started -= instance.OnFinisher;
+            @Finisher.performed -= instance.OnFinisher;
+            @Finisher.canceled -= instance.OnFinisher;
         }
 
         /// <summary>
@@ -574,5 +661,12 @@ public partial class @PlayerInput: IInputActionCollection2, IDisposable
         /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
         /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
         void OnPeel(InputAction.CallbackContext context);
+        /// <summary>
+        /// Method invoked when associated input action "Finisher" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnFinisher(InputAction.CallbackContext context);
     }
 }

@@ -16,4 +16,5 @@ public class MissionUILine : MonoBehaviour
     {
         _textUI.text = string.Format(_format, args);
     }
+   
 }

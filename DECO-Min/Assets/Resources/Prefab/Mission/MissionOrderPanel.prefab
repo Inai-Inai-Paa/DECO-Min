@@ -1520,8 +1520,8 @@ MonoBehaviour:
   mIssion: {fileID: 11400000, guid: 6b43965d1590b2f488929c48f6a38708, type: 2}
   selectIcon: {fileID: 2916550315039377650}
   buttonObj:
-  - {fileID: 9050147552804185035}
-  - {fileID: 4161589529457373899}
+  - {fileID: 7629850896277430149}
+  - {fileID: 5854388094528371358}
 --- !u!1 &8606004556846248783
 GameObject:
   m_ObjectHideFlags: 0

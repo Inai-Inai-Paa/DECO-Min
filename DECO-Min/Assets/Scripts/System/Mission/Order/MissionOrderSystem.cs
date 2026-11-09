@@ -1,21 +1,20 @@
-using System.Collections.Generic;
-using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.UI;
 
 public class MissionOrderSystem : MonoBehaviour
 {
     public static MissionOrderSystem Instance { get; private set; }
 
     [SerializeField] private GameObject _orderPanel;
-    [SerializeField] private List<TMP_Text> texts;
     [SerializeField] private MIssionPresets mIssion;
 
     [SerializeField] private GameObject selectIcon;
 
-    [SerializeField] private GameObject[] buttonObj; 
- 
-    private inp_test inputAction;
+    [SerializeField] private Button[] buttonObj;
+
+    [SerializeField] private GameObject[] clearIcon;
+
 
     // 仮実装
     private int _select = 0;
@@ -37,10 +36,7 @@ public class MissionOrderSystem : MonoBehaviour
     {
         _orderPanel.SetActive(false);
 
-        for (int i = 0; i < texts.Count; i++)
-        {
-            texts[i].text = mIssion.missions[i].missionText;
-        }
+       
     }
 
     private void Update()
@@ -76,13 +72,15 @@ public class MissionOrderSystem : MonoBehaviour
         {
             _select++;
             _select %= 2;
+            SelectButton();
         }
         if (Keyboard.current.wKey.wasPressedThisFrame)
         {
             _select--;
             _select *= -1;
+            SelectButton();
         }
-        selectIcon.transform.position = buttonObj[_select].transform.position;
+        
     }
 
     public void OrderMission()
@@ -107,5 +105,25 @@ public class MissionOrderSystem : MonoBehaviour
         // パネルを開くアニメーションはここで
         _orderPanel.SetActive(true);
         _isActive = true;
+
+        _select = 0;
+        SelectButton();
+        for (int i = 0; i < mIssion.missions.Count; i++)
+        {
+            if (mIssion.missions[i].isClear)
+            {
+                clearIcon[i].SetActive(true);
+            }
+            else
+            {
+                clearIcon[i].SetActive(false);
+            }
+        }
+    }
+
+    private void SelectButton()
+    {
+        selectIcon.transform.position = buttonObj[_select].transform.position;
+        buttonObj[_select].Select();
     }
 }

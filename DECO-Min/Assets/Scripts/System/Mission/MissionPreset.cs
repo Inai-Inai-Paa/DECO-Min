@@ -1,7 +1,7 @@
 using UnityEngine;
 
 [System.Serializable]
-public class SubMissionPreset
+public class MissionPreset
 {
     public enum MissionTpye
     {
@@ -17,9 +17,10 @@ public class SubMissionPreset
     public int objectCount;
     public GameObject targetObject;
 
-    public EnemyData KillObject;
-    public CollectData CollectObject;
+    public EnemyData killObject;
+    public CollectData collectObject;
     public int timeLimit;
+    
     public string missionText;
 
     public GameObject reward;

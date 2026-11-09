@@ -2437,7 +2437,7 @@ MonoBehaviour:
   _lostDistance: 15
   _attackDamage: 10
   _attackCooldown: 1.5
-  _mySealPrefab: {fileID: 1549645160757926421, guid: 20390cad68896604d861750f3073c2ab, type: 3}
+  _sealPrefab: {fileID: 1549645160757926421, guid: 20390cad68896604d861750f3073c2ab, type: 3}
   _patrolCenter: {fileID: 0}
   _patrolRadius: 8
   _patrolPointInterval: 3

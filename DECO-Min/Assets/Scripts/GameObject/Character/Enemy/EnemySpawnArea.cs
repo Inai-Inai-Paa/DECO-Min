@@ -5,6 +5,7 @@ public class EnemySpawnArea : MonoBehaviour
 {
     [Header("Spawn Settings")]
     [SerializeField] private Transform _spawnPoint;
+    [SerializeField] private bool _useIndividualSpawnPoses = true;
     [SerializeField] private Enemy[] _enemies;
     [SerializeField, Min(0.1f)] private float _spawnRadius = 20.0f;
     [SerializeField, Min(0.0f)] private float _spawnDelay = 0.0f;
@@ -184,7 +185,10 @@ public class EnemySpawnArea : MonoBehaviour
             }
 
             enemy.BindSpawnArea(this);
-            enemy.SetSpawnPose(_spawnPoint.position, _spawnPoint.rotation);
+            bool useOwnPose = _useIndividualSpawnPoses || _spawnPoint == null;
+            Vector3 position = useOwnPose ? enemy.transform.position : _spawnPoint.position;
+            Quaternion rotation = useOwnPose ? enemy.transform.rotation : _spawnPoint.rotation;
+            enemy.SetSpawnPose(position, rotation);
 
             if (!activate)
             {

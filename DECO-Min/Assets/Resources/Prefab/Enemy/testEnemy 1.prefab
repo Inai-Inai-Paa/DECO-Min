@@ -181,7 +181,6 @@ MonoBehaviour:
   _navMeshSearchDistance: 3
   _maxChaseDistanceFromHome: 18
   _returnImpossibleTime: 8
-  _homeDespawnWaitTime: 2
   _attackDamage: 10
   _attackCooldown: 1.5
   _damageModel: 0

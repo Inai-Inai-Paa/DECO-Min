@@ -14,6 +14,11 @@ public class EnemyBullet : MonoBehaviour
     private EnemyBulletFlight _flight = EnemyBulletFlight.Direct;
     [SerializeField]
     private float _bulletSpeed = 12.0f;
+    [Header("Area Drop")]
+    [SerializeField, Min(0.0f)]
+    private float _straightDistance = 5.0f;
+    [SerializeField, Min(0.0f)]
+    private float _dropBlendTime = 0.45f;
     [SerializeField]
     private float _gravity = 12.0f;
     [SerializeField]
@@ -33,33 +38,75 @@ public class EnemyBullet : MonoBehaviour
     private Vector3 _launchVelocity;
     private Vector3 _impactPoint;
     private float _flightTime;
+    private float _straightTime;
+    private float _dropBlend;
+    private float _planGravity;
     private float _areaRadius;
     private int _areaDamage;
 
     public bool TryGetAreaLaunchVelocity(Vector3 start, Vector3 end, out Vector3 velocity)
     {
-        return TryGetArcVelocity(start, end, _bulletSpeed, _gravity, out velocity);
+        if (!TryPlanAreaFlight(start, end, out AreaFlightPlan plan))
+        {
+            velocity = Vector3.zero;
+            return false;
+        }
+
+        velocity = plan.InitialVelocity;
+        return velocity.sqrMagnitude > 0.0001f;
+    }
+
+    public bool TryGetAreaFlightTimes(Vector3 start, Vector3 end, out float flightTime, out float straightTime)
+    {
+        if (!TryPlanAreaFlight(start, end, out AreaFlightPlan plan))
+        {
+            flightTime = 0.0f;
+            straightTime = 0.0f;
+            return false;
+        }
+
+        flightTime = plan.FlightTime;
+        straightTime = plan.StraightTime;
+        return true;
+    }
+
+    public bool TrySampleAreaFlight(Vector3 start, Vector3 end, float time, out Vector3 position)
+    {
+        if (!TryPlanAreaFlight(start, end, out AreaFlightPlan plan))
+        {
+            position = start;
+            return false;
+        }
+
+        position = EvaluateAreaPosition(start, plan, time);
+        return true;
     }
 
     public bool LaunchArea(Vector3 targetPoint, Enemy owner, float radius, int damage)
     {
-        if (!TryGetAreaLaunchVelocity(transform.position, targetPoint, out Vector3 velocity)) return false;
-        Vector3 horizontalDelta = targetPoint - transform.position;
-        horizontalDelta.y = 0;
-        Vector3 horizontalVelocity = velocity;
-        horizontalVelocity.y = 0;
+        if (!TryPlanAreaFlight(transform.position, targetPoint, out AreaFlightPlan plan))
+        {
+            return false;
+        }
+
         _owner = owner;
         _timedArea = true;
-        _aliveTimer = 0;
+        _aliveTimer = 0.0f;
         _hasHit = false;
         _launchPosition = transform.position;
         _impactPoint = targetPoint;
-        // Arrival time follows from the fixed launch speed and the low ballistic arc.
-        _flightTime = horizontalDelta.magnitude / horizontalVelocity.magnitude;
+        _flightTime = plan.FlightTime;
+        _straightTime = plan.StraightTime;
+        _dropBlend = plan.DropBlend;
+        _planGravity = plan.Gravity;
         _areaRadius = Mathf.Max(0.01f, radius);
         _areaDamage = Mathf.Max(0, damage);
-        _launchVelocity = velocity;
-        transform.rotation = Quaternion.LookRotation(_launchVelocity.normalized);
+        _launchVelocity = plan.InitialVelocity;
+        if (_launchVelocity.sqrMagnitude > 0.0001f)
+        {
+            transform.rotation = Quaternion.LookRotation(_launchVelocity.normalized);
+        }
+
         return true;
     }
 
@@ -262,10 +309,17 @@ public class EnemyBullet : MonoBehaviour
     {
         if (_hasHit) return;
         _aliveTimer = Mathf.Min(_flightTime, _aliveTimer + Mathf.Max(0, deltaTime));
-        Vector3 position = _launchPosition + _launchVelocity * _aliveTimer
-            + Vector3.down * (0.5f * Mathf.Abs(_gravity) * _aliveTimer * _aliveTimer);
+        var plan = new AreaFlightPlan
+        {
+            InitialVelocity = _launchVelocity,
+            StraightTime = _straightTime,
+            FlightTime = _flightTime,
+            Gravity = _planGravity,
+            DropBlend = _dropBlend
+        };
+        Vector3 position = EvaluateAreaPosition(_launchPosition, plan, _aliveTimer);
         if (!TryMove(position - transform.position)) return;
-        Vector3 tangent = _launchVelocity + Vector3.down * (Mathf.Abs(_gravity) * _aliveTimer);
+        Vector3 tangent = EvaluateAreaVelocity(plan, _aliveTimer);
         if (tangent.sqrMagnitude > 0.0001f) transform.rotation = Quaternion.LookRotation(tangent);
         if (_aliveTimer >= _flightTime) Explode(_impactPoint);
     }
@@ -332,5 +386,135 @@ public class EnemyBullet : MonoBehaviour
 
         damageable.TakeDamage(_bulletDamage);
         return true;
+    }
+
+    private bool TryPlanAreaFlight(Vector3 start, Vector3 end, out AreaFlightPlan plan)
+    {
+        return TryPlanAreaFlight(start, end, _bulletSpeed, _straightDistance, _gravity, _dropBlendTime, out plan);
+    }
+
+    /// <summary>
+    /// Flies straight on a constant velocity, then eases in gravity so the shell still lands on the target.
+    /// </summary>
+    public static bool TryPlanAreaFlight(
+        Vector3 start,
+        Vector3 end,
+        float speed,
+        float straightDistance,
+        float gravity,
+        float dropBlend,
+        out AreaFlightPlan plan)
+    {
+        plan = default;
+        float shotSpeed = Mathf.Max(0.01f, speed);
+        Vector3 offset = end - start;
+        Vector3 flat = Vector3.ProjectOnPlane(offset, Vector3.up);
+        float xz = flat.magnitude;
+
+        if (xz <= 0.001f)
+        {
+            float distance = offset.magnitude;
+            if (distance <= 0.001f)
+            {
+                return false;
+            }
+
+            float verticalTime = Mathf.Max(0.05f, distance / shotSpeed);
+            plan.InitialVelocity = offset / verticalTime;
+            plan.StraightTime = verticalTime;
+            plan.FlightTime = verticalTime;
+            return true;
+        }
+
+        float flightTime = xz / shotSpeed;
+        float straight = Mathf.Clamp(straightDistance, 0.0f, xz);
+        float straightTime = straight / shotSpeed;
+        float fallTime = flightTime - straightTime;
+        float g = Mathf.Max(0.0f, gravity);
+        float blend = Mathf.Max(0.0f, dropBlend);
+        float drop = DropDisplacement(fallTime, g, blend);
+        float verticalSpeed = (offset.y + drop) / flightTime;
+
+        plan.InitialVelocity = flat / xz * shotSpeed + Vector3.up * verticalSpeed;
+        plan.StraightTime = straightTime;
+        plan.FlightTime = flightTime;
+        plan.Gravity = g;
+        plan.DropBlend = blend;
+        return plan.InitialVelocity.sqrMagnitude > 0.0001f;
+    }
+
+    public static Vector3 EvaluateAreaPosition(Vector3 start, AreaFlightPlan plan, float time)
+    {
+        float t = Mathf.Clamp(time, 0.0f, Mathf.Max(0.0f, plan.FlightTime));
+        float fall = Mathf.Max(0.0f, t - plan.StraightTime);
+        return start + plan.InitialVelocity * t + Vector3.down * DropDisplacement(fall, plan.Gravity, plan.DropBlend);
+    }
+
+    public static Vector3 EvaluateAreaVelocity(AreaFlightPlan plan, float time)
+    {
+        float t = Mathf.Clamp(time, 0.0f, Mathf.Max(0.0f, plan.FlightTime));
+        float fall = Mathf.Max(0.0f, t - plan.StraightTime);
+        return plan.InitialVelocity + Vector3.down * DropSpeed(fall, plan.Gravity, plan.DropBlend);
+    }
+
+    private static float DropDisplacement(float fallTime, float gravity, float blend)
+    {
+        float t = Mathf.Max(0.0f, fallTime);
+        float g = Mathf.Max(0.0f, gravity);
+        if (t <= 0.0f || g <= 0.0f)
+        {
+            return 0.0f;
+        }
+
+        float b = Mathf.Max(0.0f, blend);
+        if (b <= 0.0001f)
+        {
+            return 0.5f * g * t * t;
+        }
+
+        if (t < b)
+        {
+            float u = t / b;
+            float u2 = u * u;
+            float u4 = u2 * u2;
+            return g * b * b * (0.25f * u4 - 0.1f * u4 * u);
+        }
+
+        float w = t - b;
+        return g * (0.15f * b * b + 0.5f * b * w + 0.5f * w * w);
+    }
+
+    private static float DropSpeed(float fallTime, float gravity, float blend)
+    {
+        float t = Mathf.Max(0.0f, fallTime);
+        float g = Mathf.Max(0.0f, gravity);
+        if (t <= 0.0f || g <= 0.0f)
+        {
+            return 0.0f;
+        }
+
+        float b = Mathf.Max(0.0f, blend);
+        if (b <= 0.0001f)
+        {
+            return g * t;
+        }
+
+        if (t < b)
+        {
+            float u = t / b;
+            float u2 = u * u;
+            return g * b * (u2 * u - 0.5f * u2 * u2);
+        }
+
+        return g * (0.5f * b + (t - b));
+    }
+
+    public struct AreaFlightPlan
+    {
+        public Vector3 InitialVelocity;
+        public float StraightTime;
+        public float FlightTime;
+        public float Gravity;
+        public float DropBlend;
     }
 }

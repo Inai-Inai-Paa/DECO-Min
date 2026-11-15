@@ -6143,6 +6143,90 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 055bcfef84f39df47b239720510b1847, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Player
+--- !u!4 &741902183 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 2403594754635793476, guid: 010d09d6baf04794d980156855ee9ed8, type: 3}
+  m_PrefabInstance: {fileID: 1262656129551731645}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &741902184 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 8100000000000000004, guid: c4e8b1a07d3f4e2a9b6c5d8e1f0a3b72, type: 3}
+  m_PrefabInstance: {fileID: 666933519}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6aa76fd0f10daa54fa12e7e5a6b6e8a2, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::EnemyPopulationArea
+--- !u!1 &741902185
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 741902186}
+  - component: {fileID: 741902187}
+  m_Layer: 0
+  m_Name: EnemyManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &741902186
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 741902185}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &741902187
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 741902185}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7a1f2e4d5b0c9a6489d3e2f1c6b8a5d0, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::EnemyManager
+  _playerTransform: {fileID: 741902183}
+  _areas:
+  - {fileID: 741902184}
+  _autoFindPlayer: 1
+  _autoFindAreas: 1
+  _groupWipeRespawnSeconds: 300
+  _despawnDelaySeconds: 10
+  _chaseOutsideSeconds: 10
+  _resetWhenPlayerDies: 1
+  _onPopulationReset:
+    m_PersistentCalls:
+      m_Calls: []
+  _onEnemyDefeated:
+    m_PersistentCalls:
+      m_Calls: []
+  _onGroupWiped:
+    m_PersistentCalls:
+      m_Calls: []
+  _onGroupSpawned:
+    m_PersistentCalls:
+      m_Calls: []
+  _onGroupDespawned:
+    m_PersistentCalls:
+      m_Calls: []
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
@@ -6168,3 +6252,4 @@ SceneRoots:
   - {fileID: 268008886}
   - {fileID: 666933519}
   - {fileID: 509104516}
+  - {fileID: 741902186}

@@ -26,7 +26,6 @@ public class EnemyPopulationArea : MonoBehaviour
         public float OutsideTimer;
         public bool ChasingOutside;
         public bool HasEngaged;
-        public bool Returning;
     }
 
     [Header("参照")]
@@ -48,7 +47,6 @@ public class EnemyPopulationArea : MonoBehaviour
 
     private readonly List<SpawnSlot> _slots = new List<SpawnSlot>();
     private float _playerOutsideTimer;
-    private bool _spawnLatched;
 
     public int SpawnCount => _spawnCount;
     public int AliveCount => CountAlive();
@@ -71,17 +69,17 @@ public class EnemyPopulationArea : MonoBehaviour
 
     private void OnEnable()
     {
-        EnemyManager2.Instance?.RegisterArea(this);
+        EnemyManager.Instance?.RegisterArea(this);
     }
 
     private void Start()
     {
-        EnemyManager2.Instance?.RegisterArea(this);
+        EnemyManager.Instance?.RegisterArea(this);
     }
 
     private void OnDisable()
     {
-        EnemyManager2.Instance?.UnregisterArea(this);
+        EnemyManager.Instance?.UnregisterArea(this);
     }
 
     private void Update()
@@ -89,7 +87,7 @@ public class EnemyPopulationArea : MonoBehaviour
         EnsureSlotCount();
         TickPlayerAbsence(Time.deltaTime);
         TickChaseOutside(Time.deltaTime);
-        TickSpawnEntry();
+        TickSpawn();
     }
 
     public void ResetForRestart()
@@ -104,29 +102,26 @@ public class EnemyPopulationArea : MonoBehaviour
             slot.OutsideTimer = 0.0f;
             slot.ChasingOutside = false;
             slot.HasEngaged = false;
-            slot.Returning = false;
         }
 
         _playerOutsideTimer = 0.0f;
-        _spawnLatched = IsPlayerInside(_spawnVolume);
     }
 
-    private void TickSpawnEntry()
+    private void TickSpawn()
     {
-        bool insideSpawn = IsPlayerInside(_spawnVolume);
+        Transform player = PlayerTransform();
 
-        if (!insideSpawn)
-        {
-            _spawnLatched = false;
-            return;
-        }
-
-        if (_spawnLatched)
+        if (player == null || !IsInside(_spawnVolume, player.position))
         {
             return;
         }
 
-        _spawnLatched = true;
+        if (player.TryGetComponent(out Player character) && character.Status != null
+            && character.Status.currentHealth <= 0.0f)
+        {
+            return;
+        }
+
         TrySpawn();
     }
 
@@ -153,7 +148,7 @@ public class EnemyPopulationArea : MonoBehaviour
 
         _playerOutsideTimer = 0.0f;
         DespawnAlive();
-        EnemyManager2.Instance?.NotifyGroupDespawned();
+        EnemyManager.Instance?.NotifyGroupDespawned();
     }
 
     private void TickChaseOutside(float deltaTime)
@@ -164,7 +159,7 @@ public class EnemyPopulationArea : MonoBehaviour
         {
             SpawnSlot slot = _slots[i];
 
-            if (!IsSlotAlive(slot) || slot.Returning)
+            if (!IsSlotAlive(slot) || slot.Enemy.IsPopulationReturning)
             {
                 continue;
             }
@@ -200,7 +195,6 @@ public class EnemyPopulationArea : MonoBehaviour
                 continue;
             }
 
-            slot.Returning = true;
             slot.OutsideTimer = 0.0f;
             slot.Enemy.BeginPopulationReturn();
         }
@@ -208,22 +202,23 @@ public class EnemyPopulationArea : MonoBehaviour
 
     private void TrySpawn()
     {
-        if (_enemyPrefab == null || CountAlive() > 0)
+        if (_enemyPrefab == null || CountAlive() > 0 || !_enemyPrefab.TryGetComponent<Enemy>(out _))
         {
             return;
         }
 
-        List<SpawnSlot> eligible = new List<SpawnSlot>();
+        List<SpawnSlot> eligible = null;
 
         for (int i = 0; i < _slots.Count; i++)
         {
             if (IsSlotSpawnable(_slots[i]))
             {
+                eligible ??= new List<SpawnSlot>();
                 eligible.Add(_slots[i]);
             }
         }
 
-        if (eligible.Count == 0)
+        if (eligible == null)
         {
             return;
         }
@@ -247,7 +242,7 @@ public class EnemyPopulationArea : MonoBehaviour
 
         if (spawned > 0)
         {
-            EnemyManager2.Instance?.NotifyGroupSpawned();
+            EnemyManager.Instance?.NotifyGroupSpawned();
         }
     }
 
@@ -271,7 +266,6 @@ public class EnemyPopulationArea : MonoBehaviour
         slot.OutsideTimer = 0.0f;
         slot.ChasingOutside = false;
         slot.HasEngaged = false;
-        slot.Returning = false;
         return true;
     }
 
@@ -292,7 +286,6 @@ public class EnemyPopulationArea : MonoBehaviour
 
         bool defeated = enemy.RemovalReason == EnemyRemovalReason.Defeated;
         slot.Enemy = null;
-        slot.Returning = false;
         slot.OutsideTimer = 0.0f;
         slot.ChasingOutside = false;
         slot.HasEngaged = false;
@@ -305,7 +298,7 @@ public class EnemyPopulationArea : MonoBehaviour
         }
 
         slot.Defeated = true;
-        EnemyManager2.Instance?.NotifyEnemyDefeated(enemy);
+        EnemyManager.Instance?.NotifyEnemyDefeated(enemy);
 
         if (CountAlive() > 0 || HasDespawnedSlot())
         {
@@ -321,7 +314,7 @@ public class EnemyPopulationArea : MonoBehaviour
             _slots[i].ReadyTime = wipeTime;
         }
 
-        EnemyManager2.Instance?.NotifyGroupWiped();
+        EnemyManager.Instance?.NotifyGroupWiped();
     }
 
     private void DespawnAlive()
@@ -340,7 +333,6 @@ public class EnemyPopulationArea : MonoBehaviour
             slot.Enemy = null;
             slot.Defeated = false;
             slot.ReadyTime = 0.0f;
-            slot.Returning = false;
             slot.OutsideTimer = 0.0f;
             slot.ChasingOutside = false;
             slot.HasEngaged = false;
@@ -763,9 +755,9 @@ public class EnemyPopulationArea : MonoBehaviour
 
     private Transform PlayerTransform()
     {
-        if (EnemyManager2.Instance != null && EnemyManager2.Instance.PlayerTransform != null)
+        if (EnemyManager.Instance != null && EnemyManager.Instance.PlayerTransform != null)
         {
-            return EnemyManager2.Instance.PlayerTransform;
+            return EnemyManager.Instance.PlayerTransform;
         }
 
         GameObject player = GameObject.FindGameObjectWithTag("Player");
@@ -774,17 +766,23 @@ public class EnemyPopulationArea : MonoBehaviour
 
     private float WipeRespawnSeconds()
     {
-        return EnemyManager2.Instance != null ? EnemyManager2.Instance.GroupWipeRespawnSeconds : 300.0f;
+        return EnemyManager.Instance != null
+            ? EnemyManager.Instance.GroupWipeRespawnSeconds
+            : EnemyManager.DefaultGroupWipeRespawnSeconds;
     }
 
     private float DespawnDelaySeconds()
     {
-        return EnemyManager2.Instance != null ? EnemyManager2.Instance.DespawnDelaySeconds : 10.0f;
+        return EnemyManager.Instance != null
+            ? EnemyManager.Instance.DespawnDelaySeconds
+            : EnemyManager.DefaultDespawnDelaySeconds;
     }
 
     private float ChaseOutsideSeconds()
     {
-        return EnemyManager2.Instance != null ? EnemyManager2.Instance.ChaseOutsideSeconds : 10.0f;
+        return EnemyManager.Instance != null
+            ? EnemyManager.Instance.ChaseOutsideSeconds
+            : EnemyManager.DefaultChaseOutsideSeconds;
     }
 
     private void OnValidate()

@@ -39,6 +39,7 @@ public class RangedEnemy : Enemy
 
     public override bool IsStationary => true;
     protected override bool UsesWarpMoveAreaReturn => false;
+    protected override bool BlocksPopulationReturn => base.BlocksPopulationReturn || _preparing;
     public bool IsPreparing => _preparing;
     public bool IsAimLocked => _preparing && _aim.IsLocked;
     public bool CanBeginPreparation => Time.time >= _nextAttackTime;
@@ -194,17 +195,11 @@ public class RangedEnemy : Enemy
 
     public bool IsTargetInDetectionRange()
     {
-        if (!IsTargetWithinHomeChaseDistance())
-        {
-            return false;
-        }
-
-        if (!IsTargetInMoveArea())
-        {
-            return IsTargetInAttackRange();
-        }
-
-        return IsTargetInDistance(_detectionRange) || IsTargetInAttackRange();
+        return HasTarget()
+            && IsTargetWithinHomeChaseDistance()
+            && IsTargetInFieldOfView()
+            && HasLineOfSightToTarget()
+            && IsTargetInDistance(_detectionRange);
     }
 
     public bool IsTargetInAttackRange()
@@ -214,17 +209,7 @@ public class RangedEnemy : Enemy
 
     public bool IsTargetLostForRanged()
     {
-        if (!IsTargetWithinHomeChaseDistance())
-        {
-            return true;
-        }
-
-        if (!IsTargetInMoveArea())
-        {
-            return !IsTargetInAttackRange();
-        }
-
-        return IsTargetLost();
+        return !HasTarget() || !IsTargetWithinHomeChaseDistance() || IsTargetLost();
     }
 
     public void SetTargetDestination()
@@ -288,8 +273,13 @@ public class RangedEnemy : Enemy
                 CancelPreparation();
                 return;
             }
+
             _aim.Sample(GetLandingPoint(), _preparationElapsed);
-            if (_aim.IsLocked) SetCommittedAttack(true);
+
+            if (_aim.IsLocked)
+            {
+                SetCommittedAttack(true);
+            }
         }
         _aimAligned = RotateTurret(_aim.Point, deltaTime);
         if (_preparationElapsed < _preparationTime) return;
@@ -315,7 +305,7 @@ public class RangedEnemy : Enemy
     public bool TryFireBullet()
     {
         if (IsDead || IsDespawning || IsDown || IsCombatAIFrozen || BlocksCombatTransition
-            || _bulletPrefab == null || !_preparing || !_aim.IsLocked || !_aimAligned
+            || _bulletPrefab == null || !_preparing || !_aim.IsLocked
             || _preparationElapsed < _preparationTime || !CanBeginPreparation)
         {
             return false;
@@ -347,8 +337,8 @@ public class RangedEnemy : Enemy
 
     protected override void OnDrawGizmosSelected()
     {
-        Gizmos.color = Color.yellow;
-        Gizmos.DrawWireSphere(transform.position, _detectionRange);
+        DrawVisionFanGizmo(new Color(0.45f, 0.26f, 0.13f));
+        DrawMoveAreaGizmo(Color.yellow);
 
         Gizmos.color = Color.red;
         Gizmos.DrawWireSphere(transform.position, _attackRange);
@@ -368,6 +358,7 @@ public sealed class MortarAim
     public Vector3 Point { get; private set; }
     public Vector3 AreaCenter { get; private set; }
     public bool IsLocked { get; private set; }
+    private bool _positionFrozen;
     private float _radius;
     private float _lockTime;
 
@@ -376,21 +367,32 @@ public sealed class MortarAim
         Point = AreaCenter = point;
         _radius = Mathf.Max(0, radius);
         _lockTime = Mathf.Max(0, lockTime);
+        _positionFrozen = false;
         IsLocked = false;
     }
 
     public void Sample(Vector3 point, float elapsed)
     {
-        if (IsLocked) return;
-        Vector3 offset = point - AreaCenter;
-        offset.y = 0;
-        if (offset.sqrMagnitude > _radius * _radius)
+        if (IsLocked)
         {
-            IsLocked = true;
             return;
         }
 
-        Point = point;
+        if (!_positionFrozen)
+        {
+            Vector3 offset = point - AreaCenter;
+            offset.y = 0.0f;
+
+            if (offset.sqrMagnitude > _radius * _radius)
+            {
+                _positionFrozen = true;
+            }
+            else
+            {
+                Point = point;
+            }
+        }
+
         IsLocked = elapsed >= _lockTime;
     }
 }

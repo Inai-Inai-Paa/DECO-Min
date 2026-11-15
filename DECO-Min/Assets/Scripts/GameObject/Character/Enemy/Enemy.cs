@@ -103,8 +103,6 @@ public partial class Enemy : Character, IDamageable
     private float _maxChaseDistanceFromHome = 18.0f;
     [SerializeField]
     private float _returnImpossibleTime = 8.0f;
-    [SerializeField]
-    private float _homeDespawnWaitTime = 2.0f;
 
     [Header("攻撃共通")]
     [Space(2)]
@@ -156,7 +154,6 @@ public partial class Enemy : Character, IDamageable
     private float _outsideMoveAreaTimer;
     private bool _isUsingDirectMovement;
     private bool _hasSpawnPose;
-    private EnemySpawner _spawnOwner;
     private EnemyRemovalReason _removalReason;
     private EnemyAwareness _awareness = EnemyAwareness.Unaware;
     private float _awarenessTimer;
@@ -186,7 +183,6 @@ public partial class Enemy : Character, IDamageable
     public Vector3 HomePosition => _spawnPosition;
     public Quaternion HomeRotation => _spawnRotation;
     public float ReturnImpossibleTime => _returnImpossibleTime;
-    public float HomeDespawnWaitTime => _homeDespawnWaitTime;
     public EnemyRemovalReason RemovalReason => _removalReason;
     public EnemyAwareness Awareness => _awareness;
     public EnemyLifecycle Lifecycle => _lifecycle;
@@ -197,6 +193,8 @@ public partial class Enemy : Character, IDamageable
         || _lifecycle == EnemyLifecycle.Return
         || _lifecycle == EnemyLifecycle.WaitDespawn
         || _lifecycle == EnemyLifecycle.Dead;
+    protected virtual bool BlocksPopulationReturn =>
+        _isDown || _isFinishing || _isDisappearing || _isCommittedAttack;
     public event Action<Enemy> Died;
     public event Action<Enemy> Removed;
 
@@ -561,11 +559,6 @@ public partial class Enemy : Character, IDamageable
         _hasSpawnPose = true;
     }
 
-    public void SetSpawnOwner(EnemySpawner spawnOwner)
-    {
-        _spawnOwner = spawnOwner;
-    }
-
     public void BindSpawnArea(EnemySpawnArea spawnArea)
     {
         _spawnArea = spawnArea;
@@ -607,11 +600,6 @@ public partial class Enemy : Character, IDamageable
         _insideLeash = true;
         _lifecycle = EnemyLifecycle.Combat;
         RestartCombatState();
-
-        if (EnemyManager.Instance != null)
-        {
-            EnemyManager.Instance.RegisterEnemy(this);
-        }
     }
 
     public void OnReturnStateEntered()
@@ -766,7 +754,6 @@ public partial class Enemy : Character, IDamageable
             stateMachine.Shutdown();
         }
 
-        EnemyManager.Instance?.UnregisterEnemy(this);
         _spawnArea?.NotifyEnemyDeactivated();
         gameObject.SetActive(false);
     }
@@ -949,11 +936,6 @@ public partial class Enemy : Character, IDamageable
         return Vector3.Distance(_spawnPosition, _target.position) <= _maxChaseDistanceFromHome;
     }
 
-    public bool IsTargetInSpawnArea()
-    {
-        return _spawnOwner == null || _spawnOwner.IsPlayerInSpawnArea(_target);
-    }
-
     public void SetHomeDestination()
     {
         SetMoveDestination(_spawnPosition);
@@ -1078,11 +1060,11 @@ public partial class Enemy : Character, IDamageable
         ReturnToSpawn();
     }
 
-    public void BeginPopulationReturn()
+    public bool BeginPopulationReturn()
     {
-        if (_isDead || _isDespawning || _isPopulationReturning)
+        if (_isDead || _isDespawning || _isPopulationReturning || BlocksPopulationReturn)
         {
-            return;
+            return false;
         }
 
         _isPopulationReturning = true;
@@ -1090,9 +1072,22 @@ public partial class Enemy : Character, IDamageable
         _lifecycle = EnemyLifecycle.Return;
         _isCommittedAttack = false;
         ClearAwareness();
-        SetTarget(null);
         stateMachine?.Shutdown();
         TickPopulationReturn();
+        return _isPopulationReturning && !_isDespawning;
+    }
+
+    private void FinishPopulationReturn()
+    {
+        if (HasTarget() && IsTargetWithinHomeChaseDistance())
+        {
+            _isPopulationReturning = false;
+            _lifecycle = EnemyLifecycle.Combat;
+            RestartCombatState();
+            return;
+        }
+
+        Despawn();
     }
 
     private void TickPopulationReturn()
@@ -1110,10 +1105,18 @@ public partial class Enemy : Character, IDamageable
             body.angularVelocity = Vector3.zero;
         }
 
+        if (_isDown || _isFinishing || _isDisappearing)
+        {
+            _isPopulationReturning = false;
+            _lifecycle = EnemyLifecycle.Combat;
+            EnterDown();
+            return;
+        }
+
         if (_populationReturnTimer >= Mathf.Max(0.5f, _returnImpossibleTime))
         {
             transform.SetPositionAndRotation(_spawnPosition, _spawnRotation);
-            Despawn();
+            FinishPopulationReturn();
             return;
         }
 
@@ -1123,7 +1126,7 @@ public partial class Enemy : Character, IDamageable
         if (offset.sqrMagnitude <= 1.0f)
         {
             transform.rotation = _spawnRotation;
-            Despawn();
+            FinishPopulationReturn();
             return;
         }
 
@@ -1231,6 +1234,7 @@ public partial class Enemy : Character, IDamageable
     protected virtual void EnterDown()
     {
         _isDown = true;
+        _isCommittedAttack = false;
         ClearAwareness();
         StopMove();
     }
@@ -1268,7 +1272,6 @@ public partial class Enemy : Character, IDamageable
     {
         ReleaseVisionDebugView();
         NotifyRemoved();
-        EnemyManager.Instance?.UnregisterEnemy(this);
     }
 
     private void CleanupForRemoval()
@@ -1316,12 +1319,6 @@ public partial class Enemy : Character, IDamageable
 
         _hasNotifiedRemoved = true;
         Removed?.Invoke(this);
-
-        if (_spawnOwner != null)
-        {
-            _spawnOwner.NotifyEnemyRemoved(this);
-            _spawnOwner = null;
-        }
     }
 
     private float GetArrivalDistance()
@@ -1457,6 +1454,11 @@ public partial class Enemy : Character, IDamageable
 
         if (_isDown)
         {
+            if (_treatSealAttackAsFinisherWhenDown)
+            {
+                TryFinishWhileDown();
+            }
+
             return;
         }
 
@@ -1591,11 +1593,6 @@ public partial class Enemy : Character, IDamageable
         if (forcedRange > 0.0f && IsTargetInDistance(forcedRange))
         {
             return true;
-        }
-
-        if (!IsTargetInMoveArea())
-        {
-            return false;
         }
 
         return IsTargetInDistance(GetPerceptionRange());

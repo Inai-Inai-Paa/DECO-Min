@@ -155,6 +155,46 @@ public partial class Enemy
         return true;
     }
 
+    public bool TryPerformFinisher(Transform player)
+    {
+        if (!TryBeginFinisher(player))
+        {
+            return false;
+        }
+
+        if (CompleteFinisher())
+        {
+            return true;
+        }
+
+        AbortFinisher();
+        return false;
+    }
+
+    public bool TryFinishWhileDown()
+    {
+        if (!_treatSealAttackAsFinisherWhenDown || !CanBeFinished)
+        {
+            return false;
+        }
+
+        BeginFinisher();
+
+        if (CompleteFinisher())
+        {
+            return true;
+        }
+
+        AbortFinisher();
+        return false;
+    }
+
+    private void AbortFinisher()
+    {
+        _isFinishing = false;
+        EnterDown();
+    }
+
     public bool CompleteFinisher()
     {
         if (!_isFinishing || _isDead || _isDespawning)

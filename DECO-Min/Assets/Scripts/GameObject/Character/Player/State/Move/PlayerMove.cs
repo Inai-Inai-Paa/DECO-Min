@@ -35,28 +35,11 @@ public class PlayerMove : PlayerState
             // Finisher
             if (player.playerInputData.FinisherPressed)
             {
-                Collider[] hits = Physics.OverlapSphere(
-                player.transform.position,
-                3
-            );
+                Enemy enemy = Enemy.SelectFinisherTarget(player.transform);
 
-                foreach (Collider hit in hits)
+                if (enemy != null && enemy.TryPerformFinisher(player.transform) && player._animator != null)
                 {
-                    Enemy enemy = hit.GetComponentInParent<Enemy>();
-
-                    if (enemy == null || !enemy.CanBeFinished)
-                    {
-                        continue;
-                    }
-
-                    if (!enemy.TryBeginFinisher(player.transform))
-                    {
-                        continue;
-                    }
-
-                    if (player._animator != null) player._animator.SetTrigger("Finish");
-                    enemy.CompleteFinisher();
-                    break;
+                    player._animator.SetTrigger("Finish");
                 }
             }
         }

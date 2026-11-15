@@ -170,32 +170,14 @@ public class TackleEnemy : Enemy
 
     public bool IsTargetInAlertDistanceForState()
     {
-        if (!IsTargetWithinHomeChaseDistanceForState())
-        {
-            return false;
-        }
-
-        if (!IsTargetInMoveArea())
-        {
-            return IsTargetInAttackStartDistance();
-        }
-
-        return IsTargetInAlertDistance() || IsTargetInAttackStartDistance();
+        return IsTargetWithinHomeChaseDistanceForState()
+            && IsTargetInFieldOfView()
+            && IsTargetInAlertDistance();
     }
 
     public bool IsTargetLostForState()
     {
-        if (!IsTargetWithinHomeChaseDistanceForState())
-        {
-            return true;
-        }
-
-        if (!IsTargetInMoveArea())
-        {
-            return !IsTargetInAttackStartDistance();
-        }
-
-        return IsTargetLost();
+        return !HasTarget() || !IsTargetWithinHomeChaseDistanceForState() || IsTargetLost();
     }
 
     public bool IsTargetInAttackStartDistance()
@@ -211,11 +193,6 @@ public class TackleEnemy : Enemy
     public bool IsTargetWithinHomeChaseDistanceForState()
     {
         return IsTargetWithinHomeChaseDistance();
-    }
-
-    public bool IsTargetInSpawnAreaForState()
-    {
-        return IsTargetInSpawnArea();
     }
 
     public Vector3 GetDirectionToTargetForState()
@@ -235,24 +212,14 @@ public class TackleEnemy : Enemy
             return false;
         }
 
-        if (HasMoveArea && IsTargetInMoveArea())
-        {
-            return true;
-        }
-
         return IsTargetInFieldOfView() && IsTargetInDistance(_alertDistance);
     }
 
     public bool IsTargetStillVisibleForTackle()
     {
-        if (!HasTarget() || !HasLineOfSightToTarget() || IsTargetLost())
+        if (!HasTarget() || !HasLineOfSightToTarget() || IsTargetLostForState())
         {
             return false;
-        }
-
-        if (HasMoveArea && IsTargetInMoveArea())
-        {
-            return true;
         }
 
         return IsTargetInFieldOfView();
@@ -260,7 +227,7 @@ public class TackleEnemy : Enemy
 
     public void RememberVisibleAimPoint()
     {
-        if (_target == null || !HasLineOfSightToTarget())
+        if (_target == null || !HasLineOfSightToTarget() || IsTargetLostForState())
         {
             return;
         }
@@ -444,6 +411,16 @@ public class TackleEnemy : Enemy
                 continue;
             }
 
+            if (hitCollider.GetComponentInParent<Character>() != null)
+            {
+                continue;
+            }
+
+            if (Vector3.Angle(hits[i].normal, Vector3.up) < 50.0f)
+            {
+                continue;
+            }
+
             return true;
         }
 
@@ -591,7 +568,7 @@ public class TackleEnemy : Enemy
                 return _obstacleLayer;
             }
 
-            return LayerMask.GetMask("Ground");
+            return LayerMask.GetMask("Default", "Ground");
         }
     }
 

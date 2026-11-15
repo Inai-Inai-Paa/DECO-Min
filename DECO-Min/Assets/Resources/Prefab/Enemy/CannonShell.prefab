@@ -47,6 +47,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::EnemyBullet
   _flight: 0
   _bulletSpeed: 12
+  _straightDistance: 5
+  _dropBlendTime: 0.45
   _gravity: 8
   _bulletDamage: 10
   _bulletLifeTime: 5

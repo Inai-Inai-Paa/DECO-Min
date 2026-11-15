@@ -28,11 +28,16 @@ public static class CannonEnemyValidation
         foreach (var filter in prefab.GetComponentsInChildren<MeshFilter>())
             Require(filter.sharedMesh != null && AssetDatabase.GetAssetPath(filter.sharedMesh).Contains("cannon_mdl/"), "Cannon must use supplied model meshes");
         Require(bullet.GetComponentInChildren<MeshFilter>() != null, "Shell model is missing");
-        Require(bullet.TryGetAreaLaunchVelocity(muzzle.position, new Vector3(0, 0, 10), out var velocity), "Shell cannot reach attack range");
-        float time = (10 - muzzle.position.z) / velocity.z;
-        float gravity = new SerializedObject(bullet).FindProperty("_gravity").floatValue;
-        var landing = muzzle.position + velocity * time + Vector3.down * (0.5f * gravity * time * time);
-        Require(Vector3.Distance(landing, new Vector3(0, 0, 10)) < 0.01f, "Shell trajectory misses target");
+        var target = new Vector3(0, 0, 10);
+        Require(bullet.TryGetAreaLaunchVelocity(muzzle.position, target, out var velocity), "Shell cannot reach attack range");
+        Require(bullet.TryGetAreaFlightTimes(muzzle.position, target, out float time, out float straightTime), "Shell flight could not be planned");
+        Require(bullet.TrySampleAreaFlight(muzzle.position, target, time, out var landing), "Shell trajectory could not be sampled");
+        Require(Vector3.Distance(landing, target) < 0.01f, "Shell trajectory misses target");
+        if (straightTime > 0.02f)
+        {
+            Require(bullet.TrySampleAreaFlight(muzzle.position, target, straightTime, out var straightPoint), "Straight segment could not be sampled");
+            Require(Vector3.Distance(straightPoint, muzzle.position + velocity * straightTime) < 0.02f, "Shell should fly straight before it drops");
+        }
         ValidateFiring();
         Debug.Log("CANNON VALIDATION PASSED: model, combat references, colliders, ballistic range, turret firing and fixed base.");
     }

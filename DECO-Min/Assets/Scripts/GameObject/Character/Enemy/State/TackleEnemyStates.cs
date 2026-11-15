@@ -132,7 +132,9 @@ public class TackleEnemyAlert : TackleEnemyState
     {
         tackleEnemy.RememberVisibleAimPoint();
 
-        if (tackleEnemy.HasTargetForState() && tackleEnemy.HasLineOfSightToTarget())
+        if (tackleEnemy.HasTargetForState()
+            && tackleEnemy.HasLineOfSightToTarget()
+            && !tackleEnemy.IsTargetLostForState())
         {
             tackleEnemy.LookAtTargetForState();
         }
@@ -205,6 +207,7 @@ public class TackleEnemyCharge : TackleEnemyState
 
     public override void Enter()
     {
+        tackleEnemy.SetCommittedAttack(true);
         tackleEnemy.StopMoveForState();
         tackleEnemy.LockTackleAim();
         _windupTimer = 0.0f;
@@ -349,9 +352,7 @@ public class TackleEnemyReturn : TackleEnemyState
     [SerializeField] private EnemyState _chargeState;
 
     private float _returnTimer;
-    private float _homeWaitTimer;
     private int _returnRetryCount;
-    private bool _isWaitingAtHome;
 
     public override void Enter()
     {
@@ -360,9 +361,7 @@ public class TackleEnemyReturn : TackleEnemyState
         tackleEnemy.ResumeMoveForState();
         tackleEnemy.SetHomeDestinationForState();
         _returnTimer = 0.0f;
-        _homeWaitTimer = 0.0f;
         _returnRetryCount = 0;
-        _isWaitingAtHome = false;
     }
 
     public override void Update()
@@ -389,12 +388,6 @@ public class TackleEnemyReturn : TackleEnemyState
             return;
         }
 
-        if (_isWaitingAtHome)
-        {
-            UpdateHomeWait();
-            return;
-        }
-
         _returnTimer += Time.deltaTime;
 
         if (tackleEnemy.HasLeash && tackleEnemy.IsWithinReturnCompleteDistance())
@@ -411,7 +404,7 @@ public class TackleEnemyReturn : TackleEnemyState
                 return;
             }
 
-            BeginHomeWait();
+            ChangeTo<TackleEnemyPatrol>(_patrolState);
             return;
         }
 
@@ -457,35 +450,14 @@ public class TackleEnemyReturn : TackleEnemyState
             && tackleEnemy.IsTargetWithinHomeChaseDistanceForState()
             && tackleEnemy.Awareness == EnemyAwareness.Engaged;
     }
-
-    private void BeginHomeWait()
-    {
-        _isWaitingAtHome = true;
-        _homeWaitTimer = 0.0f;
-        tackleEnemy.StopMoveForState();
-    }
-
-    private void UpdateHomeWait()
-    {
-        if (tackleEnemy.IsTargetInSpawnAreaForState())
-        {
-            ChangeTo<TackleEnemyPatrol>(_patrolState);
-            return;
-        }
-
-        _homeWaitTimer += Time.deltaTime;
-
-        if (_homeWaitTimer >= tackleEnemy.HomeDespawnWaitTime)
-        {
-            tackleEnemy.Despawn();
-        }
-    }
 }
 
 public class TackleEnemyMoveAreaReturn : TackleEnemyState
 {
     [Header("TransitionState")]
     [SerializeField] private EnemyState _patrolState;
+
+    private float _returnTimer;
 
     public override void Enter()
     {
@@ -495,6 +467,7 @@ public class TackleEnemyMoveAreaReturn : TackleEnemyState
         tackleEnemy.SetAgentRotationUpdates(true);
         tackleEnemy.ResumeMoveForState();
         tackleEnemy.SetHomeDestinationForState();
+        _returnTimer = 0.0f;
     }
 
     public override void Update()
@@ -504,6 +477,14 @@ public class TackleEnemyMoveAreaReturn : TackleEnemyState
             tackleEnemy.StopMoveForState();
             tackleEnemy.ClearAwarenessForState();
             ChangeTo<TackleEnemyPatrol>(_patrolState);
+            return;
+        }
+
+        _returnTimer += Time.deltaTime;
+
+        if (_returnTimer >= tackleEnemy.ReturnImpossibleTime)
+        {
+            tackleEnemy.ResetToHomeForState();
             return;
         }
 

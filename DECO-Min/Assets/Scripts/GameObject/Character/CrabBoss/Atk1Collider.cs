@@ -17,6 +17,13 @@ public class Atk1Collider : MonoBehaviour
     {
         if (other.CompareTag("Player"))
         {
+            Player player = other.GetComponent<Player>();
+
+            if (player != null)
+            {
+                player.TryDamage(10);
+            }
+
             Debug.Log("攻撃1の当たり判定がプレイヤーに命中しました。");
         }
 	}

@@ -201,7 +201,7 @@ MonoBehaviour:
   _sealAttackTag: PlayerAttack
   _finisherTag: PlayerFinisher
   _treatSealAttackAsFinisherWhenDown: 1
-  _sealPrefab: {fileID: 1549645160757926421, guid: 20390cad68896604d861750f3073c2ab, type: 3}
+  _sealPrefab: {fileID: 4224118674024338461, guid: 3e9e755ef0ccdfe4e8ecc9d0697af1bf, type: 3}
   _animator: {fileID: 0}
   _detectionRange: 15
   _attackRange: 10

@@ -160,6 +160,7 @@ public class CrabBoss2_0 : Character
     [SerializeField] private CrabBoss2HandState leftHandState = new CrabBoss2HandState();
     [SerializeField] private CrabBoss2HandState rightHandState = new CrabBoss2HandState();
     [SerializeField] private CrabBoss2HealthState bodyHealth = new CrabBoss2HealthState();
+    [SerializeField] private Animator animator;
 
     [SerializeField, HideInInspector] private CrabHand leftHand;
     [SerializeField, HideInInspector] private CrabHand rightHand;
@@ -182,7 +183,7 @@ public class CrabBoss2_0 : Character
     [SerializeField, HideInInspector, Min(0f)] private float leftRecoveryDuration = 3f;
     [SerializeField, HideInInspector, Min(0f)] private float leftReturnDuration = 1f;
     [SerializeField, HideInInspector, Min(0f)] private float leftPullBackDistance = 2f;
-    [SerializeField, HideInInspector, Min(0f)] private float leftAttackRadius = 1.5f;
+    [SerializeField, HideInInspector, Min(0f)] private float leftAttackRadius = 2.5f;
 
     [SerializeField, HideInInspector, Min(0f)] private float finalJumpWindUpDuration = 0.5f;
     [SerializeField, HideInInspector, Min(0f)] private float finalJumpHeight = 6f;
@@ -208,6 +209,8 @@ public class CrabBoss2_0 : Character
     private Vector3 leftThrustStartLocalPosition;
     private Vector3 leftThrustTargetLocalPosition;
     private Vector3 leftThrustStartWorldPosition;
+    private Vector3 previousLeftHandPosition;
+    private bool leftThrustHit;
     private bool defaultsCached;
 
     public bool IsActive => isActive;
@@ -492,6 +495,8 @@ public class CrabBoss2_0 : Character
                 leftThrustTargetLocalPosition = transform.InverseTransformPoint(lockedTargetPosition);
                 leftThrustTargetLocalPosition.y = leftHandDefaultLocalPosition.y;
             }
+            previousLeftHandPosition = leftHand.transform.position;
+            leftThrustHit = false;
             SetPhase(Phase.LeftThrust);
         }
     }
@@ -500,12 +505,38 @@ public class CrabBoss2_0 : Character
     {
         if (leftHand != null)
         {
-            leftHand.transform.localPosition = Vector3.Lerp(leftThrustStartLocalPosition, leftThrustTargetLocalPosition, Progress(leftThrustDuration));
+            leftHand.transform.localPosition = Vector3.Lerp(
+                leftThrustStartLocalPosition,
+                leftThrustTargetLocalPosition,
+                Progress(leftThrustDuration));
+
+            Vector3 currentPosition = leftHand.transform.position;
+
+            if (!leftThrustHit && playerTransform != null)
+            {
+                float distance = DistanceToSegment(
+                    playerTransform.position,
+                    previousLeftHandPosition,
+                    currentPosition);
+
+                if (distance <= leftAttackRadius)
+                {
+                    leftThrustHit = true;
+                    Player player = playerTransform.GetComponent<Player>();
+
+                    if (player != null)
+                    {
+                        player.TryDamage(10);
+                    }
+                    Debug.Log("左腕ロケットパンチ命中");
+                }
+            }
+
+            previousLeftHandPosition = currentPosition;
         }
 
         if (phaseTimer >= leftThrustDuration)
         {
-            CheckLeftThrustHit();
             SetPhase(Phase.LeftRecovery);
         }
     }
@@ -560,13 +591,46 @@ public class CrabBoss2_0 : Character
         phase = nextPhase;
         phaseTimer = 0f;
         currentState = GetStateForPhase(nextPhase);
-        if (nextPhase == Phase.LeftPullBack || nextPhase == Phase.RightTelegraph)
+
+        if (nextPhase == Phase.LeftPullBack ||
+            nextPhase == Phase.RightTelegraph)
         {
             lockedTargetPosition = GetPlayerPosition();
         }
+
         if (nextPhase == Phase.Rest)
         {
             RestoreHandTransforms();
+        }
+
+        // 右手アニメーション
+        if (animator != null)
+        {
+            switch (nextPhase)
+            {
+                case Phase.RightWindUp:
+                    animator.SetTrigger("Rise");
+                    break;
+
+                case Phase.RightSlam:
+                    animator.SetTrigger("Swim");
+                    break;
+
+                case Phase.RightRecovery:
+                    animator.SetTrigger("Return");
+                    break;
+                case Phase.LeftPullBack:
+                    animator.SetTrigger("Pull");
+                    break;
+
+                case Phase.LeftThrust:
+                    animator.SetTrigger("Punch");
+                    break;
+
+                case Phase.LeftRecovery:
+                    animator.SetTrigger("Back");
+                    break;
+            }
         }
     }
 
@@ -659,6 +723,13 @@ public class CrabBoss2_0 : Character
         float distance = DistanceToSegment(playerTransform.position, leftThrustStartWorldPosition, lockedTargetPosition);
         if (distance <= leftAttackRadius)
         {
+            Player player = playerTransform.GetComponent<Player>();
+
+            if (player != null)
+            {
+                player.TryDamage(10);
+            }
+
             Debug.Log("CrabBoss2.0：左腕ロケットパンチがプレイヤーに命中しました。", this);
         }
     }
@@ -674,6 +745,13 @@ public class CrabBoss2_0 : Character
         if (distance > landingDamageRadius)
         {
             return;
+        }
+
+        Player player = playerTransform.GetComponent<Player>();
+
+        if (player != null)
+        {
+            player.TryDamage(10);
         }
 
         float damage = Mathf.Lerp(landingMaxDamage, landingMinDamage, distance / Mathf.Max(0.01f, landingDamageRadius));
@@ -809,8 +887,8 @@ public class CrabBoss2_0 : Character
         {
             bossRigidbody.isKinematic = true;
             bossRigidbody.useGravity = false;
-            bossRigidbody.linearVelocity = Vector3.zero;
-            bossRigidbody.angularVelocity = Vector3.zero;
+            //bossRigidbody.linearVelocity = Vector3.zero;
+            //bossRigidbody.angularVelocity = Vector3.zero;
         }
     }
 
@@ -824,5 +902,20 @@ public class CrabBoss2_0 : Character
         }
         float progress = Mathf.Clamp01(Vector3.Dot(point - start, segment) / lengthSquared);
         return Vector3.Distance(point, start + segment * progress);
+    }
+
+    private void OnTriggerEnter(Collider other)
+    {
+        if (other.gameObject.CompareTag("PlayerAttack"))
+        {
+            if (!leftHandState.IsDestroyed)
+                DamageLeftHand(25);
+            else if (!rightHandState.IsDestroyed)
+                DamageRightHand(25);
+            else
+                DamageBody(50);
+
+            Destroy(other.gameObject);
+        }
     }
 }

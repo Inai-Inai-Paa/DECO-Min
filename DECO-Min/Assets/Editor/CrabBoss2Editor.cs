@@ -9,12 +9,14 @@ public class CrabBoss2Editor : Editor
     private SerializedProperty leftHandState;
     private SerializedProperty rightHandState;
     private SerializedProperty bodyHealth;
+    private SerializedProperty animator;
 
     private void OnEnable()
     {
         leftHandState = serializedObject.FindProperty("leftHandState");
         rightHandState = serializedObject.FindProperty("rightHandState");
         bodyHealth = serializedObject.FindProperty("bodyHealth");
+        animator = serializedObject.FindProperty("animator");
     }
 
     public override void OnInspectorGUI()
@@ -24,6 +26,11 @@ public class CrabBoss2Editor : Editor
         CrabBoss2_0 boss = (CrabBoss2_0)target;
         EditorGUILayout.LabelField("Boss State", boss.CurrentState.ToString());
         EditorGUILayout.LabelField("Activation", boss.IsActive ? "Active" : "Inactive");
+
+        // Animatorê›íË
+        EditorGUILayout.Space();
+        EditorGUILayout.LabelField("Animation Settings", EditorStyles.boldLabel);
+        EditorGUILayout.PropertyField(animator);
 
         EditorGUILayout.Space();
         EditorGUILayout.LabelField("Hand Debug Controls", EditorStyles.boldLabel);

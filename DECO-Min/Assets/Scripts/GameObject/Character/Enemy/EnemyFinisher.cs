@@ -192,6 +192,7 @@ public partial class Enemy
     private void AbortFinisher()
     {
         _isFinishing = false;
+        RestoreMotion();
         EnterDown();
     }
 

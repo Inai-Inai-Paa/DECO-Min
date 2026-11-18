@@ -59,6 +59,7 @@ public class TackleEnemy : Enemy
     private bool _hasLockedTackleDirection;
     private Vector3 _aimPoint;
     private bool _hasAimPoint;
+    private readonly NavMeshPath _patrolPath = new NavMeshPath();
 
     public float AlertTime => _alertTime;
     public float AimFollowTime => Mathf.Max(0.0f, _aimFollowTime);
@@ -357,9 +358,9 @@ public class TackleEnemy : Enemy
         return IsAtHome();
     }
 
-    public void SetHomeDestinationForState()
+    public bool SetHomeDestinationForState()
     {
-        SetHomeDestination();
+        return SetHomeDestination();
     }
 
     public bool TryCorrectToNearbyNavMeshPositionForState()
@@ -451,7 +452,10 @@ public class TackleEnemy : Enemy
 
     public bool TryChoosePatrolDestination(out Vector3 destination)
     {
+        EnsureAgentOnNavMesh();
         Vector3 origin = transform.position;
+        Vector3 fallback = origin;
+        bool hasFallback = false;
 
         for (int attempt = 0; attempt < 8; attempt++)
         {
@@ -463,14 +467,43 @@ public class TackleEnemy : Enemy
             Vector3 flat = candidate - origin;
             flat.y = 0.0f;
 
-            if (flat.sqrMagnitude >= 1.0f)
+            if (flat.sqrMagnitude < 1.0f)
+            {
+                continue;
+            }
+
+            if (CanPathTo(candidate))
             {
                 destination = candidate;
                 return true;
             }
+
+            fallback = candidate;
+            hasFallback = true;
+        }
+
+        if (hasFallback)
+        {
+            destination = fallback;
+            return true;
         }
 
         return TryPickPatrolCandidate(out destination);
+    }
+
+    private bool CanPathTo(Vector3 destination)
+    {
+        if (_agent == null || !_agent.isActiveAndEnabled || !_agent.isOnNavMesh)
+        {
+            return false;
+        }
+
+        if (!_agent.CalculatePath(destination, _patrolPath))
+        {
+            return false;
+        }
+
+        return _patrolPath.status == NavMeshPathStatus.PathComplete;
     }
 
     public bool HasReachedPatrolPoint(Vector3 point)
@@ -483,7 +516,7 @@ public class TackleEnemy : Enemy
             return true;
         }
 
-        if (_agent == null || !_agent.enabled || _agent.pathPending || !_agent.hasPath)
+        if (_agent == null || !_agent.enabled || !_agent.isOnNavMesh || _agent.pathPending || !_agent.hasPath)
         {
             return false;
         }
@@ -491,12 +524,12 @@ public class TackleEnemy : Enemy
         return _agent.remainingDistance <= Mathf.Max(0.2f, _agent.stoppingDistance + 0.2f);
     }
 
-    public void BeginPatrolMove(Vector3 destination)
+    public bool BeginPatrolMove(Vector3 destination)
     {
         ApplyPatrolSpeed();
         SetAgentRotationUpdates(false);
         ResumeMove();
-        SetMoveDestination(destination);
+        return SetMoveDestination(destination);
     }
 
     public bool TryTacklePlayer(Vector3 tackleDirection)

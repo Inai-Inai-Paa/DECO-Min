@@ -148,6 +148,9 @@ public partial class Enemy : Character, IDamageable
     private bool _isDespawning;
     private bool _isPopulationReturning;
     private float _populationReturnTimer;
+    private float _populationStallTimer;
+    private Vector3 _populationStallAnchor;
+    private bool _populationDirectMove;
     private bool _hasNotifiedRemoved;
     private Vector3 _spawnPosition;
     private Quaternion _spawnRotation;
@@ -308,7 +311,7 @@ public partial class Enemy : Character, IDamageable
             return;
         }
 
-        if (IsCombatAIFrozen)
+        if (IsCombatAIFrozen || stateMachine == null)
         {
             Destroy(nextState);
             return;
@@ -485,18 +488,20 @@ public partial class Enemy : Character, IDamageable
     /// <summary>
     /// NavMeshAgentの目的地を設定する
     /// </summary>
-    public void SetMoveDestination(Vector3 destination)
+    public bool SetMoveDestination(Vector3 destination)
     {
-        if (_agent == null || !_agent.enabled)
+        if (IsStationary || _isUsingDirectMovement || !EnsureAgentOnNavMesh())
         {
-            return;
+            return false;
         }
 
-        if (NavMesh.SamplePosition(destination, out NavMeshHit hit, _navMeshSearchDistance, NavMesh.AllAreas))
+        if (!NavMesh.SamplePosition(destination, out NavMeshHit hit, _navMeshSearchDistance, NavMesh.AllAreas))
         {
-            _agent.isStopped = false;
-            _agent.SetDestination(hit.position);
+            return false;
         }
+
+        _agent.isStopped = false;
+        return _agent.SetDestination(hit.position);
     }
 
     /// <summary>
@@ -504,7 +509,7 @@ public partial class Enemy : Character, IDamageable
     /// </summary>
     public void StopMove()
     {
-        if (_agent == null || !_agent.enabled)
+        if (!CanControlAgent)
         {
             return;
         }
@@ -517,7 +522,7 @@ public partial class Enemy : Character, IDamageable
     /// </summary>
     public void ResumeMove()
     {
-        if (_agent == null || !_agent.enabled)
+        if (!CanControlAgent)
         {
             return;
         }
@@ -530,7 +535,7 @@ public partial class Enemy : Character, IDamageable
     /// </summary>
     public void MoveDirect(Vector3 moveValue)
     {
-        if (_agent != null && _agent.enabled && !_isUsingDirectMovement)
+        if (CanControlAgent && !_isUsingDirectMovement)
         {
             _agent.Move(moveValue);
             return;
@@ -539,12 +544,59 @@ public partial class Enemy : Character, IDamageable
         transform.position += moveValue;
     }
 
+    public bool IsAgentFollowingPath()
+    {
+        if (!CanControlAgent || _agent.isStopped)
+        {
+            return false;
+        }
+
+        if (_agent.pathPending)
+        {
+            return true;
+        }
+
+        return _agent.hasPath && _agent.pathStatus != NavMeshPathStatus.PathInvalid;
+    }
+
+    public void StepToward(Vector3 destination, float speed)
+    {
+        if (IsStationary || _isUsingDirectMovement)
+        {
+            return;
+        }
+
+        Vector3 offset = destination - transform.position;
+        offset.y = 0.0f;
+
+        if (offset.sqrMagnitude <= 0.0001f)
+        {
+            return;
+        }
+
+        Vector3 step = Vector3.ClampMagnitude(offset, Mathf.Max(0.1f, speed) * Time.deltaTime);
+
+        if (CanControlAgent)
+        {
+            if (_agent.hasPath || _agent.pathPending)
+            {
+                _agent.ResetPath();
+            }
+
+            _agent.isStopped = false;
+            _agent.Move(step);
+            return;
+        }
+
+        transform.position += step;
+    }
+
     /// <summary>
     /// NavMeshAgentが目的地に到着したか確認する
     /// </summary>
     public bool IsArrived()
     {
-        if (_agent == null || !_agent.enabled || _agent.pathPending)
+        if (!CanControlAgent || _agent.pathPending)
         {
             return false;
         }
@@ -936,9 +988,9 @@ public partial class Enemy : Character, IDamageable
         return Vector3.Distance(_spawnPosition, _target.position) <= _maxChaseDistanceFromHome;
     }
 
-    public void SetHomeDestination()
+    public bool SetHomeDestination()
     {
-        SetMoveDestination(_spawnPosition);
+        return SetMoveDestination(_spawnPosition);
     }
 
     public bool IsAtHome()
@@ -991,7 +1043,12 @@ public partial class Enemy : Character, IDamageable
 
         if (_agent != null && _agent.enabled)
         {
-            _agent.isStopped = true;
+            if (_agent.isOnNavMesh)
+            {
+                _agent.isStopped = true;
+                _agent.ResetPath();
+            }
+
             _agent.enabled = false;
         }
     }
@@ -1004,54 +1061,20 @@ public partial class Enemy : Character, IDamageable
         }
 
         _isUsingDirectMovement = false;
-
-        if (IsStationary) return;
-
-        if (_agent == null || _agent.enabled)
-        {
-            return;
-        }
-
-        if (NavMesh.SamplePosition(transform.position, out NavMeshHit hit, _navMeshSearchDistance, NavMesh.AllAreas))
-        {
-            transform.position = hit.position;
-            _agent.enabled = true;
-            return;
-        }
-
-        if (NavMesh.SamplePosition(_spawnPosition, out hit, _navMeshSearchDistance, NavMesh.AllAreas))
-        {
-            transform.position = hit.position;
-            transform.rotation = _spawnRotation;
-            _agent.enabled = true;
-        }
+        EnsureAgentOnNavMesh();
     }
 
     protected virtual void ReturnToSpawn()
     {
-        EndDirectMovement();
+        _isUsingDirectMovement = false;
+        transform.SetPositionAndRotation(_spawnPosition, _spawnRotation);
 
-        if (!IsStationary && _agent != null && NavMesh.SamplePosition(_spawnPosition, out NavMeshHit hit, _navMeshSearchDistance, NavMesh.AllAreas))
+        if (EnsureAgentOnNavMesh())
         {
-            if (_agent.enabled)
-            {
-                _agent.Warp(hit.position);
-            }
-            else
-            {
-                transform.position = hit.position;
-                _agent.enabled = true;
-            }
-
-            _agent.isStopped = true;
             _agent.ResetPath();
-        }
-        else
-        {
-            transform.position = _spawnPosition;
+            _agent.isStopped = true;
         }
 
-        transform.rotation = _spawnRotation;
         _outsideMoveAreaTimer = 0.0f;
     }
 
@@ -1069,6 +1092,9 @@ public partial class Enemy : Character, IDamageable
 
         _isPopulationReturning = true;
         _populationReturnTimer = 0.0f;
+        _populationStallTimer = 0.0f;
+        _populationStallAnchor = transform.position;
+        _populationDirectMove = false;
         _lifecycle = EnemyLifecycle.Return;
         _isCommittedAttack = false;
         ClearAwareness();
@@ -1113,6 +1139,13 @@ public partial class Enemy : Character, IDamageable
             return;
         }
 
+        if (IsStationary)
+        {
+            transform.SetPositionAndRotation(_spawnPosition, _spawnRotation);
+            FinishPopulationReturn();
+            return;
+        }
+
         if (_populationReturnTimer >= Mathf.Max(0.5f, _returnImpossibleTime))
         {
             transform.SetPositionAndRotation(_spawnPosition, _spawnRotation);
@@ -1130,40 +1163,37 @@ public partial class Enemy : Character, IDamageable
             return;
         }
 
-        if (TryMoveAlongNavMeshHome())
+        if (!_populationDirectMove && TryMoveAlongNavMeshHome())
         {
-            return;
+            if (EnemyMotionStall.HasProgress(_populationStallAnchor, transform.position))
+            {
+                _populationStallTimer = 0.0f;
+                _populationStallAnchor = transform.position;
+                return;
+            }
+
+            _populationStallTimer = EnemyMotionStall.Advance(_populationStallTimer, Time.deltaTime);
+
+            if (!EnemyMotionStall.ShouldGiveUp(_populationStallTimer, EnemyMotionStall.ShortGiveUpSeconds))
+            {
+                return;
+            }
+
+            _populationDirectMove = true;
         }
 
-        float speed = _agent != null ? Mathf.Max(0.1f, _agent.speed) : 3.5f;
-        transform.position += offset.normalized * speed * Time.deltaTime;
+        float speed = _agent != null && _agent.speed > 0.1f ? _agent.speed : 3.5f;
+        StepToward(_spawnPosition, speed);
     }
 
     private bool TryMoveAlongNavMeshHome()
     {
-        if (_agent == null)
+        if (IsStationary || _agent == null || !_agent.updatePosition)
         {
             return false;
         }
 
-        if (!_agent.enabled)
-        {
-            _agent.enabled = true;
-        }
-
-        if (!_agent.isOnNavMesh
-            && NavMesh.SamplePosition(transform.position, out NavMeshHit hit, _navMeshSearchDistance, NavMesh.AllAreas))
-        {
-            _agent.Warp(hit.position);
-        }
-
-        if (!_agent.isOnNavMesh)
-        {
-            return false;
-        }
-
-        SetMoveDestination(_spawnPosition);
-        return true;
+        return SetMoveDestination(_spawnPosition);
     }
 
     public virtual void Despawn()
@@ -1931,5 +1961,117 @@ public partial class Enemy : Character, IDamageable
 
         Gizmos.color = color;
         Gizmos.DrawWireCube(GetMoveAreaCenter(), _moveAreaSize);
+    }
+
+    private bool CanControlAgent =>
+        _agent != null && _agent.isActiveAndEnabled && _agent.isOnNavMesh;
+
+    protected bool EnsureAgentOnNavMesh()
+    {
+        if (IsStationary || _isUsingDirectMovement || _agent == null)
+        {
+            return false;
+        }
+
+        PrepareAgentBody();
+
+        if (_agent.isActiveAndEnabled && _agent.isOnNavMesh)
+        {
+            return true;
+        }
+
+        if (!TrySampleNavPosition(transform.position, out Vector3 position)
+            && !TrySampleNavPosition(_spawnPosition, out position))
+        {
+            return false;
+        }
+
+        if (!_agent.enabled)
+        {
+            transform.position = position;
+            _agent.enabled = true;
+        }
+
+        if (!_agent.isOnNavMesh || !_agent.Warp(position))
+        {
+            _agent.enabled = false;
+            transform.position = position;
+            _agent.enabled = true;
+        }
+
+        if (!_agent.isOnNavMesh)
+        {
+            return false;
+        }
+
+        _agent.ResetPath();
+        _agent.isStopped = true;
+        return true;
+    }
+
+    private bool TrySampleNavPosition(Vector3 desired, out Vector3 position)
+    {
+        if (NavMesh.SamplePosition(desired, out NavMeshHit hit, _navMeshSearchDistance, NavMesh.AllAreas))
+        {
+            position = hit.position;
+            return true;
+        }
+
+        position = desired;
+        return false;
+    }
+
+    private void PrepareAgentBody()
+    {
+        if (!TryGetComponent(out Rigidbody body))
+        {
+            return;
+        }
+
+        if (!body.isKinematic)
+        {
+            body.linearVelocity = Vector3.zero;
+            body.angularVelocity = Vector3.zero;
+            body.isKinematic = true;
+        }
+
+        body.useGravity = false;
+
+        if (_isStunned || _isFinishing || _isDisappearing)
+        {
+            return;
+        }
+
+        RigidbodyConstraints constraints = body.constraints;
+        constraints &= ~(RigidbodyConstraints.FreezePositionX
+            | RigidbodyConstraints.FreezePositionY
+            | RigidbodyConstraints.FreezePositionZ);
+        constraints |= RigidbodyConstraints.FreezeRotation;
+        body.constraints = constraints;
+    }
+}
+
+public static class EnemyMotionStall
+{
+    public const float ProgressDistance = 0.05f;
+    public const float GiveUpSeconds = 2.0f;
+    public const float ShortGiveUpSeconds = 1.0f;
+    public const float PathGraceSeconds = 0.35f;
+
+    public static bool HasProgress(Vector3 from, Vector3 to)
+    {
+        Vector3 delta = to - from;
+        delta.y = 0.0f;
+        return delta.sqrMagnitude >= ProgressDistance * ProgressDistance;
+    }
+
+    public static float Advance(float stallSeconds, float deltaTime)
+    {
+        return stallSeconds + Mathf.Max(0.0f, deltaTime);
+    }
+
+    public static bool ShouldGiveUp(float stallSeconds, float limit)
+    {
+        return stallSeconds >= limit;
     }
 }

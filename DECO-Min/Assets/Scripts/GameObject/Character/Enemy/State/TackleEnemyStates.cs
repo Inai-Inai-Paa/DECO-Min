@@ -19,6 +19,9 @@ public class TackleEnemyPatrol : TackleEnemyState
 
     private Phase _phase;
     private float _timer;
+    private float _stallTimer;
+    private bool _directMove;
+    private Vector3 _progressAnchor;
     private Vector3 _destination;
     private Quaternion _turnStart;
     private Quaternion _turnEnd;
@@ -77,26 +80,46 @@ public class TackleEnemyPatrol : TackleEnemyState
                 if (turn >= 1.0f)
                 {
                     tackleEnemy.BeginPatrolMove(_destination);
+                    _stallTimer = 0.0f;
+                    _directMove = false;
+                    _progressAnchor = tackleEnemy.transform.position;
                     _phase = Phase.Move;
                 }
 
                 break;
 
             case Phase.Move:
-                if (tackleEnemy.HasReachedPatrolPoint(_destination))
+            {
+                if (!_directMove
+                    && !tackleEnemy.IsAgentFollowingPath()
+                    && _stallTimer >= EnemyMotionStall.PathGraceSeconds)
                 {
-                    tackleEnemy.StopMoveForState();
+                    _directMove = true;
+                }
 
-                    if (!tackleEnemy.TryChoosePatrolDestination(out _destination))
-                    {
-                        _destination = tackleEnemy.transform.position;
-                    }
+                if (_directMove)
+                {
+                    tackleEnemy.StepToward(_destination, tackleEnemy.PatrolMoveSpeed);
+                }
 
-                    _timer = 0.0f;
-                    _phase = Phase.Wait;
+                bool progressed = EnemyMotionStall.HasProgress(_progressAnchor, tackleEnemy.transform.position);
+                _stallTimer = progressed
+                    ? 0.0f
+                    : EnemyMotionStall.Advance(_stallTimer, Time.deltaTime);
+
+                if (progressed)
+                {
+                    _progressAnchor = tackleEnemy.transform.position;
+                }
+
+                if (tackleEnemy.HasReachedPatrolPoint(_destination)
+                    || EnemyMotionStall.ShouldGiveUp(_stallTimer, EnemyMotionStall.GiveUpSeconds))
+                {
+                    EnterWait();
                 }
 
                 break;
+            }
         }
     }
 
@@ -110,6 +133,21 @@ public class TackleEnemyPatrol : TackleEnemyState
         _turnEnd = direction.sqrMagnitude > 0.0001f
             ? Quaternion.LookRotation(direction.normalized)
             : _turnStart;
+    }
+
+    private void EnterWait()
+    {
+        tackleEnemy.StopMoveForState();
+
+        if (!tackleEnemy.TryChoosePatrolDestination(out _destination))
+        {
+            _destination = tackleEnemy.transform.position;
+        }
+
+        _timer = 0.0f;
+        _stallTimer = 0.0f;
+        _directMove = false;
+        _phase = Phase.Wait;
     }
 }
 
@@ -175,14 +213,22 @@ public class TackleEnemyChase : TackleEnemyState
     {
         if (!tackleEnemy.IsTargetWithinHomeChaseDistanceForState())
         {
-            tackleEnemy._animator.SetTrigger("Return");
+            if (tackleEnemy._animator != null)
+            {
+                tackleEnemy._animator.SetTrigger("Return");
+            }
+
             ChangeTo<TackleEnemyReturn>(null);
             return;
         }
 
         if (!tackleEnemy.HasTargetForState() || tackleEnemy.Awareness == EnemyAwareness.Unaware)
         {
-            tackleEnemy._animator.SetTrigger("Return");
+            if (tackleEnemy._animator != null)
+            {
+                tackleEnemy._animator.SetTrigger("Return");
+            }
+
             ChangeTo<TackleEnemyPatrol>(_patrolState);
             return;
         }
@@ -458,6 +504,9 @@ public class TackleEnemyMoveAreaReturn : TackleEnemyState
     [SerializeField] private EnemyState _patrolState;
 
     private float _returnTimer;
+    private float _stallTimer;
+    private bool _directMove;
+    private Vector3 _progressAnchor;
 
     public override void Enter()
     {
@@ -468,6 +517,9 @@ public class TackleEnemyMoveAreaReturn : TackleEnemyState
         tackleEnemy.ResumeMoveForState();
         tackleEnemy.SetHomeDestinationForState();
         _returnTimer = 0.0f;
+        _stallTimer = 0.0f;
+        _directMove = false;
+        _progressAnchor = tackleEnemy.transform.position;
     }
 
     public override void Update()
@@ -488,9 +540,40 @@ public class TackleEnemyMoveAreaReturn : TackleEnemyState
             return;
         }
 
-        tackleEnemy.ApplyPatrolSpeed();
-        tackleEnemy.ResumeMoveForState();
-        tackleEnemy.SetHomeDestinationForState();
+        bool progressed = EnemyMotionStall.HasProgress(_progressAnchor, tackleEnemy.transform.position);
+        _stallTimer = progressed
+            ? 0.0f
+            : EnemyMotionStall.Advance(_stallTimer, Time.deltaTime);
+
+        if (progressed)
+        {
+            _progressAnchor = tackleEnemy.transform.position;
+        }
+
+        if (!_directMove)
+        {
+            tackleEnemy.ApplyPatrolSpeed();
+            bool acceptedHome = tackleEnemy.SetHomeDestinationForState();
+            bool pathReady = acceptedHome && tackleEnemy.IsAgentFollowingPath();
+
+            if (pathReady && !EnemyMotionStall.ShouldGiveUp(_stallTimer, EnemyMotionStall.GiveUpSeconds))
+            {
+                tackleEnemy.ResumeMoveForState();
+                return;
+            }
+
+            if (!acceptedHome
+                || _stallTimer >= EnemyMotionStall.PathGraceSeconds
+                || EnemyMotionStall.ShouldGiveUp(_stallTimer, EnemyMotionStall.GiveUpSeconds))
+            {
+                _directMove = true;
+            }
+        }
+
+        if (_directMove)
+        {
+            tackleEnemy.StepToward(tackleEnemy.HomePosition, tackleEnemy.PatrolMoveSpeed);
+        }
     }
 }
 
